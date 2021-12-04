@@ -94,7 +94,7 @@ class PlayState extends MusicBeatState
 	public static var sicks:Int = 0;
 	public static var mania:Int = 0;
 	public static var maniaToChange:Int = 0;
-	public static var keyAmmo:Array<Int> = [4, 6, 7, 9];
+	public static var keyAmmo:Array<Int> = [4, 6, 7, 9, 5];
 	public static var stateType=0;
 	public static var invertedChart:Bool = false;
 
@@ -1455,6 +1455,8 @@ class PlayState extends MusicBeatState
 				keys = [false, false, false, false, false, false, false];
 			case 3: 
 				keys = [false, false, false, false, false, false, false, false, false];
+			case 4: 
+				keys = [false, false, false, false, false];
 		}
 
 		if (invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Swap characters"))){
@@ -1744,6 +1746,8 @@ class PlayState extends MusicBeatState
 					dataForThisSection = [0,1,2,3,4,5,6];
 				case 3: 
 					dataForThisSection = [0,1,2,3,4,5,6,7,8];
+				case 4:
+					dataForThisSection = [0,1,2,3,4];
 			}
 
 			for (songNotes in section.sectionNotes)
@@ -2964,6 +2968,22 @@ class PlayState extends MusicBeatState
 							controls.N7_R,
 							controls.N8_R
 						];
+					case 4:
+						hold = [controls.LEFT, controls.DOWN, controls.N4, controls.UP, controls.RIGHT];
+						press = [
+							controls.LEFT_P,
+							controls.DOWN_P,
+							controls.N4_P,
+							controls.UP_P,
+							controls.RIGHT_P
+						];
+						release = [
+							controls.LEFT_R,
+							controls.DOWN_R,
+							controls.N4_R,
+							controls.UP_R,
+							controls.RIGHT_R
+						];
 				}
 				var holdArray:Array<Bool> = hold;
 				var pressArray:Array<Bool> = press;
@@ -2992,6 +3012,8 @@ class PlayState extends MusicBeatState
 						hitArray = [false, false, false, false, false, false, false];
 					case 3: 
 						hitArray = [false, false, false, false, false, false, false, false, false];
+					case 4:
+						hitArray = [false, false, false, false, false];
 				}
 				// PRESSES, check for note hits
 				if (pressArray.contains(true) && /*!boyfriend.stunned && */ generatedMusic)
@@ -3476,6 +3498,22 @@ class PlayState extends MusicBeatState
 							controls.N7_R,
 							controls.N8_R
 						];
+					case 4:
+						hold = [controls.LEFT, controls.DOWN, controls.N4, controls.UP, controls.RIGHT];
+						press = [
+							controls.LEFT_P,
+							controls.DOWN_P,
+							controls.N4_P,
+							controls.UP_P,
+							controls.RIGHT_P
+						];
+						release = [
+							controls.LEFT_R,
+							controls.DOWN_R,
+							controls.N4_R,
+							controls.UP_R,
+							controls.RIGHT_R
+						];
 				}
 				
 				var holdArray:Array<Bool> = hold;
@@ -3493,6 +3531,8 @@ class PlayState extends MusicBeatState
 						hitArray = [false, false, false, false, false, false, false];
 					case 3: 
 						hitArray = [false, false, false, false, false, false, false, false, false];
+					case 4:
+						hitArray = [false, false, false, false, false];
 				}
 		 		callInterp("keyShit",[pressArray,holdArray]);
 		 		charCall("keyShit",[pressArray,holdArray]);

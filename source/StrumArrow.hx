@@ -175,6 +175,32 @@ class StrumArrow extends FlxSprite{
 						animation.addByPrefix('pressed', 'right press', 24, false);
 						animation.addByPrefix('confirm', 'right confirm', 24, false);
 				}
+			case 4:
+				arrowIDs = ['left','down','space','up','right'];
+				setGraphicSize(Std.int(width * Note.noteScale));
+				switch (id)
+				{
+					case 0:
+						animation.addByPrefix('static', 'arrowLEFT');
+						animation.addByPrefix('pressed', 'left press', 24, false);
+						animation.addByPrefix('confirm', 'left confirm', 24, false);
+					case 1:
+						animation.addByPrefix('static', 'arrowDOWN');
+						animation.addByPrefix('pressed', 'down press', 24, false);
+						animation.addByPrefix('confirm', 'down confirm', 24, false);
+					case 2:
+						animation.addByPrefix('static', 'arrowSPACE');
+						animation.addByPrefix('pressed', 'space press', 24, false);
+						animation.addByPrefix('confirm', 'space confirm', 24, false);
+					case 3:
+						animation.addByPrefix('static', 'arrowUP');
+						animation.addByPrefix('pressed', 'up press', 24, false);
+						animation.addByPrefix('confirm', 'up confirm', 24, false);
+					case 4:
+						animation.addByPrefix('static', 'arrowRIGHT');
+						animation.addByPrefix('pressed', 'right press', 24, false);
+						animation.addByPrefix('confirm', 'right confirm', 24, false);					
+				}
 		}
 	}
 	public function playStatic(){

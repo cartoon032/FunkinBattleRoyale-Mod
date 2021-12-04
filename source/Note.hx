@@ -141,6 +141,14 @@ class Note extends FlxSprite
 			mania = 3;
 			noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
 		}
+		else if (PlayState.SONG.mania == 4)
+		{
+			swagWidth = 130 * 0.7;
+			noteScale = 0.65;
+			longnoteScale = 1.625;
+			mania = 4;
+			noteAnims = ['singLEFT','singDOWN','singUP','singUP','singRIGHT'];
+		}
 		super();
 		
 		if (prevNote == null)
@@ -209,14 +217,15 @@ class Note extends FlxSprite
 		switch (mania)
 		{
 			case 0:
-				noteNames = ["purple","blue","green",'red'];
+				noteNames = ['purple','blue','green','red'];
 			case 1: 
 				noteNames = ['purple', 'blue', 'red', 'purple', 'green', 'red'];
 			case 2: 
 				noteNames = ['purple', 'blue', 'red', 'white', 'purple', 'green', 'red'];
 			case 3: 
 				noteNames = ['purple', 'blue', 'green', 'red', 'white', 'purple', 'blue', 'green', 'red'];
-
+			case 4:
+				noteNames = ['purple','blue','white','green','red'];
 		}
 
 		x+= swagWidth * noteData;

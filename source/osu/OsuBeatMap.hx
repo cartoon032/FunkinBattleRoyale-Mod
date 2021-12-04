@@ -58,7 +58,7 @@ class OsuBeatMap{
 					bpm: 120,
 					needsVoices: false,
 					player1: 'bf',
-					player2: 'gf',
+					player2: 'bf',
 					gfVersion: 'gf',
 					noteStyle: 'normal',
 					stage: 'stage',
@@ -66,7 +66,7 @@ class OsuBeatMap{
 					validScore: false,
 					noteMetadata:Song.defNoteMetadata,
 					difficultyString: '[${getSetting("Version")}]',
-					mania:0
+					mania:QuickOptionsSubState.osuSettings["Mania"].value
 				};
 				var hitobjsre:EReg = (~/\[HitObjects\]/gi);
 				hitobjsre.match(bm);
@@ -139,7 +139,7 @@ class OsuBeatMap{
 							trace('New section: ${curSection}');
 						}
 						// var hold = normalizeInt(Math.round(Std.parseInt(hitobjval.matched(6)) - time * 0.01));
-						var nid = Math.floor(int(hitobjval.matched(1)) * 4 / 512);
+						var nid = Math.floor(int(hitobjval.matched(1)) * PlayState.keyAmmo[QuickOptionsSubState.osuSettings["Mania"].value] / 512);
 						hitobjs[curSection].sectionNotes.push([time,nid,hold,0]); 
 						i++;
 						noteCount++;
