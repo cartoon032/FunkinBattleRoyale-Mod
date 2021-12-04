@@ -1,0 +1,106 @@
+
+function initScript(ps){
+}
+
+function noteHitDad(ps,_,note){
+	if (note == null || note.isSustainNote || ps.focusedCharacter != 1) return; // Don't do anything if note is null or if the note is a sus note
+	nh(ps,note);
+}
+function noteHit(ps,_,note){
+	if (note == null || note.isSustainNote || ps.focusedCharacter != 0) return; // Don't do anything if note is null or if the note is a sus note
+	nh(ps,note);
+
+}
+
+function update(ps){
+
+	if(ps.additionCamPos[0] > 0.1) ps.additionCamPos[0]-= 0.1;
+	if(ps.additionCamPos[0] < -0.1)ps.additionCamPos[0]+= 0.1;
+	if(ps.additionCamPos[1] > 0.1) ps.additionCamPos[1]-= 0.1;
+	if(ps.additionCamPos[1] < -0.1)ps.additionCamPos[1]+= 0.1;
+}
+function nh(ps,note){
+	var Pos = [0,0];
+
+	switch(PlayState.mania){
+		case 0:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+			}
+		case 1:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[0] = 16;
+				case 3:
+					Pos[0] = -16;
+				case 4:
+					Pos[1] = -16; 
+				case 5:
+					Pos[0] = 16; 
+			}
+		case 2:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[0] = 16;
+				case 3:
+					Pos[1] = -16; 
+				case 4:
+					Pos[0] = -16;
+				case 5:
+					Pos[1] = -16; 
+				case 6:
+					Pos[0] = 16; 
+			}
+		case 3:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+				case 4:
+					Pos[1] = -16; 
+				case 5:
+					Pos[0] = -16; 
+				case 6:
+					Pos[1] = 16; 
+				case 7:
+					Pos[1] = -16; 
+				case 8:
+					Pos[0] = 16; 
+			}
+		case 4:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[1] = -16; 
+				case 4:
+					Pos[0] = 16; 
+			}
+	}
+	// if(ps.focusedCharacter == 0) Pos[0] = -Pos[0];
+	ps.additionCamPos = Pos;
+}

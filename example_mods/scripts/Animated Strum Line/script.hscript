@@ -42,7 +42,7 @@ function setColor(data,c){
 }
 function miss(ps,_){
 
-	for(direction in [0,1,2,3]){
+	for(direction in 0...PlayState.keyAmmo[PlayState.mania]){
 		setColor(direction,[1,0,0]);
 
 		var dir = (if(direction > 1) 10 else -10) * shakeIntensity; // Adjust shake depending on if the note is on the left or right
@@ -64,7 +64,7 @@ function miss(ps,_){
 
 function update(ps,el){
 	if(coloredArrows){
-		for(direction in [0,1,2,3]){ // Fades back to normal colors
+		for(direction in 0...PlayState.keyAmmo[PlayState.mania]){ // Fades back to normal colors
 
 			if(strums[direction].colorTransform.redMultiplier < 1) strums[direction].colorTransform.redMultiplier += 0.025;
 			if(strums[direction].colorTransform.greenMultiplier < 1) strums[direction].colorTransform.greenMultiplier += 0.025;
