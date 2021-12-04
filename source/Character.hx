@@ -5,7 +5,10 @@ import flixel.graphics.FlxGraphic;
 import flixel.FlxSprite;
 import flixel.animation.FlxBaseAnimation;
 import flixel.animation.FlxAnimation;
+import flixel.animation.FlxAnimationController;
 import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFrame;
+import flixel.graphics.frames.FlxFramesCollection;
 import haxe.Json;
 import haxe.format.JsonParser;
 import haxe.DynamicAccess;
@@ -28,7 +31,24 @@ import hscript.InterpEx;
 import hscript.ParserEx;
 
 
+
+
+
 using StringTools;
+
+class CharAnimController extends FlxAnimationController{
+	override function findByPrefix(AnimFrames:Array<FlxFrame>, Prefix:String):Void
+	{
+		var regTP:EReg = new EReg('${Prefix}[- ]*[0-9][0-9]?[0-9]?[0-9]?','ig'); // Fixes the game improperly registering frames from other animations
+		for (frame in _sprite.frames.frames)
+		{
+			if (frame.name != null && regTP.match(frame.name))
+			{
+				AnimFrames.push(frame);
+			}
+		}
+	}
+}
 
 class Character extends FlxSprite
 {
@@ -91,8 +111,7 @@ class Character extends FlxSprite
 			args.insert(0,this);
 			var method = interp.variables.get(func_name);
 			Reflect.callMethod(interp,method,args);
-			
-			}catch(e){handleError('Something went wrong with ${func_name} for ${curCharacter}, ${e.message}');}
+			}catch(e){handleError('Something went wrong with ${func_name} for ${curCharacter}, ${e.message}'); return;}
 		}
 	function parseHScript(scriptContents:String){
 		if (amPreview || !useHscript){
@@ -284,10 +303,7 @@ class Character extends FlxSprite
 		}else{
 			var e:Dynamic = Reflect.field(TitleState.defCharJson.characters,curCharacter);
 			loadOffsetsFromJSON(e);
-			if(!customColor && e.color != null){
-				definingColor = FlxColor.fromRGB(isValidInt(e.color[0]),isValidInt(e.color[1]),isValidInt(e.color[2],255));
-				customColor = true;
-			}
+			getDefColor(e);
 
 		}
 	}
@@ -299,7 +315,7 @@ class Character extends FlxSprite
 				if (charXml == null){handleError('$curCharacter is missing their XML!');} // Boot to main menu if character's XML can't be loaded
 	
 				tex = FlxAtlasFrames.fromSparrow(FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/${charProperties.path}.png')), charXml);
-			}else{		
+			}else{
 				var pngPath:String = '${charProperties.path}.png';
 				var xmlPath:String = '${charProperties.path}.xml';
 				if (charProperties.asset_files != null){
@@ -308,16 +324,15 @@ class Character extends FlxSprite
 					var selAssets = -10;
 					for (i => charFile in charProperties.asset_files) {
 						if (charFile.char_side != null && charFile.char_side != 3 && charFile.char_side == charType){continue;} // This if statement hurts my brain
-						if (charFile.stage != "" && charFile.stage != null){if(PlayState.curStage.toLowerCase() != charFile.stage.toLowerCase()){continue;}} // Check if charFiletion specifies stage, skip if it doesn't match PlayState's stage
-						if (charFile.song != "" && charFile.song != null){if(PlayState.SONG.song.toLowerCase() != charFile.song.toLowerCase()){continue;}} // Check if charFiletion specifies song, skip if it doesn't match PlayState's song
+						if (charFile.stage != "" && charFile.stage != null && (PlayState.curStage.toLowerCase() != charFile.stage.toLowerCase()) ){continue;} // Check if charFiletion specifies stage, skip if it doesn't match PlayState's stage
+						if (charFile.song != "" && charFile.song != null && (PlayState.SONG.song.toLowerCase() != charFile.song.toLowerCase()) ){continue;} // Check if charFiletion specifies song, skip if it doesn't match PlayState's song
 						var tagsMatched = 0;
 						if (charFile.tags != null && charFile.tags[0] != null && PlayState.stageTags != null){
 							for (i in charFile.tags) {if (PlayState.stageTags.contains(i)) tagsMatched++;}
 							if (tagsMatched == 0) continue;
 						}
 						
-						if (forced == 0 || tagsMatched == forced)
-							selAssets = i;
+						if (forced == 0 || tagsMatched == forced) selAssets = i;
 					}
 					if (selAssets != -10){
 						if (charProperties.asset_files[selAssets].png != null ) pngPath=charProperties.asset_files[selAssets].png;
@@ -361,16 +376,18 @@ class Character extends FlxSprite
 
 
 		switch(charType){
-			case 0: if (charProperties.char_pos1 != null){addOffset('all',charProperties.char_pos1[0],charProperties.char_pos1[1]);}
-			case 1: if (charProperties.char_pos2 != null){addOffset('all',charProperties.char_pos2[0],charProperties.char_pos2[1]);}
-			case 2: if (charProperties.char_pos3 != null){addOffset('all',charProperties.char_pos3[0],charProperties.char_pos3[1]);}
+			case 0: 
+				if (charProperties.char_pos1 != null){addOffset('all',charProperties.char_pos1[0],charProperties.char_pos1[1]);}
+				if (charProperties.cam_pos1 != null){camX += charProperties.cam_pos1[0];camY += charProperties.cam_pos1[1];}
+			case 1: 
+				if (charProperties.char_pos2 != null){addOffset('all',charProperties.char_pos2[0],charProperties.char_pos2[1]);}
+				if (charProperties.cam_pos2 != null){camX += charProperties.cam_pos2[0];camY += charProperties.cam_pos2[1];}
+			case 2: 
+				if (charProperties.char_pos3 != null){addOffset('all',charProperties.char_pos3[0],charProperties.char_pos3[1]);}
+				if (charProperties.cam_pos3 != null){camX += charProperties.cam_pos3[0];camY += charProperties.cam_pos3[1];}
 		}
 
-		switch(charType){
-			case 0: if (charProperties.cam_pos1 != null){camX += charProperties.cam_pos1[0];camY += charProperties.cam_pos1[1];}
-			case 1: if (charProperties.cam_pos2 != null){camX += charProperties.cam_pos2[0];camY += charProperties.cam_pos2[1];}
-			case 2: if (charProperties.cam_pos3 != null){camX += charProperties.cam_pos3[0];camY += charProperties.cam_pos3[1];}
-		}
+
 		if(charProperties.common_stage_offset != null){
 			if (needsInverted == 1 && !isPlayer){
 				addOffset('all',charProperties.common_stage_offset[2],charProperties.common_stage_offset[3]); // Load common stage offset
@@ -382,42 +399,40 @@ class Character extends FlxSprite
 				camY-=charProperties.common_stage_offset[1]; // Load common stage offset for camera too
 			}
 		}
-		if(!customColor && charProperties.color != null){
+		if(!customColor && charProperties.color != null)
 			definingColor = FlxColor.fromRGB(isValidInt(charProperties.color[0]),isValidInt(charProperties.color[1]),isValidInt(charProperties.color[2],255));
-		}
+		
 		if (charProperties.char_pos != null){addOffset('all',charProperties.char_pos[0],charProperties.char_pos[1]);}
 		if (charProperties.cam_pos != null){camX+=charProperties.cam_pos[0];camY+=charProperties.cam_pos[1];}
 		trace('Loaded ${offsetCount} offsets!');
 	}
 	function isValidInt(num:Null<Int>,?def:Int = 0) {return if (num == null) def else num;}
+	function getDefColor(e:CharacterJson){
+		if(!customColor && e.color != null){
+			// switch(Type.typeof(e.color)){
+				if(Std.isOfType(e.color,String)){
+
+					definingColor = FlxColor.fromString(e.color);
+					customColor = true;
+				}else if (Std.isOfType(e.color,Int)){
+					definingColor = FlxColor.fromInt(e.color);
+					customColor = true;
+				}else{
+					if(e.color[0] != null){
+						definingColor = FlxColor.fromRGB(isValidInt(e.color[0]),isValidInt(e.color[1]),isValidInt(e.color[2],255));
+						customColor = true;
+					}
+					else
+						customColor = false;
+				}
+			// }
+		}
+	}
 	function loadJSONChar(charProperties:CharacterJson){
 		
 		trace('Loading Json animations!');
 		// Check if the XML has BF's animations, if so, add them
-		var hasBFAnims:Bool = false;
-		{
-			var regTP:EReg = (~/<SubTexture name="BF idle dance/g);
-			var input:String = charXml;
-			while (regTP.match(input)) {
-				hasBFAnims = true;
-				break;
-			}
-		}
-		if (hasBFAnims){
-			addAnimation('idle', 'BF idle dance', 24, false);
-			addAnimation('singUP', 'BF NOTE UP0', 24, false);
-			// WHY DO THESE NEED TO BE FLIPPED?
-			addAnimation('singLEFT', 'BF NOTE RIGHT0', 24, false); 
-			addAnimation('singRIGHT', 'BF NOTE LEFT0', 24, false);
-			addAnimation('singDOWN', 'BF NOTE DOWN0', 24, false);
-			addAnimation('singUPmiss', 'BF NOTE UP MISS', 24, false);
 
-			addAnimation('singRIGHTmiss', 'BF NOTE LEFT MISS', 24, false);
-			addAnimation('singLEFTmiss', 'BF NOTE RIGHT MISS', 24, false);
-
-			addAnimation('singDOWNmiss', 'BF NOTE DOWN MISS', 24, false);
-			addAnimation('hey', 'BF HEY', 24, false);
-		}
 
 
 
@@ -430,14 +445,15 @@ class Character extends FlxSprite
 
 		if (charProperties.flip_notes) flipNotes = charProperties.flip_notes;
 
-		if(!customColor && charProperties.color != null){
-			definingColor = FlxColor.fromRGB(isValidInt(charProperties.color[0]),isValidInt(charProperties.color[1]),isValidInt(charProperties.color[2],255));
-			customColor = true;
-		}
-
+		// if(!customColor && charProperties.color != null){
+		// 	definingColor = FlxColor.fromRGB(isValidInt(charProperties.color[0]),isValidInt(charProperties.color[1]),isValidInt(charProperties.color[2],255));
+		// 	customColor = true;
+		// }
+		getDefColor(charProperties);
 		
 		trace('Loading Animations!');
 		var animCount = 0;
+		var hasIdle = false;
 		if(charProperties.animations.length > 0){
 			for (anima in charProperties.animations){
 				try{if (anima.anim.substr(-4) == "-alt"){hasAlts=true;} // Alt Checking
@@ -461,15 +477,43 @@ class Character extends FlxSprite
 				}
 				if(anima.loopStart != null && anima.loopStart != 0 )loopAnimFrames[anima.anim] = anima.loopStart;
 				if(anima.playAfter != null && anima.playAfter != '' )loopAnimTo[anima.anim] = anima.playAfter;
-
+				if(anima.anim == "idle" || anima.anim == "danceLeft")hasIdle = true;
 				if (anima.indices.length > 0) { // Add using indices if specified
 					addAnimation(anima.anim, anima.name,anima.indices,"", anima.fps, anima.loop);
 				}else{addAnimation(anima.anim, anima.name, anima.fps, anima.loop);}
+
 				}catch(e){handleError('${curCharacter} had an animation error ${e.message}');break;}
 				animCount++;
 			}
 		}
 		trace('Registered ${animCount} animations');
+		if(!amPreview && !hasIdle){
+			
+			var hasBFAnims:Bool = false;
+			{
+				var regTP:EReg = (~/<SubTexture name="BF idle dance/g);
+				var input:String = charXml;
+				while (regTP.match(input)) {
+					hasBFAnims = true;
+					break;
+				}
+			}
+			if (hasBFAnims){
+				addAnimation('idle', 'BF idle dance', 24, false);
+				addAnimation('singUP', 'BF NOTE UP0', 24, false);
+				// WHY DO THESE NEED TO BE FLIPPED?
+				addAnimation('singLEFT', 'BF NOTE RIGHT0', 24, false); 
+				addAnimation('singRIGHT', 'BF NOTE LEFT0', 24, false);
+				addAnimation('singDOWN', 'BF NOTE DOWN0', 24, false);
+				addAnimation('singUPmiss', 'BF NOTE UP MISS', 24, false);
+
+				addAnimation('singRIGHTmiss', 'BF NOTE LEFT MISS', 24, false);
+				addAnimation('singLEFTmiss', 'BF NOTE RIGHT MISS', 24, false);
+
+				addAnimation('singDOWNmiss', 'BF NOTE DOWN MISS', 24, false);
+				addAnimation('hey', 'BF HEY', 24, false);
+			}
+		}
 		setGraphicSize(Std.int(width * charProperties.scale)); // Setting size
 		updateHitbox();
 
@@ -660,6 +704,9 @@ class Character extends FlxSprite
 		if (curCharacter == 'dad'){dadVar = 6.1;}
 		this.isPlayer = isPlayer;
 		amPreview = preview;
+
+		animation = new CharAnimController(this);
+
 		if(charJson != null) charProperties = charJson;
 		switch(charType){case 1:definingColor = FlxColor.RED;default:definingColor = FlxColor.GREEN;}
 		
@@ -1006,7 +1053,7 @@ class Character extends FlxSprite
 			#if debug
 			trace('Error with $curCharacter: ${e.stack} ${e.message}');
 			#end
-			MainMenuState.handleError('Error with $curCharacter: ' + e.message + "");
+			MainMenuState.handleError('Error with $curCharacter: ${e}');
 			return;
 		}
 	}
@@ -1042,7 +1089,7 @@ class Character extends FlxSprite
 		}
 
 		super.update(elapsed);
-	}catch(e:Dynamic){MainMenuState.handleError('Caught character "update" crash: ${e.message}');}}
+	}catch(e:Dynamic){MainMenuState.handleError('Caught character "update" crash: ${e}');}}
 
 
 	/**
@@ -1145,6 +1192,14 @@ class Character extends FlxSprite
 			}
 		}
 		skipNextAnim = false;
+	}
+	public function playAnimAvailable(animList:Array<String>){
+		for (i in animList) {
+			if(animation.getByName(i) != null){
+				playAnim(i);
+				return;
+			}
+		}
 	}
 	public function cloneAnimation(name:String,anim:FlxAnimation){
 		try{

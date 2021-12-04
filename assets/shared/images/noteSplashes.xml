@@ -1,46 +1,30 @@
-<?xml version='1.0' encoding='utf-8'?>
-<TextureAtlas imagePath="splash.png"><SubTexture name="splash black0000" x="0" y="0" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash black0001" x="304" y="0" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash black0002" x="608" y="0" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash black0003" x="912" y="0" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkred0000" x="0" y="304" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkred0001" x="304" y="304" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkred0002" x="608" y="304" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkred0003" x="912" y="304" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash blue0000" x="0" y="608" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash blue0001" x="304" y="608" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash blue0002" x="608" y="608" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash blue0003" x="912" y="608" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkblue0000" x="0" y="912" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkblue0001" x="304" y="912" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkblue0002" x="608" y="912" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash darkblue0003" x="912" y="912" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash green0000" x="0" y="1216" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash green0001" x="304" y="1216" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash green0002" x="608" y="1216" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash green0003" x="912" y="1216" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash orange0000" x="0" y="1520" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash orange0001" x="304" y="1520" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash orange0002" x="608" y="1520" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash orange0003" x="912" y="1520" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash purple0000" x="0" y="1824" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash purple0001" x="304" y="1824" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash purple0002" x="608" y="1824" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash purple0003" x="912" y="1824" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash red0000" x="0" y="2128" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash red0001" x="304" y="2128" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash red0002" x="608" y="2128" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash red0003" x="912" y="2128" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash violet0000" x="0" y="2432" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash violet0001" x="304" y="2432" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash violet0002" x="608" y="2432" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash violet0003" x="912" y="2432" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash white0000" x="0" y="2736" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash white0001" x="304" y="2736" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash white0002" x="608" y="2736" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash white0003" x="912" y="2736" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash yellow0000" x="0" y="3040" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash yellow0001" x="304" y="3040" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash yellow0002" x="608" y="3040" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
-<SubTexture name="splash yellow0003" x="912" y="3040" width="304" height="304" frameX="0" frameY="0" frameWidth="304" frameHeight="304" />
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="noteSplashes.png">
+	<!-- Created with Adobe Animate version 21.0.0.35450 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="NoteSplashBlue0000" x="0" y="0" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashBlue0001" x="284" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashBlue0002" x="568" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashBlue0003" x="852" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashBlue0004" x="1136" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0000" x="1420" y="0" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashGreen0001" x="1704" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0002" x="0" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0003" x="284" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0004" x="568" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashPurple0000" x="852" y="288" width="283" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashPurple0001" x="1135" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashPurple0002" x="1418" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashPurple0003" x="1701" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashPurple0004" x="0" y="576" width="283" height="288"/>
+	<SubTexture name="NoteSplashRed0000" x="283" y="576" width="284" height="287" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashRed0001" x="567" y="576" width="284" height="287"/>
+	<SubTexture name="NoteSplashRed0002" x="851" y="576" width="284" height="287"/>
+	<SubTexture name="NoteSplashRed0003" x="1135" y="576" width="284" height="287"/>
+	<SubTexture name="NoteSplashRed0004" x="1419" y="576" width="284" height="287"/>
+	<SubTexture name="NoteSplashWhite0000" x="1703" y="576" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashWhite0001" x="0" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashWhite0002" x="284" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashWhite0003" x="568" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashWhite0004" x="852" y="864" width="284" height="288"/>
 </TextureAtlas>

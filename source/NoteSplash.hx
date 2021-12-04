@@ -13,18 +13,18 @@ using StringTools;
 
 class NoteSplash extends FlxSprite
 {  
-	static var fram:FlxFramesCollection;
+	public var data:Int = 0;
 	override public function new()
 	{
 		try{
 
 			super();
 			frames = Paths.getSparrowAtlas("noteSplashes");
-			animation.addByPrefix("blue", "splash blue", 24, false);
-			animation.addByPrefix("green", "splash green", 24, false);
-			animation.addByPrefix("purple", "splash purple", 24, false);
-			animation.addByPrefix("red", "splash red", 24, false);
-			animation.addByPrefix("white", "splash white", 24, false);
+			animation.addByPrefix("blue", "NoteSplashBlue", 24, false);
+			animation.addByPrefix("green", "NoteSplashGreen", 24, false);
+			animation.addByPrefix("purple", "NoteSplashPurple", 24, false);
+			animation.addByPrefix("red", "NoteSplashRed", 24, false);
+			animation.addByPrefix("white", "NoteSplashWhite", 24, false);
 		}catch(e){
 			MainMenuState.handleError('Error while loading NoteSplashes ${e.message}');
 		}
@@ -34,17 +34,31 @@ class NoteSplash extends FlxSprite
 
 	public function setupNoteSplash(xPos:Float, yPos:Float,?note:Int = 0)
 	{
-		x = xPos;
-		y = yPos;
-		alpha = 0.6;
-		animation.play(Note.noteNames[note], true);
-		animation.finishCallback = finished;
-		animation.curAnim.frameRate = 24;
-		updateHitbox();
-		// Stolen from psych but whatever
-		setPosition(x - Note.swagWidth * 0.95, y - Note.swagWidth);
-		offset.set(10, 10);
-		// offset.set(0.3 * width, 0.3 * height);
+		try{
+			x = xPos;
+			y = yPos;
+			alpha = 0.6;
+			animation.play(Note.noteNames[note], true);
+			animation.finishCallback = finished;
+			animation.curAnim.frameRate = 24;
+			data = note;
+			updateHitbox();
+			switch (NoteAssets.splashType) {
+				case "psych":
+					setPosition(x - Note.swagWidth * 0.95, y - Note.swagWidth);
+					offset.set(10, 10);
+				case "vanilla": // From DotEngine
+					offset.set(width * 0.3, height * 0.3);
+				case "custom":
+					// Do nothing
+				default:
+					setPosition(x - Note.swagWidth * 0.95, y - Note.swagWidth);
+					offset.set(-40, -40);
+			}
+		}catch(e){
+			MainMenuState.handleError('Error while setting up a NoteSplash ${e.message}');
+		}
+		// offset.set(-0.5 * -width, 0.5 * -height);
 	}
 	function finished(name:String){
 		kill();

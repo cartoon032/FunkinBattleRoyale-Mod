@@ -19,6 +19,8 @@ import flixel.util.FlxTimer;
 import sys.FileSystem;
 import sys.io.File;
 import openfl.net.FileReference;
+import flixel.graphics.frames.FlxAtlasFrames;
+import flash.display.BitmapData;
 
 import haxe.Json;
 
@@ -111,29 +113,29 @@ class AnimationDebug extends MusicBeatState
 
 	public function new(?daAnim:String = 'bf',?isPlayer=false,?charType_:Int=1,?charSel:Bool = false)
 	{
-		if (!PlayState.hasStarted){
-			// try{
-			// 	PlayState.SONG = {
-			// 		song: "Nothing",
-			// 		notes: [],
-			// 		bpm: 120,
-			// 		needsVoices: false,
-			// 		player1: 'bf',
-			// 		player2: 'bf',
-			// 		gfVersion: 'gf',
-			// 		noteStyle: 'normal',
-			// 		stage: 'stage',
-			// 		speed: 2.0,
-			// 		validScore: false,
-			// 		difficultyString: "Unknown"
-			// 	};
-			// 	var e = new PlayState();
-			// 	e.destroy();
-			// }catch(e){
-			MainMenuState.handleError("A song needs to be loaded first!");
-			return;
-			// }
-		} 
+		// if (!PlayState.hasStarted){
+		// 	// try{
+		// 	// 	PlayState.SONG = {
+		// 	// 		song: "Nothing",
+		// 	// 		notes: [],
+		// 	// 		bpm: 120,
+		// 	// 		needsVoices: false,
+		// 	// 		player1: 'bf',
+		// 	// 		player2: 'bf',
+		// 	// 		gfVersion: 'gf',
+		// 	// 		noteStyle: 'normal',
+		// 	// 		stage: 'stage',
+		// 	// 		speed: 2.0,
+		// 	// 		validScore: false,
+		// 	// 		difficultyString: "Unknown"
+		// 	// 	};
+		// 	// 	var e = new PlayState();
+		// 	// 	e.destroy();
+		// 	// }catch(e){
+		// 	MainMenuState.handleError("A song needs to be loaded first!");
+		// 	return;
+		// 	// }
+		// } 
 			// MainMenuState.handleError("A song needs to be loaded first due to a crashing bug!");
 		super();
 		
@@ -146,7 +148,10 @@ class AnimationDebug extends MusicBeatState
 		trace('Animation debug with ${daAnim},${if(isPlayer) "true" else "false"},${charType}');
 
 	}
-
+	override function beatHit(){
+		super.beatHit();
+		if(gf != null) gf.dance();
+	}
 	override function create()
 	{
 		try{
@@ -172,33 +177,51 @@ class AnimationDebug extends MusicBeatState
 			gridBG.cameras = [camGame];
 			add(gridBG);
 			// Emulate playstate's setup
+			try{
 
-			var stageFront:FlxSprite = new FlxSprite(-650, 600).loadGraphic(Paths.image('stagefront'));
-			stageFront.setGraphicSize(Std.int(stageFront.width * 1.1));
-			stageFront.updateHitbox();
-			stageFront.antialiasing = false;
-			stageFront.scrollFactor.set(0.9, 0.9);
-			stageFront.active = false;
-			stageFront.cameras = [camGame];
-			add(stageFront);
+				var stageFront:FlxSprite = new FlxSprite(-650, 600).loadGraphic(FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/stagefront.png')));
+				stageFront.setGraphicSize(Std.int(stageFront.width * 1.1));
+				stageFront.updateHitbox();
+				stageFront.antialiasing = false;
+				stageFront.scrollFactor.set(0.9, 0.9);
+				stageFront.active = false;
+				stageFront.cameras = [camGame];
+				add(stageFront);
+
+				if (charType != 2){
+					gf = new Character(400, 100, "gf",false,2,true,
+					FlxAtlasFrames.fromSparrow(FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/characters/GF_assets.png')), File.getContent('assets/shared/images/characters/GF_assets.xml'))
+					);
+					gf.scrollFactor.set(0.95, 0.95);
+					gf.animation.finishCallback = function(name:String) gf.idleEnd(true);
+					gf.cameras = [camGame];
+					add(gf);
+				}
+				if (charType == 2){
+					gf = new Character(790, 100, "bf",true,2,true,
+					FlxAtlasFrames.fromSparrow(FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/characters/BOYFRIEND.png')), File.getContent('assets/shared/images/characters/BOYFRIEND.xml'))
+					);
+					gf.scrollFactor.set(0.95, 0.95);
+					gf.dance();
+					// gf.animation.finishCallback = function(name:String) gf.idleEnd(true);
+					gf.cameras = [camGame];
+					add(gf);
+				}
+			}catch(e){
+				trace("Hey look, an error:" + e.stack + ";\n\\Message:" + e.message);
+			}
 			offsetTopText = new FlxText(30,20,0,'');
 			offsetTopText.setFormat(CoolUtil.font, 24, FlxColor.BLACK, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.WHITE);
 			offsetTopText.scrollFactor.set();
 			offsetTopText.cameras = [camHUD];
-			if (charType != 2){
-				gf = new Character(400, 100, "gf",false,2,true);
-				gf.scrollFactor.set(0.95, 0.95);
-				gf.animation.finishCallback = function(name:String) gf.idleEnd(true);
-				gf.cameras = [camGame];
-				add(gf);
-			}
-			animDropDown = new FlxUIDropDownMenu(FlxG.width - 300, 50, FlxUIDropDownMenu.makeStrIdLabelArray([''], true), function(id:String)
+			animDropDown = new PsychDropDown(FlxG.width - 300, 50, FlxUIDropDownMenu.makeStrIdLabelArray([''], true), function(id:String)
 			{
 				trace('Drop: ${Std.parseInt(id)}');
 				var anim = animList[Std.parseInt(id)];
 				playAnim(anim);
 				// animToPlay = anim;
 			});
+
 			animDropDown.selectedLabel = '';
 			animDropDown.cameras = [camHUD];
 			add(animDropDown);
@@ -217,6 +240,7 @@ class AnimationDebug extends MusicBeatState
 			camGame.follow(camFollow);
 			super.create();
 			spawnChar();
+			if(dad == null)throw("Player object is null!");
 			updateCharPos(0,0,false,false);
 
 
@@ -244,7 +268,7 @@ class AnimationDebug extends MusicBeatState
 			quitHeldBar.cameras = quitHeldBG.cameras = [camHUD];
 			add(quitHeldBar);
 
-		}catch(e) MainMenuState.handleError('Error occurred, try loading a song first. ${e.message}');
+		}catch(e) {if(PlayState.SONG == null) MainMenuState.handleError('Error occurred, Try loading a song and then opening this again. ${e.details()}'); else MainMenuState.handleError('Error occurred, while loading Animation Debug. ${e.stack} ${e.message}');}
 	}
 	function spawnChar(?reload:Bool = false,?resetOffsets = true,?charProp:CharacterJson = null){
 		try{
@@ -295,11 +319,12 @@ class AnimationDebug extends MusicBeatState
 
 			add(dadBG);
 			add(dad);
+			if (charType == 2){remove(gf);add(gf);};
 			charJson = dad.charProperties;
 			animList = [];
 			charAnims = ["**Unbind"];
 			if (dad.charXml != null){
-				var regTP:EReg = (~/<SubTexture name="([A-z 0-9]+)[0-9][0-9][0-9][0-9]"/gm);
+				var regTP:EReg = (~/<SubTexture name="([A-z0-9\-_ .,\\\|]+)[0-9][0-9][0-9][0-9]"/gm);
 				var input:String = dad.charXml;
 				while (regTP.match(input)) {
 					input=regTP.matchedRight();
@@ -308,7 +333,6 @@ class AnimationDebug extends MusicBeatState
 					}
 				}
 			}
-			if (charAnims[0] == null){charAnims.push("");}
 			try{
 				if(charJson == null || dad.loadedFrom == "")
 				   canEditJson = false; 
@@ -322,7 +346,7 @@ class AnimationDebug extends MusicBeatState
 				}
 				animDropDown.setData(FlxUIDropDownMenu.makeStrIdLabelArray(animList, true));
 			}catch(e){showTempmessage("Unable to load animation list",FlxColor.RED);}
-		}catch(e) MainMenuState.handleError('Error occurred in spawnChar, animdebug ${e.message}');
+		}catch(e) {MainMenuState.handleError('Error occurred in spawnChar, animdebug ${e.message}');trace(e.message);}
 	}
 
 
@@ -356,7 +380,14 @@ class AnimationDebug extends MusicBeatState
 		}catch(e) MainMenuState.handleError('Error while handling offsets: ${e.message}');
 		
 	}
-
+	function swapSides(){
+		var side = switch (charType) {
+			case 0: 1;
+			case 2: 1;
+			default: 0;
+		};
+		FlxG.switchState(new AnimationDebug(daAnim,side == 0,side,charSel));
+	}
 	function exit(){
 		FlxG.mouse.visible = false;
 		if (charSel){
@@ -480,6 +511,7 @@ class AnimationDebug extends MusicBeatState
 
 			dad.x -= characterX;
 			dad.y -= characterY;
+			dad.y = -dad.y;
 
 			trace('${dad.x},${dad.y}');
 			errorStage = 5; // Position
@@ -602,10 +634,10 @@ class AnimationDebug extends MusicBeatState
 		}
 	}
 
-	function showRawAnim(animName:String){
-		dad.addAnimation("tempanimdebuganimation",animName);
-		animToPlay = "tempanimdebuganimation";
-	}
+
+	// var editorAnim:Map;
+
+
 	function editAnimation(Anim:String,charAnim:CharJsonAnimation,?replace:Bool = false,?unbind:Bool = false){
 		var exists:Bool = false;
 		var id:Int = 0;
@@ -613,6 +645,7 @@ class AnimationDebug extends MusicBeatState
 		for (i => v in charJson.animations) {
 			if (v.anim == Anim) {exists=true;id = i;break;}
 		}
+
 		if (replace){
 			if (unbind){
 				if (exists)
@@ -628,21 +661,27 @@ class AnimationDebug extends MusicBeatState
 
 		} // Finish this later
 	}
-	// var editorAnim:Map;
 
 	var uiMap:Map<String,Dynamic> = new Map<String,Dynamic>(); 
 	var uiBox:FlxUITabMenu;
-	var animDropDown:FlxUIDropDownMenu;
+	var animDropDown:PsychDropDown;
 	var charAnims:Array<String> = [];
 	var animUICurAnim:String = "idle";
 	var animUICurName:String = "";
+	function playTempAnim(name:String){
+		dad.addAnimation("ANIMATIONDEBUG_tempAnim",name,24);
+		dad.playAnim("ANIMATIONDEBUG_tempAnim");
+	}
 	function setupUI(dest:Bool = false){
 		if (dest){
 			uiBox.destroy();
 			uiBox = null;
 			animDropDown.visible = true;
-			if (animDropDown3 != null) animDropDown3.destroy();
-			if (animDropDown2 != null) animDropDown2.destroy();
+			// if (animDropDown3 != null) animDropDown3.destroy();
+			// if (animDropDown2 != null) animDropDown2.destroy();
+			for (_ => v in uiMap) {
+				if (v.destroy != null) v.destroy();
+			}
 			return;
 		}
 
@@ -658,22 +697,25 @@ class AnimationDebug extends MusicBeatState
 		uiMap["animSel"] = new FlxInputTextUpdatable(11, 230, 100, '');
 		// animSel.text = "idle";
 
-		var animDropDown2 = new FlxUIDropDownMenu(10, 260, FlxUIDropDownMenu.makeStrIdLabelArray(INTERNALANIMATIONLIST, true), function(anim:String)
+		var animDropDown2 = new PsychDropDown(10, 260, FlxUIDropDownMenu.makeStrIdLabelArray(INTERNALANIMATIONLIST, true), function(anim:String)
 		{			// animUICurAnim = INTERNALANIMATIONLIST[Std.parseInt(anim)];
 
 			uiMap["animSel"].updateText(INTERNALANIMATIONLIST[Std.parseInt(anim)]);
 			// uiMap["animSel"].textField.text = INTERNALANIMATIONLIST[Std.parseInt(anim)];
 		});
-		animDropDown2.selectedLabel = '';animDropDown2.cameras = [camHUD];
+		animDropDown2.cameras = [camHUD];
 		// animFPS.checked = false;
 		uiBox.add(animDropDown2);
 		uiBox.add(uiMap["animSel"]);
 		
 		animUICurName = charAnims[0];
-		animDropDown3 = new FlxUIDropDownMenu(125, 150, FlxUIDropDownMenu.makeStrIdLabelArray(charAnims, true), function(anim:String)
+		uiMap["animSel"].text = "idle";
+		animDropDown2.selectedLabel = animUICurName;
+		animDropDown3 = new PsychDropDown(125, 150, FlxUIDropDownMenu.makeStrIdLabelArray(charAnims, true), function(anim:String)
 		{
 			// trace('Drop3: ${Std.parseInt(anim)}');
 			animUICurName = charAnims[Std.parseInt(anim)];
+			playTempAnim(animUICurName);
 			// uiMap["animSel"].text = charAnims[Std.parseInt(anim)];
 		});
 		animDropDown3.selectedLabel = '';animDropDown3.cameras = [camHUD];
@@ -682,35 +724,51 @@ class AnimationDebug extends MusicBeatState
 		var animTxt = new FlxText(10, 200,0,"Internal Name");
 		uiBox.add(animTxt);
 
-		var animTxt = new FlxText(140, 130,0,"XML Name");
+		var animTxt = new FlxText(140, 135,0,"XML Name");
 		uiBox.add(animTxt);
+		if(dad.charType == 0){
 
-		// Toggles
+			var warning = new FlxText(2, 180,0,"Anims might not add correctly when editing as BF.\nIt is recommended to add anims as Dad, save and then swap back to editing BF");
+			uiBox.add(warning);
+		}
 
-		var looped = new FlxUICheckBox(30, 40, null, null, "Loop anim");
+		// Togglables 
+
+		var looped = new FlxUICheckBox(30, 20, null, null, "Loop anim");
 		looped.checked = false;
 		uiMap["loop"] = looped;
 		uiBox.add(looped);
-		var oneshot = new FlxUICheckBox(30, 60, null, null, "oneshot/High priority");
+		var oneshot = new FlxUICheckBox(30, 40, null, null, "Oneshot/High priority");
 		oneshot.checked = false;
 		uiMap["oneshot"] = oneshot;
 		uiBox.add(oneshot);
-		var animFPS = new FlxUIInputText(30, 100, null, "24");
+		var animTxt = new FlxText(30, 60,0,"Animation FPS");
+		uiMap["FPStxt"] = animTxt;
+		var animFPS = new FlxUIInputText(30, 80, null, "24");
 		// animFPS.customFilterPattern = ~/[^0-9]/;
 		// animFPS.text = "24";
 		animFPS.filterMode = 2;
 		// animFPS.checked = false;
 		uiMap["FPS"] = animFPS;
 		uiBox.add(animFPS);
-		var animTxt = new FlxText(animFPS.x, animFPS.y - 20,0,"Animation FPS");
 		uiBox.add(animTxt);
-
+		// var animTxt = new FlxText(140, 130,0,"XML Name");
+		// uiBox.add(animTxt);
+		var animTxt = new FlxText(30, 100,0,"Loop Start Frame");
+		uiMap["lstxt"] = animTxt;
+		uiBox.add(animTxt);
+		var animFPS = new FlxUIInputText(30, 120, null, "0");
+		animFPS.filterMode = 2;
+		uiMap["loopStart"] = animFPS;
+		uiBox.add(animFPS);
 		var commitButton = new FlxUIButton(20,160,"Add animation",function(){
-			editAnimation(uiMap["animSel"].text,{
-				anim: uiMap["animSel"].text,
+			var Anim = uiMap["animSel"].text;
+			editAnimation(Anim,{
+				anim: Anim,
 				name: animUICurName,
 				loop: uiMap["loop"].checked,
 				fps: Std.parseInt(uiMap["FPS"].text),
+				loopStart:Std.parseInt(uiMap["loopStart"].text),
 				indices: [],
 				oneshot: (uiMap["oneshot"].checked || animUICurAnim == "hey" || animUICurAnim == "lose")
 			},true,(animUICurName == "**Unbind"));
@@ -718,10 +776,79 @@ class AnimationDebug extends MusicBeatState
 		});
 		uiBox.add(commitButton);
 
+
+
+		// ----------------
+		// Config editor
+		// ----------------
+
+
+		var uiBox2 = new FlxUITabMenu(null, [{name:"Config Editor",label:"Config Editor"}], true);
+		uiBox2.cameras = [camHUD];
+
+		uiBox2.resize(250, 330);
+		uiBox2.x = 15;
+		uiBox2.y = 80;
+		uiBox2.scrollFactor.set();
+		add(uiBox2);
+		uiMap["uiBox2"] = uiBox2;
+
+		var looped = checkBox(30, 40,"No antialiasing","no_antialiasing");
+		uiBox2.add(looped);
+		var looped = checkBox(30, 60,"Flip X","flip_x");
+		uiBox2.add(looped);
+		var looped = checkBox(30, 80,"Spirit Trail","spirit_trail");
+		uiBox2.add(looped);
+
+
+		var commitButton = new FlxUIButton(20,240,"Update character to show changes",function(){
+			spawnChar(true,false,charJson);
+		});
+		commitButton.resize(120,30);
+		uiBox2.add(commitButton);
+
+		var commitButton = new FlxUIButton(20,280,"Back to Offsetting",function(){
+			editMode = 0;
+			setupUI(true);
+			toggleOffsetText(false);
+		});
+		commitButton.resize(120,20);
+		uiBox2.add(commitButton);
+
 	}
+	// static function textBox(x:Float,y:Float,defText:String,name:String,internalName:String):FlxInputTextUpdatable{
+	// 	var ret = new FlxUIInputText(30, 100, null, "24");
+	// 	ret.checked = Reflect.field(charJson,internalName);
+	// 	ret.callback = function(){
+	// 		Reflect.setField(charJson,internalName,uiMap[name].checked);
+	// 	}
+	// 	uiMap[name] = ret;
+	// 	var animTxt = new FlxText(140, 130,0,"XML Name");
+	// 	return ret;
+	// }
+	function checkBox(x:Float,y:Float,name:String,internalName:String):FlxUICheckBox{
+		var ret = new FlxUICheckBox(x, y, null, null, name);
+		ret.checked = Reflect.field(charJson,internalName);
+		ret.callback = function(){
+			Reflect.setField(charJson,internalName,uiMap[name].checked);
+		}
+		uiMap[name] = ret;
+		return ret;
+	}
+	// function textBox(x:Float,y:Float,name:String,internalName:String):FlxUICheckBox{
+	// 	var ret = new FlxUIInputText(x, y, null, null, name);
+	// 	ret.checked = Reflect.field(charJson,internalName);
+	// 	ret.callback = function(){
+	// 		Reflect.setField(charJson,internalName,uiMap[name].checked);
+	// 	}
+	// 	uiMap[name] = ret;
+	// 	return ret;
+	// }
 	var animToPlay:String = "";
-	var animDropDown3:FlxUIDropDownMenu;
-	var animDropDown2:FlxUIDropDownMenu;
+	var animDropDown3:PsychDropDown;
+	var animDropDown2:PsychDropDown;
+	// inline function canSwitch():Bool {return uiMap["FPS"] == null || (!uiMap["FPS"].focused && !uiMap["animSel"].focused );} // This is disgusting but whatever
+
 
 	override function update(elapsed:Float)
 	{
@@ -744,6 +871,7 @@ class AnimationDebug extends MusicBeatState
 		var ctrlPress = FlxG.keys.pressed.CONTROL;
 		var rPress = FlxG.keys.justPressed.R;
 		var hPress = FlxG.keys.justPressed.H;
+		dadBG.y = dad.y;
 		if (hPress && editMode != 2) openSubState(new AnimHelpScreen(canEditJson,editMode));
 		switch(editMode){
 			case 0:{
@@ -780,8 +908,9 @@ class AnimationDebug extends MusicBeatState
 				];
 
 				var modifier = "";
-				if (shiftPress) modifier += "miss";
+				if (shiftPress) {modifier += "miss";}
 				if (ctrlPress) modifier += "-alt";
+				if(FlxG.keys.pressed.SEVEN)swapSides();
 				// var animToPlay = "";
 				for (i => v in pressArray) {
 					if (v){
@@ -908,12 +1037,12 @@ class AnimationDebug extends MusicBeatState
 				}
 			}
 			case 2:{
-				if (FlxG.keys.justPressed.M && (uiMap["FPS"] == null || !uiMap["FPS"].focused && !uiMap["animSel"].focused)){
-					editMode = 0;
-					setupUI(true);
-					toggleOffsetText(false);
+				// if (FlxG.keys.justPressed.M && canSwitch()){
+				// 	editMode = 0;
+				// 	setupUI(true);
+				// 	toggleOffsetText(false);
 
-				}
+				// }
 			}
 		}
 		if (rPress && !pressArray.contains(true)) spawnChar(true);
@@ -962,18 +1091,21 @@ class AnimHelpScreen extends FlxUISubState{
 				+'\n1 - Unloads all offsets from the game or json file, including character position.\n'
 				+'\n2 - Write offsets to offsets.txt in FNFBR\'s folder for easier copying'
 				+(if(canEditJson)'\n3 - Write character info to characters JSON' else '\n3 - Write character info to output.json in FNFBR folder')
-				+'\n4 - Unloads character position from json file.(Useful if the game refuses to save the character\'s position)\n'
+				+'\n4 - Unloads character position from json file.(Useful if the game refuses to save the character\'s position)\n'	
+				+'\n7 - Reloads Animation debug with the character\'s side swapped\n'
 				+"\nB - Hide/Show offset text";
 			case 1:
 				'\n\nArrows - Move camera, Moves per press for accuracy'
 				+'\n *Shift - Hold to move'
 				+'\n *Ctrl - Move by *0.1'
 				+'\n\nUtilities:\n';
+			case 2:
+				'';
 			default:
 				'This should not happen, please report this!.\nEdit mode:${editMode}';
 		})
 		+'\nR - Reload character'
-		+"\nM - Change between Offsetting, Camera and Animation binder modes"
+		+"\nM - Cycle between Offsetting, Camera and config/animation editing modes"
 		+'\n\nC - Open property editor in help screen\nEscape - Close animation debug');
 		controlsText.setFormat(CoolUtil.font, 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		controlsText.scrollFactor.set();

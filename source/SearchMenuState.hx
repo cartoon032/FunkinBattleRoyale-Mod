@@ -42,6 +42,7 @@ class SearchMenuState extends MusicBeatState
 	var buttonText:Map<String,String> = [
 		"Find" => "Find"
 	];
+	var useAlphabet:Bool = true;
 	
 
 	function addTitleText(str:String = ""){
@@ -77,7 +78,7 @@ class SearchMenuState extends MusicBeatState
 		bg = new FlxSprite().loadGraphic(Paths.image("menuDesat"));
 		bg.color = bgColor;
 		bg.scrollFactor.set(0.01,0.01);
-		SickMenuState.musicHandle(bg);
+		SickMenuState.musicHandle();
 		add(bg);
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		reloadList();
@@ -115,7 +116,7 @@ class SearchMenuState extends MusicBeatState
 
 	function addToList(char:String,i:Int = 0){
 				songs.push(char);
-				var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, char, true, false);
+				var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, char, true, false,false,useAlphabet);
 				controlLabel.isMenuItem = true;
 				controlLabel.targetY = i;
 				if (i != 0)

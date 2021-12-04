@@ -6,6 +6,7 @@ import flixel.FlxSprite;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.math.FlxMath;
 import flixel.util.FlxColor;
+import flixel.graphics.FlxGraphic;
 import PlayState;
 
 using StringTools;
@@ -21,7 +22,6 @@ class Note extends FlxSprite
 	public var tooLate:Bool = false;
 	public var wasGoodHit:Bool = false;
 	public var prevNote:Note;
-	public var modifiedByLua:Bool = false;
 	public var sustainLength:Float = 0;
 	public var isSustainNote:Bool = false;
 	public var shouldntBeHit:Bool = false;
@@ -31,26 +31,26 @@ class Note extends FlxSprite
 
 	public var noteScore:Float = 1;
 	public static var mania:Int = 0;
+	public var inCharter:Bool = false;
 
 	public static var swagWidth:Float = 160 * 0.7;
 	public static var noteScale:Float = 0.7;
 	public static var longnoteScale:Float;
-	public static var newNoteScale:Float = 0;
-	public static var prevNoteScale:Float = 0.5;
 	public static var PURP_NOTE:Int = 0;
 	public static var BLUE_NOTE:Int = 1;
 	public static var GREEN_NOTE:Int = 2;
 	public static var RED_NOTE:Int = 3;
 	public static var tooMuch:Float = 30;
-	public static var noteNames:Array<String> = ["purple","blue","green",'red','white'];
+	public static var noteNames:Array<String> = ["purple","blue","green",'red'];
 	public var skipNote:Bool = true;
 	public var childNotes:Array<Note> = [];
 	public var parentNote:Note = null;
 	public var showNote = true;
 	public var info:Array<Dynamic> = [];
-
+	
 	public var rating:String = "shit";
 	public var eventNote:Bool = false;
+	public var aiShouldPress:Bool = true;
 
 
 	public function loadFrames(){
@@ -72,6 +72,7 @@ class Note extends FlxSprite
 				}
 			}
 		}
+
 		animation.addByPrefix('greenScroll', 'green0');
 		animation.addByPrefix('redScroll', 'red0');
 		animation.addByPrefix('blueScroll', 'blue0');
@@ -95,17 +96,21 @@ class Note extends FlxSprite
 		switch (charID) {
 			case 0:PlayState.instance.BFStrumPlayAnim(noteData);
 			case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
-		};
-		PlayState.charAnim(charID,noteAnims[noteData],true);
+		}; // Strums
+
+		PlayState.charAnim(charID,noteAnims[noteData],true); // Play animation
 	}
+
 	dynamic public function miss(?charID:Int = 0,?note:Null<Note> = null){
 		switch (charID) {
 			case 0:PlayState.instance.BFStrumPlayAnim(noteData);
 			case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
-		};
-		PlayState.charAnim(charID,noteAnims[noteData] + "miss",true);
+		}; // Strums
+
+		PlayState.charAnim(charID,noteAnims[noteData] + "miss",true);// Play animation
 	}
-	public static var noteAnims:Array<String> = ['singLEFT','singDOWN','singUP','singRIGHT'];
+	// Array of animations, to be used above
+	public static var noteAnims:Array<String> = ['singLEFT','singDOWN','singUP','singRIGHT']; 
 
 
 	static var psychChars:Array<Int> = [1,0,2]; // Psych uses different character ID's than SE
@@ -157,6 +162,7 @@ class Note extends FlxSprite
 		isSustainNote = sustainNote;
 		mustPress = playerNote; 
 		type = _type;
+		this.inCharter = inCharter;
 
 		if(Std.isOfType(_type,String)) _type = _type.toLowerCase();
 
@@ -164,7 +170,7 @@ class Note extends FlxSprite
 		this.noteData = _noteData % 9; 
 		showNote = !(!playerNote && !FlxG.save.data.oppStrumLine);
 		shouldntBeHit = (isSustainNote && prevNote.shouldntBeHit || (_type == 1 || _type == "hurt note" || _type == "hurt" || _type == true));
-		if(rawNote[1] == -1){ // Psych event notes, These should not be shown, and should not appear on the player's side
+		if(!inCharter && rawNote[1] == -1){ // Psych event notes, These should not be shown, and should not appear on the player's side
 			shouldntBeHit = false; // Make sure it doesn't become a hurt note
 			showNote = false; // Don't show the note
 			this.noteData = 1; // Set it to 0, to prevent issues
@@ -172,6 +178,7 @@ class Note extends FlxSprite
 			eventNote = true; // Just an identifier
 			type =rawNote[2];
 			// _update = function(elapsed:Float){if (strumTime <= Conductor.songPosition) wasGoodHit = true;};
+			frames = new flixel.graphics.frames.FlxFramesCollection(FlxGraphic.fromRectangle(1,1,0x00000000,false,"blank.mp4"));
 			if(rawNote[2] == "Play Animation"){
 				try{
 					// Info can be set to anything, it's being used for storing the Animation and character
@@ -200,9 +207,9 @@ class Note extends FlxSprite
 
 		if (this.strumTime < 0 )
 			this.strumTime = 0;
+		if(PlayState.SONG != null && shouldntBeHit && PlayState.SONG.inverthurtnotes) mustPress=!mustPress;
 
-		
-		if(rawNote != null && PlayState.instance != null) PlayState.instance.callInterp("noteCreate",[this,rawNote]);
+		if(!inCharter && rawNote != null && PlayState.instance != null) PlayState.instance.callInterp("noteCreate",[this,rawNote]);
 
 
 		//defaults if no noteStyle was found in chart
@@ -302,8 +309,8 @@ class Note extends FlxSprite
 			}
 			else
 			{
-				if (strumTime <= Conductor.songPosition)
-					wasGoodHit = (!shouldntBeHit);
+				if (strumTime <= Conductor.songPosition && aiShouldPress)
+					wasGoodHit = true;
 			}
 
 			// if (tooLate)

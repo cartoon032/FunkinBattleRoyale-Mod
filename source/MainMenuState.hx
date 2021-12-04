@@ -29,7 +29,7 @@ using StringTools;
 
 class MainMenuState extends SickMenuState
 {
-	public static var ver:String = "0.9.0 - T Mod V.3";
+	public static var ver:String = "0.10.0 - T Mod";
 	
 	public static var firstStart:Bool = true;
 
@@ -43,8 +43,9 @@ class MainMenuState extends SickMenuState
 	static var hasWarnedInvalid:Bool = false;
 	
 	public static function handleError(?error:String = "An error occurred",?details:String=""):Void{
-		if (MainMenuState.errorMessage != "") return; // Prevents it from trying to switch states multiple times
-		MainMenuState.errorMessage = error;
+		// if (MainMenuState.errorMessage != "") return; // Prevents it from trying to switch states multiple times
+		if(MainMenuState.errorMessage.contains(error)) return; // Prevents the same error from showing twice
+		MainMenuState.errorMessage += "\n" + error;
 		if(details != "") trace(details);
 		if (onlinemod.OnlinePlayMenuState.socket != null){
 			try{
@@ -125,14 +126,14 @@ class MainMenuState extends SickMenuState
 		    errorText.fieldWidth = 1200;
 		    errorText.setFormat(CoolUtil.font, 32, FlxColor.RED, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		    add(errorText);
-		    MainMenuState.errorMessage="";
 		}
 		
 	}
 
 	override function goBack(){
 		if (otherMenu) {mmSwitch(true);FlxG.sound.play(Paths.sound('cancelMenu'));return;}
-		FlxG.switchState(new TitleState());
+		// FlxG.switchState(new TitleState());
+		// do nothing
 	}
 
 	override function update(elapsed:Float)
@@ -177,6 +178,7 @@ class MainMenuState extends SickMenuState
 	}
 
   override function select(sel:Int){
+		MainMenuState.errorMessage="";
 		if (selected){return;}
 		// if(char != null) {char.playAnim("hey",true);char.playAnim("win",true);}
 		selected = true;

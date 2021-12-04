@@ -67,7 +67,7 @@ class ArrowSelection extends SearchMenuState
 			{
 				for (file in FileSystem.readDirectory(dataDir))
 				{
-					if (file.endsWith(".png") && !file.endsWith("-bad.png") && !file.endsWith("splash.png")){
+					if (file.endsWith(".png") && !file.endsWith("-bad.png") && !file.endsWith("-splash.png")){
 						var name = file.substr(0,-4);
 						if (FileSystem.exists('${dataDir}${name}.xml'))
 						{
@@ -79,9 +79,9 @@ class ArrowSelection extends SearchMenuState
 			}else{MainMenuState.handleError('mods/noteassets is not a folder!');}
 			// customCharacters.sort((a, b) -> );
 			haxe.ds.ArraySort.sort(customArrows, function(a, b) {
-						if(a < b) return -1;
-						else if(b > a) return 1;
-						else return 0;
+						 if(a < b) return -1;
+						 else if(b > a) return 1;
+						 else return 0;
 					});
 			for (char in customArrows){
 				searchList.push(char);
@@ -90,6 +90,7 @@ class ArrowSelection extends SearchMenuState
 		generateStaticArrows(1);
 		super.create();
 		add(playerStrums);
+		changeSelection();
 
 	}catch(e) MainMenuState.handleError('Error with notesel "create" ${e.message}');}
 	override function changeSelection(change:Int = 0){
@@ -103,11 +104,6 @@ class ArrowSelection extends SearchMenuState
 	}
 	override function select(sel:Int = 0){
 		FlxG.save.data.noteAsset = songs[curSelected];
+
 	}
-	/*override function extraKeys(){
-		if (FlxG.keys.justPressed.ONE){PlayState.mania = 0;trace('mania = ${PlayState.mania}');}
-		if (FlxG.keys.justPressed.TWO){PlayState.mania = 1;trace('mania = ${PlayState.mania}');}
-		if (FlxG.keys.justPressed.THREE){PlayState.mania = 2;trace('mania = ${PlayState.mania}');}
-		if (FlxG.keys.justPressed.FOUR){PlayState.mania = 3;trace('mania = ${PlayState.mania}');}
-	}it doesn't work and if you press it you can't go back in ArrowSelectoion until you play any song*/
 }

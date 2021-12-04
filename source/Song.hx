@@ -27,6 +27,7 @@ typedef SwagSong =
 	var validScore:Bool;
 	var ?noteMetadata:NoteMetadata;
 	var ?difficultyString:String;
+	var ?inverthurtnotes:Bool;
 }
 typedef NoteMetadata={
 	var badnoteHealth:Float;
@@ -90,47 +91,6 @@ class Song
 		return swagShit;
 	}
 
-	public static function parseJSONshit(rawJson:String):SwagSong
-		{
-			#if !debug
-			try{
-			#end
-				var swagShit:SwagSong = cast Json.parse(rawJson).song;
-				swagShit.validScore = true;
-				swagShit.defplayer1 = swagShit.player1;
-				swagShit.defplayer2 = swagShit.player2;
-				if (PlayState.invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Inverted chart"))) swagShit = invertChart(swagShit);
-				swagShit = modifyChart(swagShit);
-				// if (QuickOptionsSubState.getSetting("Hurt notes") || onlinemod.OnlinePlayMenuState.socket != null) swagShit = convHurtArrows(swagShit);
-				// if (onlinemod.OnlinePlayMenuState.socket == null){
-				// 	if (!QuickOptionsSubState.getSetting("Opponent arrows")) swagShit = removeOpponentArrows(swagShit);
-				// 	if (!QuickOptionsSubState.getSetting("Hurt notes")) swagShit = removeHurtArrows(swagShit);
-				// }
-				if(QuickOptionsSubState.getSetting("Scroll speed") > 0) swagShit.speed = QuickOptionsSubState.getSetting("Scroll speed");
-				if (swagShit.noteMetadata == null) swagShit.noteMetadata = Song.defNoteMetadata;
-				swagShit.defgf = swagShit.gfVersion;
-				return swagShit;
-			#if !debug
-			}catch(e){
-				MainMenuState.handleError('Error parsing chart: ${e.message}');
-				return {
-					song: "Unable to load chart",
-					notes: [],
-					bpm: 120,
-					needsVoices: false,
-					player1: 'bf',
-					player2: 'bf',
-					gfVersion: 'gf',
-					noteStyle: 'normal',
-					stage: 'stage',
-					speed: 2.0,
-					validScore: false,
-					difficultyString: "e",
-					mania: 0
-				};
-			}
-			#end
-		}
 
 	static function modifyChart(swagShit:SwagSong):SwagSong{
 		var hurtArrows = (QuickOptionsSubState.getSetting("Hurt notes") || onlinemod.OnlinePlayMenuState.socket != null);
@@ -150,7 +110,7 @@ class Song
 
 
 				if (hurtArrows){ // Weird if statement to prevent the game from removing hurt arrows unless they should be removed
-					if(note[4] == 1 || note[1] > (PlayState.keyAmmo[swagShit.mania] * 2) - 1) {note[3] = 1;} // Support for Andromeda and tricky notes
+					if(note[4] == 1 || note[1] > PlayState.keyAmmo[swagShit.mania] * 2 - 1) {note[3] = 1;} // Support for Andromeda and tricky notes
 				}else{
 					note[3] = 0;
 				}
@@ -161,6 +121,7 @@ class Song
 
 		}
 		return swagShit;
+
 	}
 	// static function convHurtArrows(swagShit:SwagSong):SwagSong{ // Support for Andromeda and tricky notes
 	// 	for (sid => section in swagShit.notes) {
@@ -170,4 +131,46 @@ class Song
 	// 	}
 	// 	return swagShit;
 	// }
+
+	public static function parseJSONshit(rawJson:String):SwagSong
+	{
+		#if !debug
+		try{
+		#end
+			var swagShit:SwagSong = cast Json.parse(rawJson).song;
+			swagShit.validScore = true;
+			swagShit.defplayer1 = swagShit.player1;
+			swagShit.defplayer2 = swagShit.player2;
+			if (PlayState.invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Inverted chart"))) swagShit = invertChart(swagShit);
+			swagShit = modifyChart(swagShit);
+			// if (QuickOptionsSubState.getSetting("Hurt notes") || onlinemod.OnlinePlayMenuState.socket != null) swagShit = convHurtArrows(swagShit);
+			// if (onlinemod.OnlinePlayMenuState.socket == null){
+			// 	if (!QuickOptionsSubState.getSetting("Opponent arrows")) swagShit = removeOpponentArrows(swagShit);
+			// 	if (!QuickOptionsSubState.getSetting("Hurt notes")) swagShit = removeHurtArrows(swagShit);
+			// }
+			if(QuickOptionsSubState.getSetting("Scroll speed") > 0) swagShit.speed = QuickOptionsSubState.getSetting("Scroll speed");
+			if (swagShit.noteMetadata == null) swagShit.noteMetadata = Song.defNoteMetadata;
+			swagShit.defgf = swagShit.gfVersion;
+			return swagShit;
+		#if !debug
+		}catch(e){
+			MainMenuState.handleError('Error parsing chart: ${e.message}');
+			return {
+				song: "Unable to load chart",
+				notes: [],
+				bpm: 120,
+				needsVoices: false,
+				player1: 'bf',
+				player2: 'bf',
+				gfVersion: 'gf',
+				noteStyle: 'normal',
+				stage: 'stage',
+				speed: 2.0,
+				validScore: false,
+				difficultyString: "e",
+				mania: 0
+			};
+		}
+		#end
+	}
 }

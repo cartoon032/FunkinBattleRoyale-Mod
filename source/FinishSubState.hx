@@ -17,6 +17,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.FlxObject;
 import flixel.ui.FlxBar;
+import flixel.FlxCamera;
 
 class FinishSubState extends MusicBeatSubstate
 {
@@ -28,15 +29,16 @@ class FinishSubState extends MusicBeatSubstate
 	var offsetChanged:Bool = false;
 	var win:Bool = true;
 	var ready = false;
-	var camFollow:FlxObject;
 	var week:Bool = false;
 	var errorMsg:String = "";
 	var isError:Bool = false;
 	var healthBarBG:FlxSprite;
 	var healthBar:FlxBar;
-	var iconP1:HealthIcon; //making these public again because i may be stupid
-	var iconP2:HealthIcon; //what could go wrong?
-	public function new(x:Float, y:Float,?won = true,?camFollow:FlxObject,?week:Bool = false,?error:String = "")
+	var iconP1:HealthIcon; 
+	var iconP2:HealthIcon;
+	public static var pauseGame:Bool = true;
+	public static var autoEnd:Bool = true;
+	public function new(x:Float, y:Float,?won = true,?week:Bool = false,?error:String = "")
 	{
 		if (error != ""){
 			isError = true;
@@ -45,6 +47,13 @@ class FinishSubState extends MusicBeatSubstate
 			
 		}
 		FlxG.camera.alpha = PlayState.instance.camGame.alpha = PlayState.instance.camHUD.alpha = 1;
+		PlayState.instance.followChar(0);
+		if(!isError){
+			var inName = if(won)"winSong" else "loseSong";
+			PlayState.instance.callInterp(inName,[]);
+			PlayState.dad.callInterp(inName,[]);
+			PlayState.boyfriend.callInterp(inName,[]);
+		}
 
 		this.week = week;
 		if(!isError) FlxG.state.persistentUpdate = true; else FlxG.state.persistentUpdate = false;
@@ -59,65 +68,75 @@ class FinishSubState extends MusicBeatSubstate
 		healthBarBG = PlayState.instance.healthBarBG;
 		iconP1 = PlayState.instance.iconP1;
 		iconP2 = PlayState.instance.iconP2;
-		// add(healthBar);
-		// add(healthBarBG);
-		// add(iconP2);
-		// add(iconP1);
-
-			if(win){
-				for (g in [PlayState.instance.cpuStrums,PlayState.instance.playerStrums]) {
-					g.forEach(function(i){
-						FlxTween.tween(i, {y:if(FlxG.save.data.downscroll)FlxG.height + 200 else -200},1,{ease: FlxEase.expoIn});
-					});
-				}
-				if (FlxG.save.data.songPosition)
-				{
-					for (i in [PlayState.songPosBar,PlayState.songPosBG,PlayState.instance.songName,PlayState.instance.songTimeTxt]) {
-						FlxTween.tween(i, {y:if(FlxG.save.data.downscroll)FlxG.height + 200 else -200},1,{ease: FlxEase.expoIn});
-					}
-				}
-
-				FlxTween.tween(healthBar, {y:Std.int(FlxG.height * 0.10)},1,{ease: FlxEase.expoIn});
-				FlxTween.tween(healthBarBG, {y:Std.int(FlxG.height * 0.10 - 4)},1,{ease: FlxEase.expoIn});
-				FlxTween.tween(iconP1, {y:Std.int(FlxG.height * 0.10 - (iconP1.height * 0.5))},0.8,{ease: FlxEase.expoIn});
-				FlxTween.tween(iconP2, {y:Std.int(FlxG.height * 0.10 - (iconP2.height * 0.5))},0.8,{ease: FlxEase.expoIn});
 
 
-
-
-				FlxTween.tween(PlayState.instance.kadeEngineWatermark, {y:FlxG.height + 200},1,{ease: FlxEase.expoIn});
-				FlxTween.tween(PlayState.instance.scoreTxt, {y:if(FlxG.save.data.downscroll) -200 else FlxG.height + 200},1,{ease: FlxEase.expoIn});
+		if(win){
+			for (g in [PlayState.instance.cpuStrums,PlayState.instance.playerStrums]) {
+				g.forEach(function(i){
+					FlxTween.tween(i, {y:if(FlxG.save.data.downscroll)FlxG.height + 200 else -200},1,{ease: FlxEase.expoIn});
+				});
 			}
+			if (FlxG.save.data.songPosition)
+			{
+				for (i in [PlayState.songPosBar,PlayState.songPosBG,PlayState.instance.songName,PlayState.instance.songTimeTxt]) {
+					FlxTween.tween(i, {y:if(FlxG.save.data.downscroll)FlxG.height + 200 else -200},1,{ease: FlxEase.expoIn});
+				}
+			}
+
+			FlxTween.tween(healthBar, {y:Std.int(FlxG.height * 0.10)},1,{ease: FlxEase.expoIn});
+			FlxTween.tween(healthBarBG, {y:Std.int(FlxG.height * 0.10 - 4)},1,{ease: FlxEase.expoIn});
+			FlxTween.tween(iconP1, {y:Std.int(FlxG.height * 0.10 - (iconP1.height * 0.5))},1,{ease: FlxEase.expoIn});
+			FlxTween.tween(iconP2, {y:Std.int(FlxG.height * 0.10 - (iconP2.height * 0.5))},1,{ease: FlxEase.expoIn});
+
+
+
+
+			FlxTween.tween(PlayState.instance.kadeEngineWatermark, {y:FlxG.height + 200},1,{ease: FlxEase.expoIn});
+			FlxTween.tween(PlayState.instance.scoreTxt, {y:if(FlxG.save.data.downscroll) -200 else FlxG.height + 200},1,{ease: FlxEase.expoIn});
+		}
 		if(!isError){
 			if(win){
-				boyfriend.playAnim("hey",true);
-				boyfriend.playAnim("win",true);
-				if (PlayState.SONG.player2 == FlxG.save.data.gfChar) dad.playAnim('cheer'); else {dad.playAnim('singDOWNmiss');dad.playAnim('lose');}
+				boyfriend.playAnimAvailable(['win','hey','singUP']);
+				
+				if (PlayState.SONG.player2 == FlxG.save.data.gfChar) dad.playAnim('cheer'); else {dad.playAnimAvailable(['lose','singDOWNmiss']);}
 				PlayState.gf.playAnim('cheer',true);
 			}else{
-				boyfriend.playAnim('singDOWNmiss');
-				boyfriend.playAnim('lose');
-				dad.playAnim("hey",true);
-				dad.playAnim("win",true);
+				// boyfriend.playAnim('singDOWNmiss');
+				// boyfriend.playAnim('lose');
+
+				// dad.playAnim("hey",true);
+				// dad.playAnim("win",true);
+				boyfriend.playAnimAvailable(['lose','singDOWNmiss']);
+				dad.playAnimAvailable(['win','hey','singUP']);
 				if (PlayState.SONG.player2 == FlxG.save.data.gfChar) dad.playAnim('sad'); else dad.playAnim("hey");
 				PlayState.gf.playAnim('sad',true);
 			}
 		}
 		super();
-		if (win) boyfriend.animation.finishCallback = this.finishNew; else finishNew();
-		PlayState.instance.camHUD.zoom = 1;
-		if (FlxG.save.data.camMovement && camFollow != null){
-			PlayState.instance.followChar(if(win) 0 else 1);
+		if(autoEnd){
+
+			// FlxG.camera.zoom = 1;
+			// PlayState.instance.camHUD.zoom = 1;
+			if (win) boyfriend.animation.finishCallback = this.finishNew; else finishNew();
+			if (FlxG.save.data.camMovement){
+				PlayState.instance.followChar(if(win) 0 else 1);
+			}
 		}
 	}
 
 
-
+	var cam:FlxCamera;
 	public function finishNew(?name:String){
-
+			FlxG.camera.alpha = PlayState.instance.camGame.alpha = PlayState.instance.camHUD.alpha = 1;
+			FlxG.camera.zoom = PlayState.instance.defaultCamZoom;
+			cam = new FlxCamera();
+			FlxG.cameras.add(cam);
+			FlxCamera.defaultCameras = [cam];
 			if (win) PlayState.boyfriend.animation.finishCallback = null; else PlayState.dad.animation.finishCallback = null;
 			ready = true;
-			FlxG.state.persistentUpdate = false;
+			FlxG.state.persistentUpdate = !isError && !pauseGame;
+			pauseGame = true;
+			autoEnd = true;
 			FlxG.sound.pause();
 
 			music = new FlxSound().loadEmbedded(Paths.music(if(win) 'StartItchBuild' else 'gameOver'), true, true);
@@ -127,7 +146,7 @@ class FinishSubState extends MusicBeatSubstate
 				music.onComplete = function(){music = new FlxSound().loadEmbedded(Paths.music('breakfast'), true, true);music.play(false);} 
 
 			}
-			PlayState.instance.camHUD.zoom = 1; // every custom stage i have cam zoom lower than 0.5 so it look pretty bad when it zoom in
+			// FlxG.camera.zoom = PlayState.instance.camHUD.zoom = 1;
 
 			FlxG.sound.list.add(music);
 
@@ -209,6 +228,7 @@ class FinishSubState extends MusicBeatSubstate
 				add(contText);
 				add(settingsText);
 				// add(chartInfoText);
+				healthBar.cameras = healthBarBG.cameras = iconP1.cameras = iconP2.cameras = [cam];
 
 				FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
 				FlxTween.tween(finishedText, {y:20},0.5,{ease: FlxEase.expoInOut});
