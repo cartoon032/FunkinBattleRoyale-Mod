@@ -84,13 +84,13 @@ class MainMenuState extends SickMenuState
 		versionShit.scrollFactor.set();
 		add(versionShit);
 
-		/*if (TitleState.outdated){
-			var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'SE/BR is outdated, Latest: ${TitleState.updatedVer}, Check Changelog for more info', 32);
+		if (TitleState.outdated){
+			var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'SE/BR is outdated, Latest: ${TitleState.updatedVer}, please be patient while i update it', 32);
 			outdatedLMAO.setFormat(CoolUtil.font, 32, FlxColor.RED, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			outdatedLMAO.scrollFactor.set();
  			outdatedLMAO.screenCenter(FlxAxes.X);
 			add(outdatedLMAO);
-		}*/
+		}
 		//  Whole bunch of checks to prevent crashing
 		if (!TitleState.choosableCharacters.contains(FlxG.save.data.playerChar) && FlxG.save.data.playerChar != "automatic"){
 			errorMessage += '\n${FlxG.save.data.playerChar} is an invalid player! Reset back to BF!';
