@@ -423,7 +423,7 @@ class ChartingState extends MusicBeatState
 			for (i in 0..._song.notes[curSection].sectionNotes.length)
 			{
 				var note = _song.notes[curSection].sectionNotes[i];
-				note[1] = (note[1] + 8) % 16;
+				note[1] = (note[1] + keyAmmo[_song.mania]) % (keyAmmo[_song.mania] * 2);
 				_song.notes[curSection].sectionNotes[i] = note;
 				updateGrid();
 			}
