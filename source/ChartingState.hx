@@ -36,6 +36,9 @@ import openfl.events.IOErrorEvent;
 import openfl.media.Sound;
 import openfl.net.FileReference;
 import openfl.utils.ByteArray;
+import flash.media.Sound;
+import sys.FileSystem;
+import sys.io.File;
 
 using StringTools;
 
@@ -44,7 +47,7 @@ class ChartingState extends MusicBeatState
 	var _file:FileReference;
 
 	public var playClaps:Bool = false;
-	public static var charting:Bool = false;
+	public static var charting:Bool = true;
 
 	public var snap:Int = 1;
 
@@ -77,6 +80,10 @@ class ChartingState extends MusicBeatState
 	var gridBG:FlxSprite;
 
 	var _song:SwagSong;
+	var loadedVoices:FlxSound;
+	var loadedInst:Sound;
+	public static var voicesFile = "";
+	public static var instFile = "";
 
 	var typingShit:FlxInputText;
 	/*
@@ -86,7 +93,7 @@ class ChartingState extends MusicBeatState
 
 	var tempBpm:Float = 0;
 	var gridBlackLine:FlxSprite;
-	var vocals:FlxSound;
+	var vocals:FlxSound = null;
 
 	var player2:Character = new Character(0,0, "dad");
 	var player1:Character = new Character(0,0, "bf");
@@ -94,7 +101,7 @@ class ChartingState extends MusicBeatState
 	var leftIcon:HealthIcon;
 	var rightIcon:HealthIcon;
 	var keyAmmo:Array<Int> = [4, 6, 7, 9, 5];
-	var mania:Int = 0;
+
 	private var lastNote:Note;
 	var claps:Array<Note> = [];
 
@@ -103,8 +110,26 @@ class ChartingState extends MusicBeatState
 	override function create()
 	{
 		curSection = lastSection;
-		new onlinemod.OfflinePlayState();
-		new multi.MultiPlayState();
+
+		if (PlayState.SONG != null)
+			_song = PlayState.SONG;
+		else
+		{
+			_song = {
+				song: 'Test',
+				notes: [],
+				bpm: 150,
+				needsVoices: true,
+				player1: 'bf',
+				player2: 'dad',
+				gfVersion: 'gf',
+				noteStyle: 'normal',
+				stage: 'stage',
+				speed: 1,
+				validScore: false,
+				mania: 0
+			};
+		}
 
 		gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 8, GRID_SIZE * 16);
 		add(gridBG);
@@ -134,7 +159,7 @@ class ChartingState extends MusicBeatState
 
 		updateGrid();
 
-		loadSong(_song.song);
+		loadSong();
 		Conductor.changeBPM(_song.bpm);
 		Conductor.mapBPMChanges(_song);
 
@@ -224,12 +249,7 @@ class ChartingState extends MusicBeatState
 
 		var reloadSong:FlxButton = new FlxButton(saveButton.x + saveButton.width + 10, saveButton.y, "Reload Audio", function()
 		{
-			loadSong(_song.song);
-		});
-
-		var reloadSongJson:FlxButton = new FlxButton(reloadSong.x, saveButton.y + 30, "Reload JSON", function()
-		{
-			loadJson(_song.song.toLowerCase());
+			loadSong();
 		});
 
 		
@@ -245,7 +265,7 @@ class ChartingState extends MusicBeatState
                 resetSection(true);
             });
 
-		var loadAutosaveBtn:FlxButton = new FlxButton(reloadSongJson.x, reloadSongJson.y + 30, 'load autosave', loadAutosave);
+		var loadAutosaveBtn:FlxButton = new FlxButton(reloadSong.x, reloadSong.y + 30, 'load autosave', loadAutosave);
 		var stepperBPM:FlxUINumericStepper = new FlxUINumericStepper(10, 65, 0.1, 1, 1.0, 5000.0, 1);
 		stepperBPM.value = Conductor.bpm;
 		stepperBPM.name = 'song_bpm';
@@ -338,7 +358,6 @@ class ChartingState extends MusicBeatState
 		tab_group_song.add(check_mute_inst);
 		tab_group_song.add(saveButton);
 		tab_group_song.add(reloadSong);
-		tab_group_song.add(reloadSongJson);
 		tab_group_song.add(loadAutosaveBtn);
 		tab_group_song.add(stepperBPM);
 		tab_group_song.add(stepperBPMLabel);
@@ -411,7 +430,7 @@ class ChartingState extends MusicBeatState
 			for (i in 0..._song.notes[curSection].sectionNotes.length)
 			{
 				var note = _song.notes[curSection].sectionNotes[i];
-				note[1] = (note[1] + 4) % 8;
+				note[1] = (note[1] + 4) % PlayState.keyAmmo[PlayState.mania];
 				_song.notes[curSection].sectionNotes[i] = note;
 				updateGrid();
 			}
@@ -481,18 +500,18 @@ class ChartingState extends MusicBeatState
 
 	}
 
-	function loadSong(daSong:String):Void
+	function loadSong():Void
 	{
 		if (FlxG.sound.music != null)
 		{
 			FlxG.sound.music.stop();
 			// vocals.stop();
 		}
-
-		FlxG.sound.playMusic(Paths.inst(daSong), 0.6);
+		loadedInst = Sound.fromFile(Paths.inst(_song.song));
+		FlxG.sound.playMusic(loadedInst, 0.6);
 
 		// WONT WORK FOR TUTORIAL OR TEST SONG!!! REDO LATER
-		vocals = new FlxSound().loadEmbedded(Paths.voices(daSong));
+		vocals = new FlxSound().loadEmbedded(Sound.fromFile(Paths.voices(_song.song)));
 		FlxG.sound.list.add(vocals);
 
 		FlxG.sound.music.pause();
@@ -506,6 +525,8 @@ class ChartingState extends MusicBeatState
 			FlxG.sound.music.time = 0;
 			changeSection();
 		};
+		trace('Inst - ${instFile}');
+		trace('Voices - ${voicesFile}');
 	}
 
 	function generateUI():Void
@@ -672,7 +693,7 @@ class ChartingState extends MusicBeatState
 		var delete = false;
 		curRenderedNotes.forEach(function(note:Note)
 			{
-				if (strumLine.overlaps(note) && pressArray[Math.floor(Math.abs(note.noteData))])
+				if (strumLine.overlaps(note))
 				{
 					deleteNote(note);
 					delete = true;
@@ -1213,7 +1234,7 @@ class ChartingState extends MusicBeatState
 			var daStrumTime = i[0];
 			var daSus = i[2];
 
-			var note:Note = new Note(daStrumTime, daNoteInfo % 4,null,false,true);
+			var note:Note = new Note(daStrumTime, daNoteInfo % keyAmmo[PlayState.mania], null, false, true, i[3], i[4]);
 			note.sustainLength = daSus;
 			note.setGraphicSize(GRID_SIZE, GRID_SIZE);
 			note.updateHitbox();
@@ -1506,7 +1527,7 @@ class ChartingState extends MusicBeatState
 	}
 
 	function gotoPlaystate(){
-		ChartingState.charting = true;
+		charting = true;
 		switch(PlayState.stateType){
 			case 2: LoadingState.loadAndSwitchState(new onlinemod.OfflinePlayState()); 
 			case 4: LoadingState.loadAndSwitchState(new multi.MultiPlayState());

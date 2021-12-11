@@ -60,6 +60,7 @@ class MainMenuState extends SickMenuState
 
 	override function create()
 	{
+		ChartingState.charting = false;
 		if (Main.errorMessage != ""){
 			errorMessage = Main.errorMessage;
 			Main.errorMessage = "";

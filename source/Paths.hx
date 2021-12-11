@@ -97,12 +97,20 @@ class Paths
 
 	static public function voices(song:String)
 	{
-		return 'songs:assets/songs/${song.toLowerCase()}/Voices.$SOUND_EXT';
+		switch(PlayState.stateType){
+			case 2: return onlinemod.OfflinePlayState.voicesFile;
+			case 4: return multi.MultiPlayState.voicesFile;
+			default: return 'songs:assets/songs/${song.toLowerCase()}/Voices.$SOUND_EXT';
+		}
 	}
 
 	static public function inst(song:String)
 	{
-		return 'songs:assets/songs/${song.toLowerCase()}/Inst.$SOUND_EXT';
+		switch(PlayState.stateType){
+			case 2: return onlinemod.OfflinePlayState.instFile;
+			case 4: return multi.MultiPlayState.instFile;
+			default: return 'songs:assets/songs/${song.toLowerCase()}/Inst.$SOUND_EXT';
+		}
 	}
 
 	static public function image(key:String, ?library:String)

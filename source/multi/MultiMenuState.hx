@@ -46,6 +46,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 		lastSel = 0;
 		changeDiff();
 		updateInfoText('Use shift to scroll faster; Press CTRL/Control to listen to instrumental of song.');
+		ChartingState.charting = false;
 	}
 	override function reloadList(?reload=false,?search = ""){
 		curSelected = 0;

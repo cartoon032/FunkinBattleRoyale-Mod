@@ -37,9 +37,6 @@ class OfflineMenuState extends SearchMenuState
   }
   override function create()
   {
-
-
-
     super.create();
     optionsButton = new FlxUIButton(1100, 40, "Options", goOptions);
     optionsButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
@@ -49,6 +46,7 @@ class OfflineMenuState extends SearchMenuState
     sideButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
     sideButton.resize(150, 60);
     add(sideButton);
+    ChartingState.charting = false;
   }
   function sortDirListing(listing:Array<String>){
     

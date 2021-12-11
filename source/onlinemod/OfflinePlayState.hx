@@ -14,17 +14,16 @@ import Section.SwagSection;
 
 class OfflinePlayState extends PlayState
 {
-  var loadedVoices:FlxSound;
-  var loadedInst:Sound;
-  var loadingtext:FlxText;
-  var shouldLoadJson:Bool = true;
-  var stateType = 2;
-  var shouldLoadSongs = true;
-  public static var chartFile:String = "";
-  function loadSongs(){
-
-  	var voicesFile = "";
-    var instFile = "";
+	var loadedVoices:FlxSound;
+	var loadedInst:Sound;
+	var loadingtext:FlxText;
+	var shouldLoadJson:Bool = true;
+	var stateType = 2;
+	var shouldLoadSongs = true;
+	public static var voicesFile = "";
+	public static var instFile = "";
+	public static var chartFile:String = "";
+	function loadSongs(){
     for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg']) {
     	if (FileSystem.exists('${Sys.getCwd()}/$i')){
     		instFile = i;
