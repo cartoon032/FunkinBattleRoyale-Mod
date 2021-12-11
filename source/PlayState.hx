@@ -94,7 +94,7 @@ class PlayState extends MusicBeatState
 	public static var sicks:Int = 0;
 	public static var mania:Int = 0;
 	public static var maniaToChange:Int = 0;
-	public static var keyAmmo:Array<Int> = [4, 6, 7, 9, 5];
+	public static var keyAmmo:Array<Int> = [4, 6, 7, 9, 5, 8, 1, 2, 3];
 	public static var stateType=0;
 	public static var invertedChart:Bool = false;
 
@@ -210,6 +210,7 @@ class PlayState extends MusicBeatState
 	public static var altsongScore:Int = 0;
 	var songScoreDef:Int = 0;
 	public var scoreTxt:FlxText;
+	public var judgementCounter:FlxText;
 	var scoreTxtX:Float;
 	var replayTxt:FlxText;
 
@@ -1151,18 +1152,13 @@ class PlayState extends MusicBeatState
 
 		// scoreTxtX = FlxG.width * ;
 		
-		if (FlxG.save.data.songInfo == 0 || FlxG.save.data.songInfo == 3) {
-			scoreTxt = new FlxText(50, healthBarBG.y + 30 - FlxG.save.data.guiGap, 0, (FlxG.save.data.npsDisplay ? "NPS: 0000 (Max 0000)" : "") +                // NPS Toggle
-				" | Score:00000000"+                               // Score
-				" | Combo:00000"+
-				" | Combo Breaks:00000" + PlayState.misses + 																				// Misses/Combo Breaks
-				"\n | Accuracy:000.000%" +  				// Accuracy
-				" | F", 20);
+		if (FlxG.save.data.songInfo == 0 || FlxG.save.data.songInfo == 1 || FlxG.save.data.songInfo == 3) {
+			scoreTxt = new FlxText(50, healthBarBG.y + 30 - FlxG.save.data.guiGap, 0, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
 			scoreTxt.autoSize = false;
 			scoreTxt.wordWrap = false;
 			scoreTxt.alignment = "left";
 		}else {
-			scoreTxt = new FlxText(10 + FlxG.save.data.guiGap, FlxG.height * 0.46 , 600, "NPS: 000000\nScore:00000000\nCombo:00000 (Max 00000)\nCombo Breaks:00000\nAccuracy:0000 %\n Unknown", 20); // Long ass text to make sure it's sized correctly
+			scoreTxt = new FlxText(10 + FlxG.save.data.guiGap, FlxG.height * 0.46 , 600, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 20); // Long ass text to make sure it's sized correctly
 			// scoreTxt.autoSize = true;
 			// scoreTxt.width += 300;
 			scoreTxt.wordWrap = false;
@@ -1299,6 +1295,20 @@ class PlayState extends MusicBeatState
 			rep = new Replay("na");
 		
 		add(scoreTxt);
+		
+		judgementCounter = new FlxText(20, 0, 0, "", 20);
+		judgementCounter.setFormat(CoolUtil.font, 20, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		judgementCounter.borderSize = 2;
+		judgementCounter.borderQuality = 2;
+		judgementCounter.scrollFactor.set();
+		judgementCounter.cameras = [camHUD];
+		judgementCounter.screenCenter(Y);
+		judgementCounter.text = 'Combo: ${combo}\nSicks: ${sicks}\nGoods: ${goods}\nBads: ${bads}\nShits: ${shits}\nMisses: ${misses}\n';
+		if (FlxG.save.data.songInfo == 1)
+		{
+			add(judgementCounter);
+		}
+
 		// FlxG.sound.cache("missnote1");
 		// FlxG.sound.cache("missnote2");
 		// FlxG.sound.cache("missnote3");
@@ -3025,6 +3035,40 @@ class PlayState extends MusicBeatState
 							controls.UP_R,
 							controls.RIGHT_R
 						];
+					case 5:
+						hold = [controls.N0, controls.N1, controls.N2, controls.N3, controls.N5, controls.N6, controls.N7, controls.N8];
+						press = [
+							controls.N0_P,
+							controls.N1_P,
+							controls.N2_P,
+							controls.N3_P,
+							controls.N5_P,
+							controls.N6_P,
+							controls.N7_P,
+							controls.N8_P
+						];
+						release = [
+							controls.N0_R,
+							controls.N1_R,
+							controls.N2_R,
+							controls.N3_R,
+							controls.N5_R,
+							controls.N6_R,
+							controls.N7_R,
+							controls.N8_R
+						];
+					case 6:
+						hold = [controls.N4];
+						press = [controls.N4_P];
+						release = [controls.N4_R];
+					case 7:
+						hold = [controls.LEFT,controls.RIGHT];
+						press = [controls.LEFT_P,controls.RIGHT_P];
+						release = [controls.LEFT_R,controls.RIGHT_R];
+					case 8:
+						hold = [controls.LEFT,controls.N4,controls.RIGHT];
+						press = [controls.LEFT_P,controls.N4_P,controls.RIGHT_P];
+						release = [controls.LEFT_R,controls.N4_R,controls.RIGHT_R];
 				}
 				var holdArray:Array<Bool> = hold;
 				var pressArray:Array<Bool> = press;
@@ -3055,6 +3099,14 @@ class PlayState extends MusicBeatState
 						hitArray = [false, false, false, false, false, false, false, false, false];
 					case 4:
 						hitArray = [false, false, false, false, false];
+					case 5:
+						hitArray = [false, false, false, false, false, false, false, false];
+					case 6:
+						hitArray = [false];
+					case 7:
+						hitArray = [false, false];
+					case 8:
+						hitArray = [false, false, false];
 				}
 				// PRESSES, check for note hits
 				if (pressArray.contains(true) && /*!boyfriend.stunned && */ generatedMusic)
@@ -3557,6 +3609,40 @@ class PlayState extends MusicBeatState
 							controls.UP_R,
 							controls.RIGHT_R
 						];
+					case 5:
+						hold = [controls.N0, controls.N1, controls.N2, controls.N3, controls.N5, controls.N6, controls.N7, controls.N8];
+						press = [
+							controls.N0_P,
+							controls.N1_P,
+							controls.N2_P,
+							controls.N3_P,
+							controls.N5_P,
+							controls.N6_P,
+							controls.N7_P,
+							controls.N8_P
+						];
+						release = [
+							controls.N0_R,
+							controls.N1_R,
+							controls.N2_R,
+							controls.N3_R,
+							controls.N5_R,
+							controls.N6_R,
+							controls.N7_R,
+							controls.N8_R
+						];
+					case 6:
+						hold = [controls.N4];
+						press = [controls.N4_P];
+						release = [controls.N4_R];
+					case 7:
+						hold = [controls.LEFT,controls.RIGHT];
+						press = [controls.LEFT_P,controls.RIGHT_P];
+						release = [controls.LEFT_R,controls.RIGHT_R];
+					case 8:
+						hold = [controls.LEFT,controls.N4,controls.RIGHT];
+						press = [controls.LEFT_P,controls.N4_P,controls.RIGHT_P];
+						release = [controls.LEFT_R,controls.N4_R,controls.RIGHT_R];
 				}
 				var holdArray:Array<Bool> = hold;
 				var pressArray:Array<Bool> = press;
@@ -3575,6 +3661,14 @@ class PlayState extends MusicBeatState
 						hitArray = [false, false, false, false, false, false, false, false, false];
 					case 4:
 						hitArray = [false, false, false, false, false];
+					case 5:
+						hitArray = [false, false, false, false, false, false, false, false];
+					case 6:
+						hitArray = [false];
+					case 7:
+						hitArray = [false, false];
+					case 8:
+						hitArray = [false, false, false];
 				}
 		 		callInterp("keyShit",[pressArray,holdArray]);
 		 		charCall("keyShit",[pressArray,holdArray]);
@@ -3837,7 +3931,7 @@ class PlayState extends MusicBeatState
 
 			songScore -= 10;
 			altsongScore -= 10;
-			if (daNote != null && daNote.shouldntBeHit) {songScore += SONG.noteMetadata.badnoteScore; health += SONG.noteMetadata.badnoteHealth;} // Having it insta kill, not a good idea 
+			if (daNote != null && daNote.shouldntBeHit) {songScore += SONG.noteMetadata.badnoteScore; health += SONG.noteMetadata.badnoteHealth; altsongScore += SONG.noteMetadata.badnoteScore;} // Having it insta kill, not a good idea 
 			if(daNote != null) callInterp("noteMiss",[boyfriend,daNote]); else callInterp("miss",[boyfriend,direction]);
 
 
@@ -3864,6 +3958,7 @@ class PlayState extends MusicBeatState
 			totalPlayed += 1;
 			accuracy = Math.max(0,totalNotesHit / totalPlayed * 100);
 			accuracyDefault = Math.max(0, totalNotesHitDefault / totalPlayed * 100);
+			judgementCounter.text = 'Combo: ${combo}' + ${(combo < maxCombo ? ' (Max: ' + maxCombo + ')' : '')} +'\nSicks: ${sicks}\nGoods: ${goods}\nBads: ${bads}\nShits: ${shits}\nMisses: ${misses}\n';
 		}
 
 

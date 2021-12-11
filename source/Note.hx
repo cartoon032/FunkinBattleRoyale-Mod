@@ -154,6 +154,38 @@ class Note extends FlxSprite
 			mania = 4;
 			noteAnims = ['singLEFT','singDOWN','singUP','singUP','singRIGHT'];
 		}
+		else if (PlayState.SONG.mania == 5)
+		{
+			swagWidth = 100 * 0.7;
+			noteScale = 0.55;
+			longnoteScale = 2.125;
+			mania = 5;
+			noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+		}
+		else if (PlayState.SONG.mania == 6)
+		{
+			swagWidth = 200 * 0.7;
+			noteScale = 0.7;
+			longnoteScale = 1.5;
+			mania = 6;
+			noteAnims = ['singUP'];
+		}
+		else if (PlayState.SONG.mania == 7)
+		{
+			swagWidth = 180 * 0.7;
+			noteScale = 0.7;
+			longnoteScale = 1.5;
+			mania = 7;
+			noteAnims = ['singLEFT','singRIGHT'];
+		}
+		else if (PlayState.SONG.mania == 8)
+		{
+			swagWidth = 170 * 0.7;
+			noteScale = 0.7;
+			longnoteScale = 1.5;
+			mania = 8;
+			noteAnims = ['singLEFT','singUP','singRIGHT'];
+		}
 		super();
 		
 		if (prevNote == null)
@@ -233,6 +265,14 @@ class Note extends FlxSprite
 				noteNames = ['purple', 'blue', 'green', 'red', 'white', 'purple', 'blue', 'green', 'red'];
 			case 4:
 				noteNames = ['purple','blue','white','green','red'];
+			case 5:
+				noteNames = ['purple','blue','green','red','purple','blue','green','red'];
+			case 6:
+				noteNames = ['white'];
+			case 7:
+				noteNames = ['purple','red'];
+			case 8:
+				noteNames = ['purple','white','red'];
 		}
 
 		x+= swagWidth * noteData;
