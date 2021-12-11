@@ -26,6 +26,8 @@ class HealthIcon extends FlxSprite
 	public function updateAnim(health:Float){
 		if (health < 20)
 			animation.curAnim.curFrame = 1;
+		else if (health > 80)
+			{animation.curAnim.curFrame = 2;if(animation.curAnim.curFrame == 1) animation.curAnim.curFrame = 0;}
 		else
 			animation.curAnim.curFrame = 0;
 	}
@@ -51,29 +53,29 @@ class HealthIcon extends FlxSprite
 		}
 		
 		antialiasing = true;
-		animation.add('bf', [0, 1], 0, false, isPlayer);
+		animation.add('bf', [0, 1, 2], 0, false, isPlayer);
 		if(chars.contains(char.toLowerCase())){ // For vanilla characters
 			if (relAnims){
-				animation.add('bf-car', [0, 1], 0, false, isPlayer);
-				animation.add('bf-christmas', [0, 1], 0, false, isPlayer);
-				animation.add('bf-pixel', [21, 21], 0, false, isPlayer);
-				animation.add('spooky', [2, 3], 0, false, isPlayer);
-				animation.add('pico', [4, 5], 0, false, isPlayer);
-				animation.add('mom', [6, 7], 0, false, isPlayer);
-				animation.add('mom-car', [6, 7], 0, false, isPlayer);
-				animation.add('tankman', [8, 9], 0, false, isPlayer);
-				animation.add('face', [10, 11], 0, false, isPlayer);
-				animation.add('dad', [12, 13], 0, false, isPlayer);
-				animation.add('senpai', [22, 22], 0, false, isPlayer);
-				animation.add('senpai-angry', [22, 22], 0, false, isPlayer);
-				animation.add('spirit', [23, 23], 0, false, isPlayer);
-				animation.add('bf-old', [14, 15], 0, false, isPlayer);
-				animation.add('gf', [16], 0, false, isPlayer);
+				animation.add('bf-car', [0, 1, 2], 0, false, isPlayer);
+				animation.add('bf-christmas', [0, 1, 2], 0, false, isPlayer);
+				animation.add('bf-pixel', [20], 0, false, isPlayer);
+				animation.add('spooky', [6, 7], 0, false, isPlayer);
+				animation.add('pico', [10, 11], 0, false, isPlayer);
+				animation.add('mom', [12, 13], 0, false, isPlayer);
+				animation.add('mom-car', [12, 13], 0, false, isPlayer);
+				animation.add('tankman', [18, 19], 0, false, isPlayer);
+				animation.add('face', [23, 24], 0, false, isPlayer);
+				animation.add('dad', [4, 5], 0, false, isPlayer);
+				animation.add('senpai', [16], 0, false, isPlayer);
+				animation.add('senpai-angry', [16], 0, false, isPlayer);
+				animation.add('spirit', [17], 0, false, isPlayer);
+				animation.add('bf-old', [21, 22], 0, false, isPlayer);
+				animation.add('gf', [3], 0, false, isPlayer);
 				animation.add('gf-christmas', [16], 0, false, isPlayer);
 				animation.add('gf-pixel', [16], 0, false, isPlayer);
-				animation.add('parents-christmas', [17, 18], 0, false, isPlayer);
-				animation.add('monster', [19, 20], 0, false, isPlayer);
-				animation.add('monster-christmas', [19, 20], 0, false, isPlayer);
+				animation.add('parents-christmas', [14, 15], 0, false, isPlayer);
+				animation.add('monster', [8, 9], 0, false, isPlayer);
+				animation.add('monster-christmas', [8, 9], 0, false, isPlayer);
 			}
 			animation.play(char.toLowerCase());
 		}else{trace('Invalid character icon $char, Using BF!');animation.play("bf");}
