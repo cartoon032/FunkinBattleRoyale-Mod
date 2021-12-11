@@ -184,9 +184,9 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			if(FlxG.keys.justPressed.CONTROL){
 				if(curPlaying != songs[curSelected]){
 					curPlaying = songs[curSelected];
-					FlxG.sound.playMusic(Sound.fromFile('/mods/charts/${songs[curSelected]}/Inst.ogg'),1,true);
-
+					FlxG.sound.playMusic(Sound.fromFile('${songs[curSelected]}/Inst.ogg'),1,true);
 				}
+				trace('try playing ${songs[curSelected]}');
 			}
 			extraKeys();
 			if (controls.ACCEPT && songs.length > 0)
