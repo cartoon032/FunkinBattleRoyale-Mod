@@ -38,7 +38,7 @@ class QuickOptionsSubState extends MusicBeatSubstate
 		];
 	public static var osuSettings:Map<String,QOSetting> = [
 			"Scroll speed" => {type:2,value:0,min:0,max:10},
-			"Mania" => {type:2,value:0,min:0,max:4}
+			"Key Count" => {type:2,value:4,min:1,max:9}
 		];
 	var settings:Map<String,QOSetting> = [];
 	var menuItems:Array<String> = [];

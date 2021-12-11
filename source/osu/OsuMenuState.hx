@@ -32,6 +32,7 @@ class OsuMenuState extends onlinemod.OfflineMenuState
 
   override function create()
   {
+    ChartingState.charting = false;
     dataDir = TitleState.osuBeatmapLoc;
     super.create();
     bg.color = 0x006E006E;

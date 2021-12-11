@@ -47,11 +47,22 @@ class OsuBeatMap{
 				mania: 0
 			};
 			try{
-
 				inline function normalizeInt(int:Int){if (int < 0) return -int; else return int;}
 				var started = Sys.time();
 				beatmap = bm;
 				var mp3:String = getSetting("AudioFilename");
+				var maniatouse:Int = 0;
+				switch(QuickOptionsSubState.osuSettings["Key Count"].value){
+					case 1: maniatouse = 6;
+					case 2: maniatouse = 7;
+					case 3: maniatouse = 8;
+					case 4: maniatouse = 0;
+					case 5: maniatouse = 4;
+					case 6: maniatouse = 1;
+					case 7: maniatouse = 2;
+					case 8: maniatouse = 5;
+					case 9: maniatouse = 3;
+				}
 				song = {
 					song: getSetting("Title"),
 					notes: [],
@@ -66,7 +77,7 @@ class OsuBeatMap{
 					validScore: false,
 					noteMetadata:Song.defNoteMetadata,
 					difficultyString: '[${getSetting("Version")}]',
-					mania:QuickOptionsSubState.osuSettings["Mania"].value
+					mania: maniatouse
 				};
 				var hitobjsre:EReg = (~/\[HitObjects\]/gi);
 				hitobjsre.match(bm);
@@ -139,7 +150,7 @@ class OsuBeatMap{
 							trace('New section: ${curSection}');
 						}
 						// var hold = normalizeInt(Math.round(Std.parseInt(hitobjval.matched(6)) - time * 0.01));
-						var nid = Math.floor(int(hitobjval.matched(1)) * PlayState.keyAmmo[QuickOptionsSubState.osuSettings["Mania"].value] / 512);
+						var nid = Math.floor(int(hitobjval.matched(1)) * QuickOptionsSubState.osuSettings["Key Count"].value / 512);
 						hitobjs[curSection].sectionNotes.push([time,nid,hold,0]); 
 						i++;
 						noteCount++;
