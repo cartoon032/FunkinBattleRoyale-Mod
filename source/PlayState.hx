@@ -207,8 +207,7 @@ class PlayState extends MusicBeatState
 
 	var talking:Bool = true;
 	public static var songScore:Int = 0;
-	public static var fnfScore:Int = 0;
-	public static var osuScore:Int = 0;
+	public static var altsongScore:Int = 0;
 	var songScoreDef:Int = 0;
 	public var scoreTxt:FlxText;
 	var scoreTxtX:Float;
@@ -276,8 +275,7 @@ class PlayState extends MusicBeatState
 		// repPresses = 0;
 		// repReleases = 0;
 		songScore = 0;
-		fnfScore = 0;
-		osuScore = 0;
+		altsongScore = 0;
 
 	}
 
@@ -2077,7 +2075,7 @@ class PlayState extends MusicBeatState
 		if (health > 2)
 			health = 2;
 		iconP1.updateAnim(healthBar.percent);
-		iconP2.updateAnim(100 - healthBar.percent);		
+		iconP2.updateAnim(100 - healthBar.percent);
 		// if (healthBar.percent < 20)
 		// 	iconP1.animation.curAnim.curFrame = 1;
 		// else
@@ -2478,9 +2476,13 @@ class PlayState extends MusicBeatState
 				{
 	
 			
-			if(FlxG.save.data.osuscore){songScore += Math.round(score + (score * ((combo - 1) / 25)));} else {songScore += Math.round(score);}
-			fnfScore += Math.round(score);
-			osuScore += Math.round(score + (score * ((combo - 1) / 25)));
+			if(FlxG.save.data.osuscore){
+				songScore += Math.round(score + (score * ((combo - 1) / 25)));
+				altsongScore += Math.round(score);
+			}else{
+				songScore += Math.round(score);
+				altsongScore += Math.round(score + (score * ((combo - 1) / 25)));
+			}
 			songScoreDef += Math.round(ConvertScore.convertScore(noteDiff));
 	
 			/* if (combo > 60)
@@ -3834,6 +3836,7 @@ class PlayState extends MusicBeatState
 				totalNotesHit -= 1;
 
 			songScore -= 10;
+			altsongScore -= 10;
 			if (daNote != null && daNote.shouldntBeHit) {songScore += SONG.noteMetadata.badnoteScore; health += SONG.noteMetadata.badnoteHealth;} // Having it insta kill, not a good idea 
 			if(daNote != null) callInterp("noteMiss",[boyfriend,daNote]); else callInterp("miss",[boyfriend,direction]);
 
@@ -4238,15 +4241,14 @@ class PlayState extends MusicBeatState
 			{
 				FlxG.switchState(new AnimationDebug(dad.curCharacter,false,1));
 			}
-
 			if (FlxG.keys.justPressed.THREE && gf != null)
 			{
 				FlxG.switchState(new AnimationDebug(gfChar,false,2));
 			}
-			/*if (FlxG.keys.justPressed.SEVEN )
+			if (FlxG.keys.justPressed.SEVEN)
 			{
 				FlxG.switchState(new ChartingState());
-			}*/
+			}
 		}
 	}
 	var curLight:Int = 0;
