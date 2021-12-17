@@ -34,10 +34,10 @@ class KeyBinds
         FlxG.save.data.N2Bind = "D";
         FlxG.save.data.N3Bind = "F";
         FlxG.save.data.N4Bind = "SPACE";
-        FlxG.save.data.N5Bind = "H";
-        FlxG.save.data.N6Bind = "J";
-        FlxG.save.data.N7Bind = "K";
-        FlxG.save.data.N8Bind = "L";
+        FlxG.save.data.N5Bind = "J";
+        FlxG.save.data.N6Bind = "K";
+        FlxG.save.data.N7Bind = "L";
+        FlxG.save.data.N8Bind = "SEMICOLON";
 
         FlxG.save.data.L1Bind = "S";
         FlxG.save.data.D1Bind = "D";
@@ -126,19 +126,19 @@ class KeyBinds
             trace("No N4");
         }
         if(FlxG.save.data.N5Bind == null){
-            FlxG.save.data.N5Bind = "H";
+            FlxG.save.data.N5Bind = "J";
             trace("No N5");
         }
         if(FlxG.save.data.N6Bind == null){
-            FlxG.save.data.N6Bind = "J";
+            FlxG.save.data.N6Bind = "K";
             trace("No N6");
         }
         if(FlxG.save.data.N7Bind == null){
-            FlxG.save.data.N7Bind = "K";
+            FlxG.save.data.N7Bind = "L";
             trace("No N7");
         }
         if(FlxG.save.data.N8Bind == null){
-            FlxG.save.data.N8Bind = "L";
+            FlxG.save.data.N8Bind = "SEMICOLON";
             trace("No N8");
         }
 

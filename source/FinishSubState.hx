@@ -98,7 +98,6 @@ class FinishSubState extends MusicBeatSubstate
 		if(!isError){
 			if(win){
 				boyfriend.playAnimAvailable(['win','hey','singUP']);
-				
 				if (PlayState.SONG.player2 == FlxG.save.data.gfChar) dad.playAnim('cheer'); else {dad.playAnimAvailable(['lose','singDOWNmiss']);}
 				PlayState.gf.playAnim('cheer',true);
 			}else{

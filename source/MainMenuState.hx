@@ -29,7 +29,7 @@ using StringTools;
 
 class MainMenuState extends SickMenuState
 {
-	public static var ver:String = "0.10.0 - T Mod V.2";
+	public static var ver:String = "0.10.0 - T Mod V.3";
 	
 	public static var firstStart:Bool = true;
 

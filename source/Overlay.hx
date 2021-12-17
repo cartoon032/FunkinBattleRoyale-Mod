@@ -46,7 +46,6 @@ class Overlay extends TextField
 		});
 		#end
 	}
-	var memPeak:Float = 0;
 
 	// Event Handlers
 	@:noCompletion
@@ -63,13 +62,11 @@ class Overlay extends TextField
 		var currentCount = times.length;
 		currentFPS = Math.round((currentCount + cacheCount) / 2);
 		var mem:Float = Math.round(System.totalMemory / 1024 / 1024 * 100) / 100;
-		if (mem > memPeak)
-			memPeak = mem;
 
 		if (currentCount != cacheCount /*&& visible*/)
 		{
 			// text = "FPS: " + currentFPS;
-			text = "FPS: " + currentFPS + "\nMemory/Peak: " + mem + "/" + memPeak + " MB" +  debugVar;
+			text = "FPS: " + currentFPS + "\nMemory: " + (mem > 0 ? mem + " MB" : "bigger than 2GB can't be display") +  debugVar;
 		}
 
 		cacheCount = currentCount;

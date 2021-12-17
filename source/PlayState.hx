@@ -94,7 +94,7 @@ class PlayState extends MusicBeatState
 	public static var sicks:Int = 0;
 	public static var mania:Int = 0;
 	public static var maniaToChange:Int = 0;
-	public static var keyAmmo:Array<Int> = [4, 6, 7, 9, 5, 8, 1, 2, 3];
+	public static var keyAmmo:Array<Int> = [4, 6, 7, 9, 5, 8, 1, 2, 3, 21];
 	public static var stateType=0;
 	public static var invertedChart:Bool = false;
 
@@ -1203,7 +1203,7 @@ class PlayState extends MusicBeatState
 		notes.cameras = [camHUD];
 		healthBar.cameras = [camHUD];
 		healthBarBG.cameras = [camHUD];
-		if(FlxG.save.data.practiceMode){
+		if(FlxG.save.data.practiceMode || ChartingState.charting){
 			healthBar.visible = healthBarBG.visible = false;
 			var iconOffset = 26;
 			if(FlxG.save.data.middleScroll){
@@ -1488,6 +1488,14 @@ class PlayState extends MusicBeatState
 				keys = [false, false, false, false, false, false, false, false, false];
 			case 4: 
 				keys = [false, false, false, false, false];
+			case 5:
+				keys = [false, false, false, false, false, false, false, false];
+			case 6:
+				keys = [false];
+			case 7:
+				keys = [false, false];
+			case 8:
+				keys = [false, false, false];
 		}
 
 		if (invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Swap characters"))){
@@ -1781,6 +1789,14 @@ class PlayState extends MusicBeatState
 					dataForThisSection = [0,1,2,3,4,5,6,7,8];
 				case 4:
 					dataForThisSection = [0,1,2,3,4];
+				case 5:
+					dataForThisSection = [0,1,2,3,4,5,6,7];
+				case 6:
+					dataForThisSection = [0];
+				case 7:
+					dataForThisSection = [0,1];
+				case 8:
+					dataForThisSection = [0,1,2];
 			}
 
 			for (songNotes in section.sectionNotes)
@@ -1899,7 +1915,8 @@ class PlayState extends MusicBeatState
 			babyArrow.x += if (FlxG.save.data.middleScroll) ((FlxG.width / 4) * player) else ((FlxG.width / 2) * player);
 			if (FlxG.save.data.middleScroll && player == 0 && i > 1 && mania == 0) babyArrow.x += Note.swagWidth * 6;
 			else if (FlxG.save.data.middleScroll && player == 0 && i > 2 && mania == 1) babyArrow.x += Note.swagWidth * 8;
-			else if (FlxG.save.data.middleScroll && player == 0 && mania > 1) babyArrow.x -= 1000;
+			else if (FlxG.save.data.middleScroll && player == 0 && i > 3 && mania == 5) babyArrow.x += Note.swagWidth * 10;
+			else if (FlxG.save.data.middleScroll && player == 0 && mania > 1 && mania < 5) babyArrow.x -= 1000;
 			babyArrow.visible = (player == 1 || FlxG.save.data.oppStrumLine);
 
 			
@@ -2071,7 +2088,7 @@ class PlayState extends MusicBeatState
 		iconP1.updateHitbox();
 		iconP2.updateHitbox();
 
-		if(!FlxG.save.data.practiceMode){
+		if(!FlxG.save.data.practiceMode && !ChartingState.charting){
 			var iconOffset:Int = 26;
 			iconP1.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01) - (iconOffset));
 			iconP2.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01) - (iconP2.width - iconOffset));
@@ -2086,15 +2103,6 @@ class PlayState extends MusicBeatState
 			health = 2;
 		iconP1.updateAnim(healthBar.percent);
 		iconP2.updateAnim(100 - healthBar.percent);
-		// if (healthBar.percent < 20)
-		// 	iconP1.animation.curAnim.curFrame = 1;
-		// else
-		// 	iconP1.animation.curAnim.curFrame = 0;
-
-		// if (healthBar.percent > 80)
-		// 	iconP2.animation.curAnim.curFrame = 1;
-		// else
-		// 	iconP2.animation.curAnim.curFrame = 0;
 
 		/* if (FlxG.keys.justPressed.NINE)
 			FlxG.switchState(new Charting()); */
@@ -2184,7 +2192,7 @@ class PlayState extends MusicBeatState
 				}
 		}
 
-		if (health <= 0 && !FlxG.save.data.practiceMode)
+		if (health <= 0 && !FlxG.save.data.practiceMode && !ChartingState.charting)
 			finishSong(false);
  		if (FlxG.save.data.resetButton)
 		{

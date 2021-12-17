@@ -186,6 +186,9 @@ class Note extends FlxSprite
 			mania = 8;
 			noteAnims = ['singLEFT','singUP','singRIGHT'];
 		}
+		else if (PlayState.SONG.mania == 9)
+		{
+		}
 		super();
 		
 		if (prevNote == null)
@@ -199,7 +202,7 @@ class Note extends FlxSprite
 		if(Std.isOfType(_type,String)) _type = _type.toLowerCase();
 
 
-		this.noteData = _noteData % 9; 
+		this.noteData = _noteData % 21; 
 		showNote = !(!playerNote && !FlxG.save.data.oppStrumLine);
 		shouldntBeHit = (isSustainNote && prevNote.shouldntBeHit || (_type == 1 || _type == "hurt note" || _type == "hurt" || _type == true));
 		if(!inCharter && rawNote[1] == -1){ // Psych event notes, These should not be shown, and should not appear on the player's side
@@ -273,6 +276,8 @@ class Note extends FlxSprite
 				noteNames = ['purple','red'];
 			case 8:
 				noteNames = ['purple','white','red'];
+			case 9:
+				noteNames = ['purple','blue','white','green','red','purple','blue','white','green','red','white','purple','blue','white','green','red','purple','blue','white','green','red'];
 		}
 
 		x+= swagWidth * noteData;
