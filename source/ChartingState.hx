@@ -777,142 +777,14 @@ class ChartingState extends MusicBeatState
 	{
 		updateHeads();
 
-		curStep = recalculateSteps();
-
-		if (_song.mania == 3 && gridBG.width != GRID_SIZE * 18)
-			{
-				remove(gridBG);
-				gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 18, GRID_SIZE * 16);
-				add(gridBG);
-				remove(gridBGAbove);
-				gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 18, GRID_SIZE * 16);
-				add(gridBGAbove);
-				remove(gridBGBelow);
-				gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 18, GRID_SIZE * 16);
-				add(gridBGBelow);
-			}
-			if (_song.mania == 5 && gridBG.width != GRID_SIZE * 16)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 16, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 16, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 16, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-			if (_song.mania == 2 && gridBG.width != GRID_SIZE * 14)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 14, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 14, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 14, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-			if (_song.mania == 1 && gridBG.width != GRID_SIZE * 12)
-			{
-				remove(gridBG);
-				gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 12, GRID_SIZE * 16);
-				add(gridBG);
-				remove(gridBGAbove);
-				gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 12, GRID_SIZE * 16);
-				add(gridBGAbove);
-				remove(gridBGBelow);
-				gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 12, GRID_SIZE * 16);
-				add(gridBGBelow);
-			}
-			if (_song.mania == 4 && gridBG.width != GRID_SIZE * 10)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 10, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 10, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 10, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-			if (_song.mania == 0 && gridBG.width != GRID_SIZE * 8)
-			{
-				remove(gridBG);
-				gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 8, GRID_SIZE * 16);
-				add(gridBG);
-				remove(gridBGAbove);
-				gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 8, GRID_SIZE * 16);
-				add(gridBGAbove);
-				remove(gridBGBelow);
-				gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 8, GRID_SIZE * 16);
-				add(gridBGBelow);
-			}
-			if (_song.mania == 6 && gridBG.width != GRID_SIZE * 2)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 2, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 2, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 2, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-			if (_song.mania == 7 && gridBG.width != GRID_SIZE * 4)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 4, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 4, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 4, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-			if (_song.mania == 8 && gridBG.width != GRID_SIZE * 6)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 6, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 6, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 6, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-			if (_song.mania == 9 && gridBG.width != GRID_SIZE * 42)
-				{
-					remove(gridBG);
-					gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 42, GRID_SIZE * 16);
-					add(gridBG);
-					remove(gridBGAbove);
-					gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 42, GRID_SIZE * 16);
-					add(gridBGAbove);
-					remove(gridBGBelow);
-					gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 42, GRID_SIZE * 16);
-					add(gridBGBelow);
-				}
-
-		gridBlackLine.x = gridBG.x + gridBG.width / 2;
-		waveformSprite.x = (GRID_SIZE * keyAmmo[_song.mania]) - (GRID_SIZE * 4);
-		waveformSprite.alpha = 0.35;
-		UI_box.x = FlxG.width / 2 + 160;// + 160 * _song.mania;
-		if(_song.mania == 9) {
-			UI_box.y = 350;
-		}else{
-			UI_box.y = 100;
-		}
+		UI_box.x = FlxG.width / 2 + 160;
+		UI_box.y = 100;
 		gridBGAbove.y = gridBG.y - gridBG.height;
 		gridBGBelow.y = gridBG.y + gridBG.height;
 		gridBGAbove.alpha = 0.7;
 		gridBGBelow.alpha = 0.7;
+
+		curStep = recalculateSteps();
 
 		if (FlxG.keys.pressed.SHIFT)doSnapShit = false; else doSnapShit = true;
 
@@ -1076,7 +948,7 @@ class ChartingState extends MusicBeatState
 			trace((_song.notes[curSection].lengthInSteps) * (curSection + 1));
 			trace('DUMBSHIT');
 
-			if (_song.notes[curSection + 1] == null)
+			if (_song.notes[curSection + 1] == null || _song.notes[curSection + 2] == null)
 			{
 				addSection();
 			}
@@ -1506,7 +1378,7 @@ class ChartingState extends MusicBeatState
 
 	function changeSection(sec:Int = 0, ?updateMusic:Bool = true):Void
 	{
-		trace('changing section' + sec);
+		trace('changing section ' + sec);
 
 		if (_song.notes[sec] != null)
 		{
@@ -1579,7 +1451,22 @@ class ChartingState extends MusicBeatState
 
 	function updateGrid():Void
 	{
-		
+		if (gridBG.width != GRID_SIZE * (keyAmmo[_song.mania] * 2))
+			{
+				remove(gridBG);
+				gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * (keyAmmo[_song.mania] * 2), GRID_SIZE * 16);
+				add(gridBG);
+				remove(gridBGAbove);
+				gridBGAbove = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * (keyAmmo[_song.mania] * 2), GRID_SIZE * 16);
+				add(gridBGAbove);
+				remove(gridBGBelow);
+				gridBGBelow = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * (keyAmmo[_song.mania] * 2), GRID_SIZE * 16);
+				add(gridBGBelow);
+			}
+		gridBlackLine.x = gridBG.x + gridBG.width / 2;
+		waveformSprite.x = (GRID_SIZE * keyAmmo[_song.mania]) - (GRID_SIZE * 4);
+		waveformSprite.alpha = 0.35;
+
 		while (curRenderedNotes.members.length > 0)
 		{
 			curRenderedNotes.remove(curRenderedNotes.members[0], true);
