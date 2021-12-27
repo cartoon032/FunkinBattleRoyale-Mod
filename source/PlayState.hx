@@ -100,6 +100,7 @@ class PlayState extends MusicBeatState
 
 	public static var songPosBG:FlxSprite;
 	public static var songPosBar:FlxBar;
+	public static var songspeed:Float = 1;
 
 	public static var rep:Replay;
 	public static var loadRep:Bool = false;
@@ -107,7 +108,8 @@ class PlayState extends MusicBeatState
 
 	public static var noteBools:Array<Bool> = [false, false, false, false];
 	public static var p2presses:Array<Bool> = [false,false,false,false,false,false,false,false]; // 0 = not pressed, 1 = pressed, 2 = hold, 3 = miss
-	public static var p1presses:Array<Bool> = [false, false, false, false];
+	var p2holds:Array<Bool>;
+	public static var p1presses:Array<Bool> = [false,false,false,false,false,false,false,false];
 	public static var p2canplay = false;//TitleState.p2canplay
 
 	var halloweenLevel:Bool = false;
@@ -1659,6 +1661,14 @@ class PlayState extends MusicBeatState
 		previousFrameTime = FlxG.game.ticks;
 		lastReportedPlayheadPosition = 0;
 
+		@:privateAccess
+		{
+			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
+			if (vocals.playing)
+			lime.media.openal.AL.sourcef(vocals._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
+		}
+		trace("pitched inst and vocals to " + songspeed);
+
 		if (!alrLoaded)
 		{
 			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 1, false);
@@ -1668,7 +1678,7 @@ class PlayState extends MusicBeatState
 		vocals.play();
 
 		// Song duration in a float, useful for the time left feature
-		songLength = FlxG.sound.music.length;
+		songLength = Math.floor(FlxG.sound.music.length / songspeed);
 		songLengthTxt = FlxStringUtil.formatTime(Math.floor((songLength) / 1000), false);
 		if (FlxG.save.data.songPosition)
 		{
@@ -1801,7 +1811,7 @@ class PlayState extends MusicBeatState
 
 			for (songNotes in section.sectionNotes)
 			{
-				var daStrumTime:Float = songNotes[0] + FlxG.save.data.offset;
+				var daStrumTime:Float = (songNotes[0] + FlxG.save.data.offset) / songspeed;
 
 				if (daStrumTime < 0)
 					daStrumTime = 0;
@@ -1820,7 +1830,7 @@ class PlayState extends MusicBeatState
 					oldNote = null;
 				// if(songNotes[3] != null) trace('Note type: ${songNotes[3]}');
 				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote,null,null,songNotes[3],songNotes,gottaHitNote);
-				swagNote.sustainLength = songNotes[2];
+				swagNote.sustainLength = songNotes[2] / songspeed;
 				swagNote.scrollFactor.set(0, 0);
 
 				var susLength:Float = swagNote.sustainLength;
@@ -1976,13 +1986,20 @@ class PlayState extends MusicBeatState
 
 	function resyncVocals():Void
 	{
-		vocals.pause();
+		vocals.stop();
+		FlxG.sound.music.stop();
 
 		FlxG.sound.music.play();
-		Conductor.songPosition = FlxG.sound.music.time;
-		vocals.time = Conductor.songPosition;
 		vocals.play();
+		FlxG.sound.music.time = Conductor.songPosition * songspeed;
+		vocals.time = FlxG.sound.music.time;
 
+		@:privateAccess
+		{
+			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
+			if (vocals.playing)
+				lime.media.openal.AL.sourcef(vocals._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
+		}
 	}
 
 	private var paused:Bool = false;
@@ -2023,6 +2040,13 @@ class PlayState extends MusicBeatState
 		perfectMode = false;
 		#end
 
+		if (FlxG.sound.music.playing)
+			@:privateAccess
+		{
+			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
+			if (vocals.playing)
+				lime.media.openal.AL.sourcef(vocals._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
+		}
 
 		// reverse iterate to remove oldest notes first and not invalidate the iteration
 		// stop iteration as soon as a note is not removed
@@ -2329,7 +2353,6 @@ class PlayState extends MusicBeatState
 		#if !switch
 		if (SONG.validScore && stateType != 2 && stateType != 4)
 		{
-			
 			Highscore.saveScore(SONG.song, Math.round(songScore), storyDifficulty);
 		}
 		#end
@@ -2495,11 +2518,11 @@ class PlayState extends MusicBeatState
 	
 			
 			if(FlxG.save.data.osuscore){
-				songScore += Math.round(score + (score * ((combo - 1) / 25)));
-				altsongScore += Math.round(score);
+				songScore += Math.round(score + (score * (((combo - 1) * songspeed) / 25)));
+				altsongScore += Math.round(score * songspeed);
 			}else{
-				songScore += Math.round(score);
-				altsongScore += Math.round(score + (score * ((combo - 1) / 25)));
+				songScore += Math.round(score * songspeed);
+				altsongScore += Math.round(score + (score * (((combo - 1) * songspeed) / 25)));
 			}
 			songScoreDef += Math.round(ConvertScore.convertScore(noteDiff));
 	
@@ -2788,6 +2811,7 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			{
 				var _scrollSpeed = FlxMath.roundDecimal(FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2); // Probably better to calculate this beforehand
+				_scrollSpeed = _scrollSpeed * songspeed;
 				notes.forEachAlive(function(daNote:Note)
 				{	
 
@@ -2809,9 +2833,9 @@ class PlayState extends MusicBeatState
 							if (FlxG.save.data.downscroll)
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									// Remember = minus makes notes go up, plus makes them go down
@@ -2834,9 +2858,9 @@ class PlayState extends MusicBeatState
 							}else
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									daNote.y -= daNote.height * 0.5;
@@ -3245,17 +3269,105 @@ class PlayState extends MusicBeatState
 					else
 						spr.centerOffsets();
 				});
-									
-				if (p2canplay){ // The above but for P2
-					p1presses = [controls.LEFT, controls.DOWN, controls.UP, controls.RIGHT];
-					var p2holds:Array<Bool> = [p2presses[4],p2presses[5],p2presses[6],p2presses[7]];
-					// Shitty animation handling
 
-					if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
-					else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
-					else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
-					else if (p2presses[3] || p2holds[3]) dad.playAnim('singRIGHT', true); // Right 
-					else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+				if (p2canplay){ // The above but for P2
+					switch(mania)
+					{
+						case 0: 
+							p1presses = [controls.LEFT, controls.DOWN, controls.UP, controls.RIGHT];
+							p2holds = [p2presses[4],p2presses[5],p2presses[6],p2presses[7]];
+						case 1: 
+							p1presses = [controls.L1, controls.D1, controls.R1, controls.L2, controls.U1, controls.R2];
+							p2holds = [p2presses[6],p2presses[7],p2presses[8],p2presses[9],p2presses[10],p2presses[11]];
+						case 2: 
+							p1presses = [controls.L1, controls.D1, controls.R1, controls.N4, controls.L2, controls.U1, controls.R2];
+							p2holds = [p2presses[7],p2presses[8],p2presses[9],p2presses[10],p2presses[11],p2presses[12],p2presses[13]];
+						case 3: 
+							p1presses = [controls.N0, controls.N1, controls.N2, controls.N3, controls.N4, controls.N5, controls.N6, controls.N7, controls.N8];
+							p2holds = [p2presses[9],p2presses[10],p2presses[11],p2presses[12],p2presses[13],p2presses[14],p2presses[15],p2presses[16],p2presses[17]];
+						case 4:
+							p1presses = [controls.LEFT, controls.DOWN, controls.N4, controls.UP, controls.RIGHT];
+							p2holds = [p2presses[5],p2presses[6],p2presses[7],p2presses[8],p2presses[9]];
+						case 5:
+							p1presses = [controls.N0, controls.N1, controls.N2, controls.N3, controls.N5, controls.N6, controls.N7, controls.N8];
+							p2holds = [p2presses[8],p2presses[9],p2presses[10],p2presses[11],p2presses[12],p2presses[13],p2presses[14],p2presses[15]];
+						case 6:
+							p1presses = [controls.N4];
+							p2holds = [p2presses[1]];
+						case 7:
+							p1presses = [controls.LEFT,controls.RIGHT];
+							p2holds = [p2presses[2],p2presses[3]];
+						case 8:
+							p1presses = [controls.LEFT,controls.N4,controls.RIGHT];
+							p2holds = [p2presses[3],p2presses[4],p2presses[5]];
+					}
+					// Shitty animation handling
+					switch(mania)
+					{
+						case 0:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 1:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singRIGHT', true); // Right
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 2:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singRIGHT', true); // Right
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[6] || p2holds[6]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 3:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singRIGHT', true); // Right 
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[6] || p2holds[6]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[7] || p2holds[7]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[8] || p2holds[8]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 4:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 5:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singRIGHT', true); // Right 
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singDOWN', true); // Down
+							else if (p2presses[6] || p2holds[6]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[7] || p2holds[7]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 6:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singUP', true); // Up
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 7:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+						case 8:
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singRIGHT', true); // Right 
+							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
+					}
 					cpuStrums.forEach(function(spr:FlxSprite)
 					{
 						if (p2presses[spr.ID]) DadStrumPlayAnim(spr.ID); // Weird but a slight bit more efficient, possibly
@@ -3274,8 +3386,6 @@ class PlayState extends MusicBeatState
 						else
 							spr.centerOffsets();
 					});
-
-
 				}
 			}
 
@@ -3357,7 +3467,7 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			{
 				var _scrollSpeed = FlxMath.roundDecimal(FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2); // Probably better to calculate this beforehand
-
+				_scrollSpeed = _scrollSpeed * songspeed;
 				notes.forEachAlive(function(daNote:Note)
 				{	
 
@@ -3378,9 +3488,9 @@ class PlayState extends MusicBeatState
 							if (FlxG.save.data.downscroll)
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									// Remember = minus makes notes go up, plus makes them go down
@@ -3404,9 +3514,9 @@ class PlayState extends MusicBeatState
 							}else
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									daNote.y -= daNote.height / 2;

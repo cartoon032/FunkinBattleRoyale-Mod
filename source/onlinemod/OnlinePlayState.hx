@@ -22,9 +22,10 @@ class OnlinePlayState extends PlayState
 	var clients:Map<Int, String> = [];
 	public static var clientScores:Map<Int, Int> = [];
 	public static var clientText:Map<Int, String> = [];
-	public static var lastPressed:Array<Bool> = [false,false,false,false];
+	public static var lastPressed:Array<Bool> = [false,false,false,false,false,false,false,false,false];
 	public static var useSongChar:Array<String> = ["","",""];
 	public static var autoDetPlayer2:Bool = true;
+	var keytosent:Int;
 	var clientTexts:Map<Int, Int> = [];
 	var clientsGroup:FlxTypedGroup<FlxText>;
 
@@ -322,12 +323,11 @@ class OnlinePlayState extends PlayState
 
 		super.keyShit();
 		if (PlayState.p2canplay){ // This ifstatement is weird, but tries to help with bandwidth
-			if (lastPressed[0] != PlayState.p1presses[0] || lastPressed[1] != PlayState.p1presses[1] || lastPressed[2] != PlayState.p1presses[2] || lastPressed[3] != PlayState.p1presses[3]){
+			if (lastPressed[0] != PlayState.p1presses[0] || lastPressed[1] != PlayState.p1presses[1] || lastPressed[2] != PlayState.p1presses[2] || lastPressed[3] != PlayState.p1presses[3] || lastPressed[4] != PlayState.p1presses[4] || lastPressed[5] != PlayState.p1presses[5] || lastPressed[6] != PlayState.p1presses[6] || lastPressed[7] != PlayState.p1presses[7] || lastPressed[8] != PlayState.p1presses[8]){
 				// Sender.SendPacket(Packets.KEYPRESS, [this.fromBool(controls.LEFT), this.fromBool(controls.DOWN), this.fromBool(controls.UP), this.fromBool(controls.RIGHT)], OnlinePlayMenuState.socket);
 				Sender.SendPacket(Packets.KEYPRESS, [getPresses()], OnlinePlayMenuState.socket);
 				lastPressed = PlayState.p1presses;
 			}
-
 		}
 	}
 // this.fromBool([controls.LEFT_P, controls.LEFT]),
@@ -366,7 +366,20 @@ class OnlinePlayState extends PlayState
 		super.closeSubState();
 	}
 	
-	function getPresses():Int {return this.fromBool(controls.LEFT_P) | this.fromBool(controls.DOWN_P) << 1 | this.fromBool(controls.UP_P) << 2 | this.fromBool(controls.RIGHT_P) << 3 | this.fromBool(controls.LEFT) | this.fromBool(controls.DOWN) << 1 | this.fromBool(controls.UP) << 2 | this.fromBool(controls.RIGHT) << 3;}
+	function getPresses():Int{
+		switch(PlayState.mania){
+			case 0: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.DOWN_P) << 1 | this.fromBool(controls.UP_P) << 2 | this.fromBool(controls.RIGHT_P) << 3 | this.fromBool(controls.LEFT) | this.fromBool(controls.DOWN) << 1 | this.fromBool(controls.UP) << 2 | this.fromBool(controls.RIGHT) << 3;
+			case 1: keytosent = this.fromBool(controls.L1_P) | this.fromBool(controls.D1_P) << 1 | this.fromBool(controls.R1_P) << 2 | this.fromBool(controls.L2_P) << 3 | this.fromBool(controls.U1_P) << 4 | this.fromBool(controls.R2_P) << 5 | this.fromBool(controls.L1) | this.fromBool(controls.D1) << 1 | this.fromBool(controls.R1) << 2 | this.fromBool(controls.L2) << 3 | this.fromBool(controls.U1) << 4 | this.fromBool(controls.R2) << 5;
+			case 2: keytosent = this.fromBool(controls.L1_P) | this.fromBool(controls.D1_P) << 1 | this.fromBool(controls.R1_P) << 2 | this.fromBool(controls.N4_P) << 3 | this.fromBool(controls.L2_P) << 4 | this.fromBool(controls.U1_P) << 5 | this.fromBool(controls.R2_P) << 6 | this.fromBool(controls.L1) | this.fromBool(controls.D1) << 1 | this.fromBool(controls.R1) << 2 | this.fromBool(controls.N4) << 3 | this.fromBool(controls.L2) << 4 | this.fromBool(controls.U1) << 5 | this.fromBool(controls.R2) << 6;
+			case 3: keytosent = this.fromBool(controls.N0_P) | this.fromBool(controls.N1_P) << 1 | this.fromBool(controls.N2_P) << 2 | this.fromBool(controls.N3_P) << 3 | this.fromBool(controls.N4_P) << 4 | this.fromBool(controls.N5_P) << 5 | this.fromBool(controls.N6_P) << 6 | this.fromBool(controls.N7_P) << 7 | this.fromBool(controls.N8_P) << 8 | this.fromBool(controls.N0) | this.fromBool(controls.N1) << 1 | this.fromBool(controls.N2) << 2 | this.fromBool(controls.N3) << 3 | this.fromBool(controls.N4) << 4 | this.fromBool(controls.N5) << 5 | this.fromBool(controls.N6) << 6 | this.fromBool(controls.N7) << 7 | this.fromBool(controls.N8) << 8;
+			case 4: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.DOWN_P) << 1 | this.fromBool(controls.N4_P) << 2 | this.fromBool(controls.UP_P) << 3 | this.fromBool(controls.RIGHT_P) << 4 | this.fromBool(controls.LEFT) | this.fromBool(controls.DOWN) << 1 | this.fromBool(controls.N4) << 2 | this.fromBool(controls.UP) << 3 | this.fromBool(controls.RIGHT) << 4;
+			case 5: keytosent = this.fromBool(controls.N0_P) | this.fromBool(controls.N1_P) << 1 | this.fromBool(controls.N2_P) << 2 | this.fromBool(controls.N3_P) << 3 | this.fromBool(controls.N5_P) << 4 | this.fromBool(controls.N6_P) << 5 | this.fromBool(controls.N7_P) << 6 | this.fromBool(controls.N8_P) << 7 | this.fromBool(controls.N0) | this.fromBool(controls.N1) << 1 | this.fromBool(controls.N2) << 2 | this.fromBool(controls.N3) << 3 | this.fromBool(controls.N5) << 4 | this.fromBool(controls.N6) << 5 | this.fromBool(controls.N7) << 6 | this.fromBool(controls.N8) << 7;
+			case 6: keytosent = this.fromBool(controls.N4_P) | this.fromBool(controls.N4);
+			case 7: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.RIGHT_P) << 2 | this.fromBool(controls.LEFT) | this.fromBool(controls.RIGHT) << 2;
+			case 8: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.N4_P) << 2 | this.fromBool(controls.RIGHT_P) << 3 | this.fromBool(controls.LEFT) | this.fromBool(controls.N4) << 2 | this.fromBool(controls.RIGHT) << 3;
+		}
+		return keytosent;
+	}
 
 	function HandleData(packetId:Int, data:Array<Dynamic>)
 	{try{
@@ -425,11 +438,7 @@ class OnlinePlayState extends PlayState
 			case Packets.KEYPRESS:
 				if (PlayState.p2canplay){
 					// PlayState.p2presses = [this.fromInt(data[0]), this.fromInt(data[1]), this.fromInt(data[2]), this.fromInt(data[3])];
-
-					PlayState.p2presses = [((data[0] >> 0) & 1 == 1),((data[0] >> 1) & 1 == 1),((data[0] >> 2) & 1 == 1),((data[0] >> 3) & 1 == 1), // Presses
-					((data[0] >> 4) & 1 == 1),((data[0] >> 5) & 1 == 1),((data[0] >> 6) & 1 == 1),((data[0] >> 7) & 1 == 1) // Holds
-					];
-
+					PlayState.p2presses = [((data[0] >> 0) & 1 == 1),((data[0] >> 1) & 1 == 1),((data[0] >> 2) & 1 == 1),((data[0] >> 3) & 1 == 1),((data[0] >> 4) & 1 == 1),((data[0] >> 5) & 1 == 1),((data[0] >> 6) & 1 == 1),((data[0] >> 7) & 1 == 1),((data[0] >> 8) & 1 == 1)];
 				}
 			case Packets.BROADCAST_NEW_PLAYER:
 				var id:Int = data[0];

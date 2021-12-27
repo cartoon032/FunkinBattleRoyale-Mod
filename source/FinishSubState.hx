@@ -194,7 +194,6 @@ class FinishSubState extends MusicBeatSubstate
 // Std.int(FlxG.width * 0.45)
 				var settingsText:FlxText = new FlxText(comboText.width * 1.10 + FlxG.save.data.guiGap,-30,0,
 				(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
-				
 				+'\n\nSettings:'
 				+'\n\n Downscroll: ${FlxG.save.data.downscroll}'
 				+'\n Ghost Tapping: ${FlxG.save.data.ghost}'
