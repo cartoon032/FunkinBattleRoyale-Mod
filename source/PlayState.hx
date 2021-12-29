@@ -1983,7 +1983,7 @@ class PlayState extends MusicBeatState
 		Conductor.songPosition = FlxG.sound.music.time;
 		vocals.time = Conductor.songPosition;
 		vocals.play();
-
+	}
 	private var paused:Bool = false;
 	var startedCountdown:Bool = false;
 	var nps:Int = 0;
