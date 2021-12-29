@@ -185,8 +185,8 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			
 			if(controls.UP_P && FlxG.keys.pressed.SHIFT){changeSelection(-5);} else if (controls.UP_P){changeSelection(-1);}
 			if(controls.DOWN_P && FlxG.keys.pressed.SHIFT){changeSelection(5);} else if (controls.DOWN_P){changeSelection(1);}
-			if(!FlxG.keys.pressed.SHIFT && controls.LEFT_P){changeDiff(-1);}
-			if(!FlxG.keys.pressed.SHIFT && controls.RIGHT_P){changeDiff(1);}
+			if(controls.LEFT_P){changeDiff(-1);}
+			if(controls.RIGHT_P){changeDiff(1);}
 			if(FlxG.keys.justPressed.CONTROL){
 				if(curPlaying != songs[curSelected]){
 					curPlaying = songs[curSelected];
@@ -198,20 +198,6 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			if (controls.ACCEPT && songs.length > 0)
 			{
 					select();
-			}
-			/*if (FlxG.keys.pressed.SHIFT){
-					if (controls.LEFT_P){rate -= 0.05;}
-					if (controls.RIGHT_P){rate += 0.05;}
-					if (FlxG.keys.justPressed.R){rate = 1;}
-					if (rate > 3){rate = 3;}
-					if (rate < 0.25){rate = 0.25;}
-				}
-			previewtext.text = "Speed: " + rate + "x";
-			PlayState.songspeed = rate;*///this buggy af i'm gonna fix it later
-			@:privateAccess
-			{
-				if (FlxG.sound.music.playing)
-					lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, rate);
 			}
 	}
 	function changeDiff(change:Int = 0,?forcedInt:Int= -100){ // -100 just because it's unlikely to be used

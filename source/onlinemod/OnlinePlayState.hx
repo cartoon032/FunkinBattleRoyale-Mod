@@ -420,7 +420,7 @@ class OnlinePlayState extends PlayState
 				var id:Int = data[0];
 				var nickname:String = OnlineLobbyState.clients[id];
 
-				clientsGroup.members[clientTexts[id]].setFormat(24, FlxColor.RED);
+				clientsGroup.members[clientTexts[id]].setFormat(CoolUtil.font,24, FlxColor.RED);
 				clientsGroup.members[clientTexts[id]].setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 				if(clientScores[id] == null) clientsGroup.members[clientTexts[id]].text = '$nickname: left';
 

@@ -100,7 +100,6 @@ class PlayState extends MusicBeatState
 
 	public static var songPosBG:FlxSprite;
 	public static var songPosBar:FlxBar;
-	public static var songspeed:Float = 1;
 
 	public static var rep:Replay;
 	public static var loadRep:Bool = false;
@@ -1661,14 +1660,6 @@ class PlayState extends MusicBeatState
 		previousFrameTime = FlxG.game.ticks;
 		lastReportedPlayheadPosition = 0;
 
-		@:privateAccess
-		{
-			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
-			if (vocals.playing)
-			lime.media.openal.AL.sourcef(vocals._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
-		}
-		trace("pitched inst and vocals to " + songspeed);
-
 		if (!alrLoaded)
 		{
 			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 1, false);
@@ -1678,7 +1669,7 @@ class PlayState extends MusicBeatState
 		vocals.play();
 
 		// Song duration in a float, useful for the time left feature
-		songLength = Math.floor(FlxG.sound.music.length / songspeed);
+		songLength = FlxG.sound.music.length;
 		songLengthTxt = FlxStringUtil.formatTime(Math.floor((songLength) / 1000), false);
 		if (FlxG.save.data.songPosition)
 		{
@@ -1811,7 +1802,7 @@ class PlayState extends MusicBeatState
 
 			for (songNotes in section.sectionNotes)
 			{
-				var daStrumTime:Float = (songNotes[0] + FlxG.save.data.offset) / songspeed;
+				var daStrumTime:Float = songNotes[0] + FlxG.save.data.offset;
 
 				if (daStrumTime < 0)
 					daStrumTime = 0;
@@ -1830,7 +1821,7 @@ class PlayState extends MusicBeatState
 					oldNote = null;
 				// if(songNotes[3] != null) trace('Note type: ${songNotes[3]}');
 				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote,null,null,songNotes[3],songNotes,gottaHitNote);
-				swagNote.sustainLength = songNotes[2] / songspeed;
+				swagNote.sustainLength = songNotes[2];
 				swagNote.scrollFactor.set(0, 0);
 
 				var susLength:Float = swagNote.sustainLength;
@@ -1986,21 +1977,12 @@ class PlayState extends MusicBeatState
 
 	function resyncVocals():Void
 	{
-		vocals.stop();
-		FlxG.sound.music.stop();
+		vocals.pause();
 
 		FlxG.sound.music.play();
+		Conductor.songPosition = FlxG.sound.music.time;
+		vocals.time = Conductor.songPosition;
 		vocals.play();
-		FlxG.sound.music.time = Conductor.songPosition * songspeed;
-		vocals.time = FlxG.sound.music.time;
-
-		@:privateAccess
-		{
-			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
-			if (vocals.playing)
-				lime.media.openal.AL.sourcef(vocals._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
-		}
-	}
 
 	private var paused:Bool = false;
 	var startedCountdown:Bool = false;
@@ -2039,14 +2021,6 @@ class PlayState extends MusicBeatState
 		try{
 		perfectMode = false;
 		#end
-
-		if (FlxG.sound.music.playing)
-			@:privateAccess
-		{
-			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
-			if (vocals.playing)
-				lime.media.openal.AL.sourcef(vocals._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, songspeed);
-		}
 
 		// reverse iterate to remove oldest notes first and not invalidate the iteration
 		// stop iteration as soon as a note is not removed
@@ -2518,11 +2492,11 @@ class PlayState extends MusicBeatState
 	
 			
 			if(FlxG.save.data.osuscore){
-				songScore += Math.round(score + (score * (((combo - 1) * songspeed) / 25)));
-				altsongScore += Math.round(score * songspeed);
+				songScore += Math.round(score + (score * ((combo - 1) / 25)));
+				altsongScore += Math.round(score);
 			}else{
-				songScore += Math.round(score * songspeed);
-				altsongScore += Math.round(score + (score * (((combo - 1) * songspeed) / 25)));
+				songScore += Math.round(score);
+				altsongScore += Math.round(score + (score * ((combo - 1) / 25)));
 			}
 			songScoreDef += Math.round(ConvertScore.convertScore(noteDiff));
 	
@@ -2811,7 +2785,7 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			{
 				var _scrollSpeed = FlxMath.roundDecimal(FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2); // Probably better to calculate this beforehand
-				_scrollSpeed = _scrollSpeed * songspeed;
+				_scrollSpeed = _scrollSpeed
 				notes.forEachAlive(function(daNote:Note)
 				{	
 
@@ -2833,9 +2807,9 @@ class PlayState extends MusicBeatState
 							if (FlxG.save.data.downscroll)
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									// Remember = minus makes notes go up, plus makes them go down
@@ -2858,9 +2832,9 @@ class PlayState extends MusicBeatState
 							}else
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									daNote.y -= daNote.height * 0.5;
@@ -3467,7 +3441,7 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			{
 				var _scrollSpeed = FlxMath.roundDecimal(FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2); // Probably better to calculate this beforehand
-				_scrollSpeed = _scrollSpeed * songspeed;
+				_scrollSpeed = _scrollSpeed
 				notes.forEachAlive(function(daNote:Note)
 				{	
 
@@ -3488,9 +3462,9 @@ class PlayState extends MusicBeatState
 							if (FlxG.save.data.downscroll)
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y + 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									// Remember = minus makes notes go up, plus makes them go down
@@ -3514,9 +3488,9 @@ class PlayState extends MusicBeatState
 							}else
 							{
 								if (daNote.mustPress)
-									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (playerStrums.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								else
-									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * ((Conductor.songPosition - daNote.strumTime) / songspeed) * _scrollSpeed);
+									daNote.y = (strumLineNotes.members[Math.floor(Math.abs(daNote.noteData))].y - 0.45 * (Conductor.songPosition - daNote.strumTime) * _scrollSpeed);
 								if(daNote.isSustainNote)
 								{
 									daNote.y -= daNote.height / 2;
