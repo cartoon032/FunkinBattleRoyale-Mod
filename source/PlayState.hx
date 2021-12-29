@@ -2785,7 +2785,6 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			{
 				var _scrollSpeed = FlxMath.roundDecimal(FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2); // Probably better to calculate this beforehand
-				_scrollSpeed = _scrollSpeed;
 				notes.forEachAlive(function(daNote:Note)
 				{	
 
@@ -3441,7 +3440,6 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			{
 				var _scrollSpeed = FlxMath.roundDecimal(FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2); // Probably better to calculate this beforehand
-				_scrollSpeed = _scrollSpeed
 				notes.forEachAlive(function(daNote:Note)
 				{	
 
