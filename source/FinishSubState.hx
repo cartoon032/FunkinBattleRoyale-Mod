@@ -114,9 +114,6 @@ class FinishSubState extends MusicBeatSubstate
 		}
 		super();
 		if(autoEnd){
-
-			// FlxG.camera.zoom = 1;
-			// PlayState.instance.camHUD.zoom = 1;
 			if (win) boyfriend.animation.finishCallback = this.finishNew; else finishNew();
 			if (FlxG.save.data.camMovement){
 				PlayState.instance.followChar(if(win) 0 else 1);
@@ -128,7 +125,6 @@ class FinishSubState extends MusicBeatSubstate
 	var cam:FlxCamera;
 	public function finishNew(?name:String){
 			FlxG.camera.alpha = PlayState.instance.camGame.alpha = PlayState.instance.camHUD.alpha = 1;
-			FlxG.camera.zoom = PlayState.instance.defaultCamZoom;
 			cam = new FlxCamera();
 			FlxG.cameras.add(cam);
 			FlxCamera.defaultCameras = [cam];
@@ -146,7 +142,6 @@ class FinishSubState extends MusicBeatSubstate
 				music.onComplete = function(){music = new FlxSound().loadEmbedded(Paths.music('breakfast'), true, true);music.play(false);} 
 
 			}
-			// FlxG.camera.zoom = PlayState.instance.camHUD.zoom = 1;
 
 			FlxG.sound.list.add(music);
 
@@ -200,7 +195,7 @@ class FinishSubState extends MusicBeatSubstate
 				+'\n Practice: ${FlxG.save.data.practiceMode}'
 				+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count:${PlayState.instance.interpCount}' : "")
 				+'\n Safe Frames: ${FlxG.save.data.frames}'
-				+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver}'
+				+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver},T Mod'
 				+'\n Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms'
 				+'\n Key count: ${PlayState.keyAmmo[PlayState.mania]}K'
 				);

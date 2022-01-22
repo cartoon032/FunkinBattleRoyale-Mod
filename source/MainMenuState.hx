@@ -29,7 +29,8 @@ using StringTools;
 
 class MainMenuState extends SickMenuState
 {
-	public static var ver:String = "0.10.0 - T Mod V.3.1";
+	public static var ver:String = "0.10.0";
+	public static var modver:String = "3.2";
 	
 	public static var firstStart:Bool = true;
 
@@ -61,6 +62,7 @@ class MainMenuState extends SickMenuState
 	override function create()
 	{
 		ChartingState.charting = false;
+		PlayState.sectionStart = false;
 		if (Main.errorMessage != ""){
 			errorMessage = Main.errorMessage;
 			Main.errorMessage = "";
@@ -79,7 +81,7 @@ class MainMenuState extends SickMenuState
 
 		bg.scrollFactor.set(0.1,0.1);
 		bg.color = MainMenuState.bgcolor;
-		var versionShit:FlxText = new FlxText(5, FlxG.height - 50, 0, 'FNF ${gameVer}/Kade ${kadeEngineVer}/Super-Engine ${ver}', 12);
+		var versionShit:FlxText = new FlxText(5, FlxG.height - 50, 0, 'FNF ${gameVer}/Kade ${kadeEngineVer}/Super-Engine ${ver}/T Mod ${modver}', 12);
 		versionShit.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionShit.borderSize = 2;
 		versionShit.scrollFactor.set();
