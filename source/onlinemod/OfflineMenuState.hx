@@ -47,6 +47,7 @@ class OfflineMenuState extends SearchMenuState
     sideButton.resize(150, 60);
     add(sideButton);
     ChartingState.charting = false;
+    PlayState.sectionStart = false;
   }
   function sortDirListing(listing:Array<String>){
     

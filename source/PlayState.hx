@@ -256,6 +256,10 @@ class PlayState extends MusicBeatState
 	var errorMsg:String = "";
 
 	var hitSound:Bool = false;
+	
+	public static var sectionStart:Bool =  false;
+	public static var sectionStartPoint:Int =  0;
+	public static var sectionStartTime:Float =  0;
 
 
 	// API stuff
@@ -434,7 +438,6 @@ class PlayState extends MusicBeatState
 		instance = this;
 		clearVariables();
 		hasStarted = true;
-
 		if (PlayState.songScript == "" && SongHScripts.scriptList[PlayState.SONG.song.toLowerCase()] != null) songScript = SongHScripts.scriptList[PlayState.SONG.song.toLowerCase()];
 		if (FlxG.save.data.fpsCap > 290)
 			(cast (Lib.current.getChildAt(0), Main)).setFPSCap(800);
@@ -1667,6 +1670,12 @@ class PlayState extends MusicBeatState
 
 		FlxG.sound.music.onComplete = endSong;
 		vocals.play();
+		
+		if(sectionStart){
+			FlxG.sound.music.time = sectionStartTime;
+			Conductor.songPosition = sectionStartTime;
+			vocals.time = sectionStartTime;
+		}
 
 		// Song duration in a float, useful for the time left feature
 		songLength = FlxG.sound.music.length;
@@ -1773,6 +1782,11 @@ class PlayState extends MusicBeatState
 		var daBeats:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
 		for (section in noteData)
 		{
+			if(sectionStart && daBeats < sectionStartPoint){
+				daBeats++;
+				continue;
+			}
+
 			var mn:Int = keyAmmo[mania];
 			var coolSection:Int = Std.int(section.lengthInSteps / 4);
 			var dataForThisSection:Array<Int> = [];
@@ -2151,17 +2165,16 @@ class PlayState extends MusicBeatState
 			
 
 			var locked = (!FlxG.save.data.camMovement || camLocked || PlayState.SONG.notes[Std.int(curStep / 16)].sectionNotes[0] == null);
-			if (PlayState.SONG.notes[Std.int(curStep / 16)] != null) followChar((PlayState.SONG.notes[Std.int(curStep / 16)].mustHitSection ? 0 : 1),locked);
-			if (FlxG.save.data.camMovement || !camLocked){
-				FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom, FlxG.camera.zoom, 0.95);
-				camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, 0.95);
-				
-			}else{
-				FlxG.camera.zoom = defaultCamZoom;
-				camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, 0.95);
-				// FlxG.camera.zoom = 0.95;
-				// camHUD.zoom = 1;
-			}
+			if (PlayState.SONG.notes[Std.int(curStep / 16)] != null) followChar((PlayState.SONG.notes[Std.int(curStep / 16)].mustHitSection ? 0 : 1),locked);}
+		if (FlxG.save.data.camMovement || !camLocked){
+			FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom, FlxG.camera.zoom, 0.95);
+			camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, 0.95);
+			
+		}else{
+			FlxG.camera.zoom = defaultCamZoom;
+			camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, 0.95);
+			// FlxG.camera.zoom = 0.95;
+			// camHUD.zoom = 1;
 		}
 		switch(curSong){
 			case 'Fresh':
@@ -2190,8 +2203,10 @@ class PlayState extends MusicBeatState
 				}
 		}
 
-		if (health <= 0 && !FlxG.save.data.practiceMode && !ChartingState.charting)
+		if (health <= 0 && !FlxG.save.data.practiceMode && !ChartingState.charting){
+			sectionStart = false;
 			finishSong(false);
+		}
  		if (FlxG.save.data.resetButton)
 		{
 			if(FlxG.keys.justPressed.R)
@@ -2356,6 +2371,7 @@ class PlayState extends MusicBeatState
 					transOut = FlxTransitionableState.defaultTransOut;
 
 					FlxG.switchState(new StoryMenuState());
+					sectionStart = false;
 
 
 					// if ()
@@ -3287,34 +3303,34 @@ class PlayState extends MusicBeatState
 							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
 							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
 							else if (p2presses[2] || p2holds[2]) dad.playAnim('singRIGHT', true); // Right
-							else if (p2presses[3] || p2holds[3]) dad.playAnim('singLEFT', true); // Left
-							else if (p2presses[4] || p2holds[4]) dad.playAnim('singUP', true); // Up
-							else if (p2presses[5] || p2holds[5]) dad.playAnim('singRIGHT', true); // Right 
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singLEFT2', true); // Left
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singUP2', true); // Up
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singRIGHT2', true); // Right 
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 						case 2:
 							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
 							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
 							else if (p2presses[2] || p2holds[2]) dad.playAnim('singRIGHT', true); // Right
-							else if (p2presses[3] || p2holds[3]) dad.playAnim('singUP', true); // Up
-							else if (p2presses[4] || p2holds[4]) dad.playAnim('singLEFT', true); // Left
-							else if (p2presses[5] || p2holds[5]) dad.playAnim('singUP', true); // Up
-							else if (p2presses[6] || p2holds[6]) dad.playAnim('singRIGHT', true); // Right 
+							else if (p2presses[3] || p2holds[3]) dad.playAnim('singSPACE', true); // Up
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singLEFT2', true); // Left
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singUP2', true); // Up
+							else if (p2presses[6] || p2holds[6]) dad.playAnim('singRIGHT2', true); // Right 
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 						case 3:
 							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
 							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
 							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
 							else if (p2presses[3] || p2holds[3]) dad.playAnim('singRIGHT', true); // Right 
-							else if (p2presses[4] || p2holds[4]) dad.playAnim('singUP', true); // Up
-							else if (p2presses[5] || p2holds[5]) dad.playAnim('singLEFT', true); // Left
-							else if (p2presses[6] || p2holds[6]) dad.playAnim('singDOWN', true); // Down
-							else if (p2presses[7] || p2holds[7]) dad.playAnim('singUP', true); // Up
-							else if (p2presses[8] || p2holds[8]) dad.playAnim('singRIGHT', true); // Right 
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singSPACE', true); // Up
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singLEFT2', true); // Left
+							else if (p2presses[6] || p2holds[6]) dad.playAnim('singDOWN2', true); // Down
+							else if (p2presses[7] || p2holds[7]) dad.playAnim('singUP2', true); // Up
+							else if (p2presses[8] || p2holds[8]) dad.playAnim('singRIGHT2', true); // Right 
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 						case 4:
 							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
 							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
-							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[2] || p2holds[2]) dad.playAnim('singSPACE', true); // Up
 							else if (p2presses[3] || p2holds[3]) dad.playAnim('singUP', true); // Up
 							else if (p2presses[4] || p2holds[4]) dad.playAnim('singRIGHT', true); // Right 
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
@@ -3323,13 +3339,13 @@ class PlayState extends MusicBeatState
 							else if (p2presses[1] || p2holds[1]) dad.playAnim('singDOWN', true); // Down
 							else if (p2presses[2] || p2holds[2]) dad.playAnim('singUP', true); // Up
 							else if (p2presses[3] || p2holds[3]) dad.playAnim('singRIGHT', true); // Right 
-							else if (p2presses[4] || p2holds[4]) dad.playAnim('singLEFT', true); // Left
-							else if (p2presses[5] || p2holds[5]) dad.playAnim('singDOWN', true); // Down
-							else if (p2presses[6] || p2holds[6]) dad.playAnim('singUP', true); // Up
-							else if (p2presses[7] || p2holds[7]) dad.playAnim('singRIGHT', true); // Right 
+							else if (p2presses[4] || p2holds[4]) dad.playAnim('singLEFT2', true); // Left
+							else if (p2presses[5] || p2holds[5]) dad.playAnim('singDOWN2', true); // Down
+							else if (p2presses[6] || p2holds[6]) dad.playAnim('singUP2', true); // Up
+							else if (p2presses[7] || p2holds[7]) dad.playAnim('singRIGHT2', true); // Right 
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 						case 6:
-							if (p2presses[0] || p2holds[0]) dad.playAnim('singUP', true); // Up
+							if (p2presses[0] || p2holds[0]) dad.playAnim('singSPACE', true); // Up
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 						case 7:
 							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
@@ -3337,7 +3353,7 @@ class PlayState extends MusicBeatState
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 						case 8:
 							if (p2presses[0] || p2holds[0]) dad.playAnim('singLEFT', true); // Left
-							else if (p2presses[1] || p2holds[1]) dad.playAnim('singUP', true); // Up
+							else if (p2presses[1] || p2holds[1]) dad.playAnim('singSPACE', true); // Up
 							else if (p2presses[2] || p2holds[2]) dad.playAnim('singRIGHT', true); // Right 
 							else if (dad.animation.curAnim.name != "Idle" && dad.animation.curAnim.finished) dad.playAnim('Idle',true); // Idle
 					}
@@ -4433,6 +4449,7 @@ class PlayState extends MusicBeatState
 			if (FlxG.keys.justPressed.SEVEN)
 			{
 				FlxG.switchState(new ChartingState());
+				sectionStart = false;
 			}
 		}
 	}
