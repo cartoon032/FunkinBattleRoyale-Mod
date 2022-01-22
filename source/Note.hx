@@ -128,7 +128,7 @@ class Note extends FlxSprite
 			noteScale = 0.6;
 			longnoteScale = 1.75;
 			mania = 1;
-			noteAnims = ['singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT'];
+			noteAnims = ['singLEFT','singDOWN','singRIGHT','singLEFT2','singUP2','singRIGHT2'];
 		}
 		else if (PlayState.SONG.mania == 2)
 		{
@@ -136,7 +136,7 @@ class Note extends FlxSprite
 			noteScale = 0.58;
 			longnoteScale = 2;
 			mania = 2;
-			noteAnims = ['singLEFT','singDOWN','singRIGHT','singUP','singLEFT','singUP','singRIGHT'];
+			noteAnims = ['singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT2','singUP2','singRIGHT2'];
 		}
 		else if (PlayState.SONG.mania == 3)
 		{
@@ -144,7 +144,7 @@ class Note extends FlxSprite
 			noteScale = 0.5;
 			longnoteScale = 2.25;
 			mania = 3;
-			noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
+			noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT2','singDOWN2','singUP2','singRIGHT2'];
 		}
 		else if (PlayState.SONG.mania == 4)
 		{
@@ -152,7 +152,7 @@ class Note extends FlxSprite
 			noteScale = 0.65;
 			longnoteScale = 1.625;
 			mania = 4;
-			noteAnims = ['singLEFT','singDOWN','singUP','singUP','singRIGHT'];
+			noteAnims = ['singLEFT','singDOWN','singSPACE','singUP','singRIGHT'];
 		}
 		else if (PlayState.SONG.mania == 5)
 		{
@@ -160,7 +160,7 @@ class Note extends FlxSprite
 			noteScale = 0.55;
 			longnoteScale = 2.125;
 			mania = 5;
-			noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+			noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT2','singDOWN2','singUP2','singRIGHT2'];
 		}
 		else if (PlayState.SONG.mania == 6)
 		{
@@ -168,7 +168,7 @@ class Note extends FlxSprite
 			noteScale = 0.7;
 			longnoteScale = 1.5;
 			mania = 6;
-			noteAnims = ['singUP'];
+			noteAnims = ['singSPACE'];
 		}
 		else if (PlayState.SONG.mania == 7)
 		{
@@ -184,7 +184,7 @@ class Note extends FlxSprite
 			noteScale = 0.7;
 			longnoteScale = 1.5;
 			mania = 8;
-			noteAnims = ['singLEFT','singUP','singRIGHT'];
+			noteAnims = ['singLEFT','singSPACE','singRIGHT'];
 		}
 		else if (PlayState.SONG.mania == 9)
 		{
@@ -202,7 +202,7 @@ class Note extends FlxSprite
 		if(Std.isOfType(_type,String)) _type = _type.toLowerCase();
 
 
-		this.noteData = _noteData % 21; 
+		this.noteData = _noteData % 9; 
 		showNote = !(!playerNote && !FlxG.save.data.oppStrumLine);
 		shouldntBeHit = (isSustainNote && prevNote.shouldntBeHit || (_type == 1 || _type == "hurt note" || _type == "hurt" || _type == true));
 		if(!inCharter && rawNote[1] == -1){ // Psych event notes, These should not be shown, and should not appear on the player's side

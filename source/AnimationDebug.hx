@@ -54,7 +54,7 @@ using StringTools;
 
 class AnimationDebug extends MusicBeatState
 {
-	static var INTERNALANIMATIONLIST:Array<String> = ["idle","singLEFT","singDOWN","singUP","singRIGHT","singLEFTmiss","singDOWNmiss","singUPmiss","singRIGHTmiss","Idle-alt","singLEFT-alt","singDOWN-alt","singUP-alt","singRIGHT-alt","hey","lose","dodge"]; // Why is this yelling you ask? Because yes
+	static var INTERNALANIMATIONLIST:Array<String> = ["idle","singLEFT","singDOWN","singUP","singRIGHT","singSPACE","singLEFT2","singDOWN2","singUP2","singRIGHT2","singLEFTmiss","singDOWNmiss","singUPmiss","singRIGHTmiss","singSPACEmiss","singLEFT2miss","singDOWN2miss","singUP2miss","singRIGHT2miss","Idle-alt","singLEFT-alt","singDOWN-alt","singUP-alt","singRIGHT-alt","hey","lose","dodge"]; // Why is this yelling you ask? Because yes
 	public static var instance:AnimationDebug;
 	var gf:Character;
 	public var dad:Character;
@@ -351,7 +351,7 @@ class AnimationDebug extends MusicBeatState
 
 
 
-	function moveOffset(?amountX:Float = 0,?amountY:Float = 0,?shiftPress:Bool = false,?ctrlPress:Bool = false,?animName:String = ""){
+	function moveOffset(?amountX:Float = 0,?amountY:Float = 0,?shiftPress:Bool = false,?ctrlPress:Bool = false,?altPress:Bool = false,?animName:String = ""){
 		try{
 
 			if (shiftPress){amountX=amountX*5;amountY=amountY*5;}
@@ -549,7 +549,7 @@ class AnimationDebug extends MusicBeatState
 
 
 
-	function updateCharPos(?x:Float = 0,?y:Float = 0,?shiftPress:Bool = false,?ctrlPress:Bool = false){
+	function updateCharPos(?x:Float = 0,?y:Float = 0,?shiftPress:Bool = false,?ctrlPress:Bool = false,?altPress:Bool = false){
 		if (shiftPress){x=x*5;y=y*5;}
 		if (ctrlPress){x=x*0.1;y=y*0.1;}
 		charX+=x;charY-=y;
@@ -621,7 +621,7 @@ class AnimationDebug extends MusicBeatState
 		animToPlay = "";
 	}
 
-	function updateCameraPos(?modify:Bool = true,?x:Float=0,?y:Float=0,?shiftPress:Bool = false,?ctrlPress:Bool = false){
+	function updateCameraPos(?modify:Bool = true,?x:Float=0,?y:Float=0,?shiftPress:Bool = false,?ctrlPress:Bool = false,?altPress:Bool = false){
 		if (modify){
 			if (shiftPress){x=x*5;y=y*5;}
 			if (ctrlPress){x=x*0.1;y=y*0.1;}
@@ -869,6 +869,7 @@ class AnimationDebug extends MusicBeatState
 		}
 		var shiftPress = FlxG.keys.pressed.SHIFT;
 		var ctrlPress = FlxG.keys.pressed.CONTROL;
+		var altPress = FlxG.keys.pressed.ALT;
 		var rPress = FlxG.keys.justPressed.R;
 		var hPress = FlxG.keys.justPressed.H;
 		dadBG.y = dad.y;
@@ -905,11 +906,15 @@ class AnimationDebug extends MusicBeatState
 					 (FlxG.keys.pressed.J),
 					 (FlxG.keys.pressed.K),
 					 (FlxG.keys.pressed.L),
+					 (FlxG.keys.pressed.SPACE)
 				];
 
 				var modifier = "";
-				if (shiftPress) {modifier += "miss";}
+				if (shiftPress && !altPress) modifier += "miss";
+				if (altPress && !shiftPress) modifier += "2";
+				if (shiftPress && altPress) modifier += "2miss";
 				if (ctrlPress) modifier += "-alt";
+
 				if(FlxG.keys.pressed.SEVEN)swapSides();
 				// var animToPlay = "";
 				for (i => v in pressArray) {
@@ -985,6 +990,8 @@ class AnimationDebug extends MusicBeatState
 							case 25:
 								if (shiftPress)
 									updateCharPos(1,0,false,ctrlPress);
+							case 26:
+								animToPlay = 'singSPACE' + modifier;
 						}	
 					}
 				}
@@ -1079,10 +1086,11 @@ class AnimHelpScreen extends FlxUISubState{
 		var controlsText:FlxText = new FlxText(10,145,0,'Controls:'
 		+(switch(editMode) {
 			case 0:
-				'\n\nWASD - Note anims'
+				'\n\nWASD / Space Bar - Note anims'
 				+'\nV - Idle'
 				+'\n *Shift - Miss variant'
 				+'\n *Ctrl - Alt Variant'
+				+'\n *Alt - Second Variant'
 				+'\nIJKL - Move char, Moves per press for accuracy'
 				+'\nArrows - Move Offset, Moves per press for accuracy'
 				+'\n *Shift - Hold to move'

@@ -1006,11 +1006,28 @@ class Character extends FlxSprite
 		if (clonedChar == ""){
 			clonedChar = curCharacter;
 		}
-		for (i in ['RIGHT','UP','LEFT','DOWN']) { // Add main animations over miss if miss isn't present
+		for (i in ['RIGHT','UP','LEFT','DOWN']) { // Add main animations over miss and extra note animation if they are not present
+			if (animation.getByName('sing${i}2') == null){
+				cloneAnimation('sing${i}2', animation.getByName('sing$i'));				
+			}
 			if (animation.getByName('sing${i}miss') == null){
 				cloneAnimation('sing${i}miss', animation.getByName('sing$i'));
 				tintedAnims.push('sing${i}miss');
 			}
+			if (animation.getByName('sing${i}2miss') == null){
+				cloneAnimation('sing${i}2miss', animation.getByName('sing$i'));
+				tintedAnims.push('sing${i}2miss');
+			}
+		}
+		if (animation.getByName('singSPACE') == null){
+				cloneAnimation('singSPACE', animation.getByName('singUP'));
+		}
+			if (animation.getByName('singSPACEmiss') == null){
+				if(animation.getByName('singUPmiss') != null) cloneAnimation('singSPACEmiss', animation.getByName('singUPmiss'));
+				else{
+					cloneAnimation('singSPACEmiss', animation.getByName('singSPACE'));
+					tintedAnims.push('singSPACEmiss');
+				}
 		}
 
 		if (charType == 2 && !curCharacter.startsWith("gf")){ // Checks if GF is not girlfriend
@@ -1032,15 +1049,21 @@ class Character extends FlxSprite
 
 				// var animArray
 			var oldRight = animation.getByName('singRIGHT').frames;
+			var oldRight2 = animation.getByName('singRIGHT2').frames;
 			animation.getByName('singRIGHT').frames = animation.getByName('singLEFT').frames;
 			animation.getByName('singLEFT').frames = oldRight;
+			animation.getByName('singRIGHT2').frames = animation.getByName('singLEFT2').frames;
+			animation.getByName('singLEFT2').frames = oldRight2;
 
 			// IF THEY HAVE MISS ANIMATIONS??
 			if (animation.getByName('singRIGHTmiss') != null)
 			{
-				var oldMiss = animation.getByName('singRIGHTmiss').frames;
+				var oldRightMiss = animation.getByName('singRIGHTmiss').frames;
+				var oldRight2Miss = animation.getByName('singRIGHT2miss').frames;
 				animation.getByName('singRIGHTmiss').frames = animation.getByName('singLEFTmiss').frames;
-				animation.getByName('singLEFTmiss').frames = oldMiss;
+				animation.getByName('singLEFTmiss').frames = oldRightMiss;
+				animation.getByName('singRIGHT2miss').frames = animation.getByName('singLEFT2miss').frames;
+				animation.getByName('singLEFT2miss').frames = oldRight2Miss;
 			}
 		}
 		dance();
