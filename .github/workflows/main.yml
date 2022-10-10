@@ -52,7 +52,7 @@ jobs:
           haxelib install linc_luajit
           haxelib install newgrounds
           haxelib install hscript
-          haxelib install discord_rpc
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
           haxelib git hscript-ex https://github.com/ianharrigan/hscript-ex
           haxelib list
         shell: cmd
