@@ -22,10 +22,9 @@ class OnlinePlayState extends PlayState
 	var clients:Map<Int, String> = [];
 	public static var clientScores:Map<Int, Int> = [];
 	public static var clientText:Map<Int, String> = [];
-	public static var lastPressed:Array<Bool> = [false,false,false,false,false,false,false,false,false];
+	public static var lastPressed:Array<Bool> = [false,false,false,false];
 	public static var useSongChar:Array<String> = ["","",""];
 	public static var autoDetPlayer2:Bool = true;
-	var keytosent:Int;
 	var clientTexts:Map<Int, Int> = [];
 	var clientsGroup:FlxTypedGroup<FlxText>;
 
@@ -43,6 +42,10 @@ class OnlinePlayState extends PlayState
 	var inPause:Bool = false;
 
 	var originalSafeFrames:Int = FlxG.save.data.frames;
+	var p2Int:Int = 0;
+	var p1Int:Int = 0;
+	var p2presses:Array<Bool> = [false,false,false,false,false,false,false,false]; // 0 = not pressed, 1 = pressed, 2 = hold, 3 = miss
+	var p1presses:Array<Bool> = [false, false, false, false];
 
 	public function new(customSong:Bool, voices:FlxSound, inst:Sound)
 	{
@@ -58,35 +61,46 @@ class OnlinePlayState extends PlayState
 
 	override function create()
 	{try{
+		handleNextPacket = true;
+		PlayState.stateType = 3;
+		OnlinePlayMenuState.SetVolumeControls(true); // Make sure volume is enabled
 		if (customSong){
 			for (i => v in useSongChar) {
 				if (v != ""){
 					switch(i){
-						case 0: PlayState.SONG.player1 = v;
-						case 1: PlayState.SONG.player2 = v;
-						case 2: PlayState.SONG.gfVersion = v;
+						case 0: PlayState.player1 = v;
+						case 1: PlayState.player2 = v;
+						case 2: PlayState.player3 = v;
 					}
 				}
 			}
 			if (useSongChar[0] != "") PlayState.SONG.player1 = FlxG.save.data.playerChar;
 			
-			if ((FlxG.save.data.charAuto || useSongChar[1] != "") && TitleState.retChar(PlayState.SONG.player2) != ""){ // Check is second player is a valid character
-				PlayState.SONG.player2 = TitleState.retChar(PlayState.SONG.player2);
+			if ((FlxG.save.data.charAuto || useSongChar[1] != "") && TitleState.retChar(PlayState.player2) != ""){ // Check is second player is a valid character
+				PlayState.player2 = TitleState.retChar(PlayState.player2);
 			}else{
-				PlayState.SONG.player2 = FlxG.save.data.opponent;
+				PlayState.player2 = FlxG.save.data.opponent;
 			}
 		}
 
-		super.create();
-
-
 		clients = OnlineLobbyState.clients.copy();
+		if (autoDetPlayer2){
+				var count = 0;
+				for (i in clients.keys())
+				{
+					count++;
+					if(count > 1){break;}
+				}
+				PlayState.dadShow = (count == 1);
+		}
+
+		super.create();
 		clientScores = [];
 		clientText = [];
 		clientsGroup = new FlxTypedGroup<FlxText>();
 
 		// Add the score UI for other players
-		for (i in OnlineLobbyState.clients.keys())
+		for (i in clients.keys())
 		{
 			clientScores[i] = 0;
 			clientCount++;
@@ -105,20 +119,10 @@ class OnlinePlayState extends PlayState
 			text.cameras = [camHUD];
 		}
 		add(clientsGroup);
-		if (autoDetPlayer2){
-				if (clientCount == 2 && TitleState.supported) {
-					PlayState.p2canplay = true;
-				}else{
-					PlayState.p2canplay = false;
-				}
-				if (clientCount == 1){
-					PlayState.dadShow = false;
-					PlayState.dad.destroy();
-					PlayState.dad = new EmptyCharacter(100, 100);
-				}
-		}
+
+
 		// Add XieneDev watermark
-		var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.9 + 50, FlxG.width, "XieneDev Battle Royale", 16);
+		var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.9 + 50, FlxG.width, "SuperEngine-BattleRoyale " + MainMenuState.ver, 16);
 		xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 		xieneDevWatermark.scrollFactor.set();
 		add(xieneDevWatermark);
@@ -139,11 +143,12 @@ class OnlinePlayState extends PlayState
 
 
 		// Remove healthbar
-		if (FlxG.save.data.downscroll){scoreTxt.y = 10;}
+		// if (FlxG.save.data.downscroll){scoreTxt.y = 10;}
 		remove(healthBarBG);
 		remove(healthBar);
 		remove(iconP1);
 		remove(iconP2);
+		PlayState.MultiPlayerSupport = false; // this should only be toggle with script
 
 
 		OnlinePlayMenuState.receiver.HandleData = HandleData;
@@ -297,11 +302,13 @@ class OnlinePlayState extends PlayState
 		super.resyncVocals();
 	}
 
+
+
 	override function endSong():Void
 	{
 		clients[-1] = OnlineNickState.nickname;
 		clientScores[-1] = PlayState.songScore;
-		clientText[-1] = "S:" + PlayState.songScore+ " M:" + PlayState.misses+ " A:" + PlayState.accuracy;
+		clientText[-1] = "S:" + PlayState.songScore+ " M:" + PlayState.misses+ " A:" + Std.int(PlayState.accuracy);
 
 		canPause = false;
 		FlxG.sound.playMusic(loadedInst, 1, true);
@@ -322,13 +329,35 @@ class OnlinePlayState extends PlayState
 			return;
 
 		super.keyShit();
-		if (PlayState.p2canplay){ // This ifstatement is weird, but tries to help with bandwidth
-			if (lastPressed[0] != PlayState.p1presses[0] || lastPressed[1] != PlayState.p1presses[1] || lastPressed[2] != PlayState.p1presses[2] || lastPressed[3] != PlayState.p1presses[3] || lastPressed[4] != PlayState.p1presses[4] || lastPressed[5] != PlayState.p1presses[5] || lastPressed[6] != PlayState.p1presses[6] || lastPressed[7] != PlayState.p1presses[7] || lastPressed[8] != PlayState.p1presses[8]){
-				// Sender.SendPacket(Packets.KEYPRESS, [this.fromBool(controls.LEFT), this.fromBool(controls.DOWN), this.fromBool(controls.UP), this.fromBool(controls.RIGHT)], OnlinePlayMenuState.socket);
-				Sender.SendPacket(Packets.KEYPRESS, [getPresses()], OnlinePlayMenuState.socket);
-				lastPressed = PlayState.p1presses;
-			}
-		}
+		// if (PlayState.p2canplay){ // This ifstatement is weird, but tries to help with bandwidth
+		// 	if (lastPressed[0] != p1presses[0] || lastPressed[1] != p1presses[1] || lastPressed[2] != p1presses[2] || lastPressed[3] != p1presses[3]){
+		// 		// Sender.SendPacket(Packets.KEYPRESS, [this.fromBool(controls.LEFT), this.fromBool(controls.DOWN), this.fromBool(controls.UP), this.fromBool(controls.RIGHT)], OnlinePlayMenuState.socket);
+		// 		p1Int = getPresses();
+		// 		Sender.SendPacket(Packets.KEYPRESS, [p1Int], OnlinePlayMenuState.socket);
+		// 		lastPressed = p1presses;
+		// 	}
+		// 	p1presses = [controls.LEFT, controls.DOWN, controls.UP, controls.RIGHT];
+		// 	// Shitty animation handling
+
+		// 	cpuStrums.forEach(function(spr:FlxSprite)
+		// 	{
+		// 		// if (p2presses[spr.ID]) DadStrumPlayAnim(spr.ID); // Weird but a slight bit more efficient, possibly
+		// 		if (p2presses[spr.ID])
+		// 			spr.animation.play('pressed');
+		// 		else
+		// 			spr.animation.play('static');
+				
+		// 		spr.centerOffsets();
+	 
+		// 		// if (spr.animation.curAnim.name == 'confirm')
+		// 		// {
+		// 		// 	spr.centerOffsets();
+		// 		// 	spr.offset.x -= 13;
+		// 		// 	spr.offset.y -= 13;
+		// 		// }
+		// 		// else
+		// 	});
+		// }
 	}
 // this.fromBool([controls.LEFT_P, controls.LEFT]),
 //           this.fromBool([controls.DOWN_P, controls.DOWN]),
@@ -366,24 +395,18 @@ class OnlinePlayState extends PlayState
 		super.closeSubState();
 	}
 	
-	function getPresses():Int{
-		switch(PlayState.mania){
-			case 0: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.DOWN_P) << 1 | this.fromBool(controls.UP_P) << 2 | this.fromBool(controls.RIGHT_P) << 3 | this.fromBool(controls.LEFT) | this.fromBool(controls.DOWN) << 1 | this.fromBool(controls.UP) << 2 | this.fromBool(controls.RIGHT) << 3;
-			case 1: keytosent = this.fromBool(controls.L1_P) | this.fromBool(controls.D1_P) << 1 | this.fromBool(controls.R1_P) << 2 | this.fromBool(controls.L2_P) << 3 | this.fromBool(controls.U1_P) << 4 | this.fromBool(controls.R2_P) << 5 | this.fromBool(controls.L1) | this.fromBool(controls.D1) << 1 | this.fromBool(controls.R1) << 2 | this.fromBool(controls.L2) << 3 | this.fromBool(controls.U1) << 4 | this.fromBool(controls.R2) << 5;
-			case 2: keytosent = this.fromBool(controls.L1_P) | this.fromBool(controls.D1_P) << 1 | this.fromBool(controls.R1_P) << 2 | this.fromBool(controls.N4_P) << 3 | this.fromBool(controls.L2_P) << 4 | this.fromBool(controls.U1_P) << 5 | this.fromBool(controls.R2_P) << 6 | this.fromBool(controls.L1) | this.fromBool(controls.D1) << 1 | this.fromBool(controls.R1) << 2 | this.fromBool(controls.N4) << 3 | this.fromBool(controls.L2) << 4 | this.fromBool(controls.U1) << 5 | this.fromBool(controls.R2) << 6;
-			case 3: keytosent = this.fromBool(controls.N0_P) | this.fromBool(controls.N1_P) << 1 | this.fromBool(controls.N2_P) << 2 | this.fromBool(controls.N3_P) << 3 | this.fromBool(controls.N4_P) << 4 | this.fromBool(controls.N5_P) << 5 | this.fromBool(controls.N6_P) << 6 | this.fromBool(controls.N7_P) << 7 | this.fromBool(controls.N8_P) << 8 | this.fromBool(controls.N0) | this.fromBool(controls.N1) << 1 | this.fromBool(controls.N2) << 2 | this.fromBool(controls.N3) << 3 | this.fromBool(controls.N4) << 4 | this.fromBool(controls.N5) << 5 | this.fromBool(controls.N6) << 6 | this.fromBool(controls.N7) << 7 | this.fromBool(controls.N8) << 8;
-			case 4: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.DOWN_P) << 1 | this.fromBool(controls.N4_P) << 2 | this.fromBool(controls.UP_P) << 3 | this.fromBool(controls.RIGHT_P) << 4 | this.fromBool(controls.LEFT) | this.fromBool(controls.DOWN) << 1 | this.fromBool(controls.N4) << 2 | this.fromBool(controls.UP) << 3 | this.fromBool(controls.RIGHT) << 4;
-			case 5: keytosent = this.fromBool(controls.N0_P) | this.fromBool(controls.N1_P) << 1 | this.fromBool(controls.N2_P) << 2 | this.fromBool(controls.N3_P) << 3 | this.fromBool(controls.N5_P) << 4 | this.fromBool(controls.N6_P) << 5 | this.fromBool(controls.N7_P) << 6 | this.fromBool(controls.N8_P) << 7 | this.fromBool(controls.N0) | this.fromBool(controls.N1) << 1 | this.fromBool(controls.N2) << 2 | this.fromBool(controls.N3) << 3 | this.fromBool(controls.N5) << 4 | this.fromBool(controls.N6) << 5 | this.fromBool(controls.N7) << 6 | this.fromBool(controls.N8) << 7;
-			case 6: keytosent = this.fromBool(controls.N4_P) | this.fromBool(controls.N4);
-			case 7: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.RIGHT_P) << 2 | this.fromBool(controls.LEFT) | this.fromBool(controls.RIGHT) << 2;
-			case 8: keytosent = this.fromBool(controls.LEFT_P) | this.fromBool(controls.N4_P) << 2 | this.fromBool(controls.RIGHT_P) << 3 | this.fromBool(controls.LEFT) | this.fromBool(controls.N4) << 2 | this.fromBool(controls.RIGHT) << 3;
-		}
-		return keytosent;
-	}
+	function getPresses():Int {return this.fromBool(controls.LEFT) | this.fromBool(controls.DOWN) << 1 | this.fromBool(controls.UP) << 2 | this.fromBool(controls.RIGHT) << 3;}
 
+	public static var handleNextPacket = true;
 	function HandleData(packetId:Int, data:Array<Dynamic>)
 	{try{
+
 		OnlinePlayMenuState.RespondKeepAlive(packetId);
+		callInterp("packetRecieve",[packetId,data]);
+		if(!handleNextPacket){
+			handleNextPacket = true;
+			return;
+		}
 		switch (packetId)
 		{
 			case Packets.PLAYERS_READY:
@@ -431,14 +454,62 @@ class OnlinePlayState extends PlayState
 			case Packets.REJECT_CHAT_MESSAGE:
 				Chat.SPEED_LIMIT();
 			case Packets.SERVER_CHAT_MESSAGE:
-				Chat.SERVER_MESSAGE(data[0]);
+				if(StringTools.startsWith(data[0],"'32d5d167'")) OnlineLobbyState.handleServerCommand(data[0].toLowerCase(),0); else Chat.SERVER_MESSAGE(data[0]);
 
 			case Packets.FORCE_GAME_END:
 				FlxG.switchState(new OnlineLobbyState(true));
 			case Packets.KEYPRESS:
 				if (PlayState.p2canplay){
-					// PlayState.p2presses = [this.fromInt(data[0]), this.fromInt(data[1]), this.fromInt(data[2]), this.fromInt(data[3])];
-					PlayState.p2presses = [((data[0] >> 0) & 1 == 1),((data[0] >> 1) & 1 == 1),((data[0] >> 2) & 1 == 1),((data[0] >> 3) & 1 == 1),((data[0] >> 4) & 1 == 1),((data[0] >> 5) & 1 == 1),((data[0] >> 6) & 1 == 1),((data[0] >> 7) & 1 == 1),((data[0] >> 8) & 1 == 1)];
+					var charID = 1;
+					if(data[2] != null && data[2] != 0 || PlayState.MultiPlayerSupport) charID = data[2];
+
+					if(data[0] == -1 && data[1] != null && data[1] != 0 ){
+						PlayState.charAnim(1,Note.noteAnims[Std.int(data[1] - 1)],true);
+					}else{
+						var killedNote = false;
+						for (i => note in notes.members){
+							if(note.noteID == data[0]){
+								killedNote = true;
+								if(data[1] != null && data[1] != 0 || note.shouldntBeHit){ // Miss
+									note.miss(charID,note,true);
+								}else{
+									note.hit(charID,note,true);
+								}
+								if(!note.mustPress){ // Oi, dumbass, don't delete notes from the player
+									note.kill();
+									notes.remove(note, true);
+									note.destroy();
+								}
+								break;
+							}
+						}
+						if(!killedNote){
+							for (_ => note in unspawnNotes) {
+								if(note.noteID == data[0]){
+									killedNote = true;
+									if(data[1] != null && data[1] != 0 || note.shouldntBeHit){ // Miss
+										note.miss(charID,note,true);
+									}else{
+										note.hit(charID,note,true);
+									}
+									if(!note.mustPress){
+										note.kill();
+										notes.remove(note, true);
+										note.destroy();
+									}
+									break;
+								}
+								
+							}
+						}
+					}
+
+					// // PlayState.p2presses = [this.fromInt(data[0]), this.fromInt(data[1]), this.fromInt(data[2]), this.fromInt(data[3])];
+					// 	p2Int = data[0];
+					// 	p2presses = [((data[0] >> 0) & 1 == 1),((data[0] >> 1) & 1 == 1),((data[0] >> 2) & 1 == 1),((data[0] >> 3) & 1 == 1) // Holds
+					// 	];
+
+					// }
 				}
 			case Packets.BROADCAST_NEW_PLAYER:
 				var id:Int = data[0];
@@ -464,6 +535,7 @@ class OnlinePlayState extends PlayState
 				text.cameras = [camHUD];
 			case Packets.DISCONNECT:
 				FlxG.switchState(new OnlinePlayMenuState("Disconnected from server"));
+
 		}}catch(e){
 			Chat.OutputChatMessage("[Client] You had an error when receiving packet '" + '$packetId' + "':");
 			Chat.OutputChatMessage(e.message);
@@ -486,6 +558,8 @@ class OnlinePlayState extends PlayState
 
 		health = 1;
 
+		if(inPause)
+			Conductor.songPosition = FlxG.sound.music.time / PlayState.songspeed;
 		if (!ready)
 		{
 			Conductor.songPosition = -5000;

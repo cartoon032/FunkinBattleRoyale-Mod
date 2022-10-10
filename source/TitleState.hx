@@ -25,10 +25,25 @@ import openfl.Assets;
 import sys.io.File;
 import sys.FileSystem;
 import flixel.math.FlxMath;
+import tjson.Json;
+import flash.display.Graphics;
+import flash.display.Sprite;
+import flash.Lib;
+import SickMenuState;
+import flash.media.Sound;
+import flixel.FlxCamera;
 
+#if windows
+import Discord.DiscordClient;
+#end
 
 using StringTools;
 
+typedef Scorekillme = {
+	var scores:Array<Float>;
+	var songs:Array<String>;
+	var funniNumber:Float;
+}
 
 class TitleState extends MusicBeatState
 {
@@ -37,16 +52,17 @@ class TitleState extends MusicBeatState
 	var blackScreen:FlxSprite;
 	var credGroup:FlxGroup;
 	var credTextShit:Alphabet;
-	var textGroup:FlxGroup;
+	var textGroup:FlxTypedGroup<FlxSprite>;
 	var ngSpr:FlxSprite;
 	public static var p2canplay = true;
 	public static var choosableCharacters:Array<String> = [];
 	public static var choosableStages:Array<String> = ["default","stage",'halloween',"philly","limo",'mall','mallevil','school','schoolevil'];
 	public static var choosableStagesLower:Map<String,String> = [];
 	public static var choosableCharactersLower:Map<String,String> = [];
+	public static var weekChars:Map<String,Array<String>> = [];
 	public static var characterDescriptions:Map<String,String> = [];
+	public static var characterPaths:Map<String,String> = [];
 	public static var invalidCharacters:Array<String> = [];
-	public static var defCharJson:CharacterMetadataJSON = {characters:[], aliases:[]};
 	// Var's I have because I'm to stupid to get them to properly transfer between certain functions
 	public static var returnStateID:Int = 0;
 	public static var supported:Bool = false;
@@ -55,12 +71,20 @@ class TitleState extends MusicBeatState
 	public static var updatedVer:String = "";
 	public static var errorMessage:String = "";
 	public static var osuBeatmapLoc:String = "";
+	public static var songScores:Scorekillme;
+	public static var pauseMenuMusic:Sound;
+
+
 
 	var curWacky:Array<String> = [];
 
 	var wackyImage:FlxSprite;
 	public static function loadNoteAssets(?forced:Bool = false){
 		if (NoteAssets == null || NoteAssets.name != FlxG.save.data.noteAsset || forced){
+			if (!FileSystem.exists('mods/noteassets/${FlxG.save.data.noteAsset}.png') || !FileSystem.exists('mods/noteassets/${FlxG.save.data.noteAsset}.xml')){
+				FlxG.save.data.noteAsset = "default";
+
+			} // Hey, requiring an entire reset of the game's settings when noteasset goes missing is not a good idea
 			new NoteAssets(FlxG.save.data.noteAsset);
 		}
 	}
@@ -71,6 +95,16 @@ class TitleState extends MusicBeatState
 			return "";
 		}
 	}
+	public static function retCharPath(char:String):String{
+		if (characterPaths[retChar(char)] != null){
+			if(characterPaths[retChar(char)].substring(-1) == "/"){
+				return characterPaths[retChar(char)].substring(0,-1);
+			}
+			return characterPaths[retChar(char)];
+		}else{
+			return "mods/characters";
+		}
+	}
 	public static function retStage(char:String):String{
 		if (choosableStagesLower[char.toLowerCase()] != null){
 			return choosableStagesLower[char.toLowerCase()];
@@ -79,60 +113,146 @@ class TitleState extends MusicBeatState
 		}
 	}
 	public static function checkCharacters(){
-
-		choosableCharacters = ["bf","bf-pixel","bf-christmas","gf",'gf-pixel',"dad","spooky","pico","mom",'parents-christmas',"senpai","senpai-angry","spirit","monster"];
-		choosableCharactersLower = ["bf" => "bf","bf-pixel" => "bf-pixel","bf-christmas" => "bf-christmas","gf" => "gf","gf-pixel" => "gf-pixel","dad" => "dad","spooky" => "spooky","pico" => "pico","mom" => "mom","parents-christmas" => "parents-christmas","senpai" => "senpai","senpai-angry" => "senpai-angry","spirit" => "spirit","monster" => "monster"];
-		characterDescriptions = ["automatic" => "Automatically uses character from song json"];
+		choosableCharacters = ["bf","gf"];
+		choosableCharactersLower = ["bf" => "bf","gf" => "gf"];
+		characterDescriptions = ["automatic" => "Automatically uses character from song json", "bf" => "Boyfriend, the main protagonist. Provided by the base game.","gf" => "Girlfriend, boyfriend's partner. Provided by the base game."];
+		characterPaths = [];
+		weekChars = [];
 		invalidCharacters = [];
 		#if sys
 		// Loading like this is probably not a good idea
 		var dataDir:String = "mods/characters/";
 		var customCharacters:Array<String> = [];
+
+		if (FileSystem.exists("assets/characters/"))
+		{
+			var dir = "assets/characters";
+			trace('Checking ${dir} for characters');
+			for (char in FileSystem.readDirectory(dir))
+			{
+				if (!FileSystem.isDirectory(dir+"/"+char)){continue;}
+				if (FileSystem.exists(dir+"/"+char+"/config.json"))
+				{
+					customCharacters.push(char);
+					var desc = 'Assets character';
+					if (FileSystem.exists('${dir}/${char}/description.txt'))
+						desc += ";" +File.getContent('${dir}/${char}/description.txt');
+					characterDescriptions[char] = desc;
+					choosableCharactersLower[char.toLowerCase()] = char;
+					characterPaths[char] = dir;
+
+				}else if (FileSystem.exists(dir+"/"+char+"/character.png") && (FileSystem.exists(dir+"/"+char+"/character.xml") || FileSystem.exists(dir+"/"+char+"/character.json"))){
+					invalidCharacters.push(char);
+					characterPaths[char] = dir;
+					// customCharacters.push(directory);
+				}
+			}
+		}
+
 		if (FileSystem.exists(dataDir))
 		{
 		  for (directory in FileSystem.readDirectory(dataDir))
 		  {
-			if (FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/config.json"))
+			if (!FileSystem.isDirectory(dataDir+"/"+directory)){continue;}
+			if (FileSystem.exists(Sys.getCwd() + dataDir+"/"+directory+"/config.json"))
 			{
 				customCharacters.push(directory);
-				if (FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/description.txt"))
-					characterDescriptions[directory] = File.getContent('mods/characters/${directory}/description.txt');
-			}else if (FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/character.png") && (FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/character.xml") || FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/character.json"))){
+				if (FileSystem.exists(Sys.getCwd() + dataDir+"/"+directory+"/description.txt"))
+					characterDescriptions[directory] = File.getContent('${dataDir}/${directory}/description.txt');
+				choosableCharactersLower[directory.toLowerCase()] = directory;
+			}else if (FileSystem.exists(Sys.getCwd() + dataDir+"/"+directory+"/character.png") && (FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/character.xml") || FileSystem.exists(Sys.getCwd() + "mods/characters/"+directory+"/character.json"))){
 				invalidCharacters.push(directory);
 				// customCharacters.push(directory);
 			}
 		  }
 		}
-		// customCharacters.sort((a, b) -> );
+
+		
+
+		for (_ => dataDir in ['mods/weeks/','mods/packs/']) {
+			
+			if (FileSystem.exists(dataDir))
+			{
+			  for (_dir in FileSystem.readDirectory(dataDir))
+			  {
+				if (!FileSystem.isDirectory(dataDir + _dir)){continue;}
+				// trace(_dir);
+				if (FileSystem.exists(dataDir + _dir + "/characters/"))
+				{
+					var dir = dataDir + _dir + "/characters/";
+					trace('Checking ${dir} for characters');
+					for (char in FileSystem.readDirectory(dir))
+					{
+						if (!FileSystem.isDirectory(dir+"/"+char)){continue;}
+						if (FileSystem.exists(dir+"/"+char+"/config.json"))
+						{
+							var charPack = "";
+							if(choosableCharactersLower[char.toLowerCase()] != null){
+								var e = charPack;
+								charPack = _dir+"|"+char;
+								char = e;
+							}
+							customCharacters.push(char);
+							var desc = 'Provided by ' + _dir;
+							if (FileSystem.exists('${dir}/${char}/description.txt'))
+								desc += ";" +File.getContent('${dir}/${char}/description.txt');
+							characterDescriptions[char] = desc;
+							if(choosableCharactersLower[char.toLowerCase()] != null){
+
+								choosableCharactersLower[charPack.toLowerCase()] = char;
+								if(weekChars[char] == null){
+									weekChars[char] = [];
+								}
+								weekChars[char].push(charPack);
+								characterPaths[charPack] = dir;
+							}else{
+								choosableCharactersLower[char.toLowerCase()] = char;
+								characterPaths[char] = dir;
+							}
+
+						}else if (FileSystem.exists(dir+"/"+char+"/character.png") && (FileSystem.exists(dir+"/"+char+"/character.xml") || FileSystem.exists(dir+"/"+char+"/character.json"))){
+							invalidCharacters.push(char);
+							characterPaths[char] = dir;
+							// customCharacters.push(directory);
+						}
+					}
+				}		
+			  }
+			}
+		}
+
 		haxe.ds.ArraySort.sort(customCharacters, function(a, b) {
 		   if(a < b) return -1;
 		   else if(b > a) return 1;
 		   else return 0;
 		});
 		for (char in customCharacters){
-			choosableCharacters.push(char);
-			choosableCharactersLower[char.toLowerCase()] = char;
-		}
-		// var rawJson = Assets.getText('assets/data/characterMetadata.json');
-		try{
-
-			var rawJson = File.getContent('assets/data/characterMetadata.json');
-			// trace('Char Json: \n${rawJson}');
-			TitleState.defCharJson = haxe.Json.parse(CoolUtil.cleanJSON(rawJson));
-			if (defCharJson == null || TitleState.defCharJson.characters == null || TitleState.defCharJson.aliases == null) {defCharJson = {
-				characters:[],
-				aliases:[]
-			};trace("Character characterMetadata is null!");}
-		}catch(e){
-			MainMenuState.errorMessage = 'An error occurred when trying to parse Character Metadata:\n ${e.message}.\n You can reload this using Reload Char/Stage List';
-			if (defCharJson == null || TitleState.defCharJson.characters == null || TitleState.defCharJson.aliases == null) {defCharJson = {
-				characters:[],
-				aliases:[]
-			};
+			if(char.length > 0){
+				choosableCharacters.push(char);
 			}
+			// choosableCharactersLower[char.toLowerCase()] = char;
 		}
+		// try{
+
+		// 	var rawJson = File.getContent('assets/data/characterMetadata.json');
+		// 	// trace('Char Json: \n${rawJson}');
+		// 	TitleState.defCharJson = haxe.Json.parse(CoolUtil.cleanJSON(rawJson));
+		// 	if (defCharJson == null || TitleState.defCharJson.characters == null || TitleState.defCharJson.aliases == null) {defCharJson = {
+		// 		characters:[],
+		// 		aliases:[]
+		// 	};trace("Character characterMetadata is null!");}
+		// }catch(e){
+		// 	MainMenuState.errorMessage = 'An error occurred when trying to parse Character Metadata:\n ${e.message}.\n You can reload this using Reload Char/Stage List';
+		// 	if (defCharJson == null || TitleState.defCharJson.characters == null || TitleState.defCharJson.aliases == null) {defCharJson = {
+		// 		characters:[],
+		// 		aliases:[]
+		// 	};
+		// 	}
+		// }
 		#end
 		checkStages();
+
+
 		if(FlxG.save.data.scripts != null){
 			trace('Currently enabled scripts: ${FlxG.save.data.scripts}');
 			for (i in 0 ... FlxG.save.data.scripts.length) {
@@ -185,13 +305,127 @@ class TitleState extends MusicBeatState
 
 		osuBeatmapLoc = loc;
 	}
+	// static inline function GETSCOREPATH():String{
+	// 	#if windows 
+	// 		if (Sys.getEnv("LOCALAPPDATA") != null) return '${Sys.getEnv("LOCALAPPDATA")}/hahafunnisuperengine/'; // Windows path
+	// 	#else
+	// 		if (Sys.getEnv("HOME") != null ) return '${Sys.getEnv("HOME")}/.local/share/hahfunnysuperengine/'; // Unix path
+	// 	#end
+	// 	else return "./hahfunnysuperengine/"; // If this gets returned, fucking run
+	// }
+	// static function getfunninumber(?scores:Scorekillme = null){ // Really simple, but if you're gonna get past this one, then you'll probably just get past any smarter checksums I'd make
+	// 	if(scores == null){
+	// 		scores = songScores;
+	// 	}
+	// 	var funniNumber:Float = 0; // Would make this an int but I don't trust rounding
+	// 	for (i => v in scores.scores) {
+	// 		funniNumber += v;
+	// 	}
+	// 	// funniNumber += scores.scores.length * funniNumber; // If this doesn't return the same then cheat :<
+	// 	return funniNumber;
+	// }
+	// public static function getScore(type:Int = -1):Float{
+	// 	var stag = 0;
+	// 	try{
+
+	// 		if(type == -1) type = PlayState.stateType;
+	// 		stag++;
+	// 		var songName = "";
+	// 		stag++;
+	// 		switch(type){
+	// 			case 4:songName = multi.MultiMenuState.lastSong;
+	// 			default:return 0.0;
+	// 		}
+	// 		stag++;
+	// 		return if(songName != null && songScores.songs.contains(songName)) songScores.scores[songScores.songs.indexOf(songName)] else 0.0;
+	// 		stag++;
+	// 	}catch(e){
+	// 		trace("Fucking haxe:" + stag +" " + e.message);
+	// 		return 0.0;
+	// 	}
+	// }
+	// public static function saveScore(accuracy:Float,?type:Int = -1){
+	// 	try{
+	// 		var songName = "";
+	// 		if(type == -1) type = PlayState.stateType;
+	// 		switch(type){
+	// 			case 4:songName = multi.MultiMenuState.lastSong;
+	// 			default:return;
+	// 		}
+	// 		if(songScores.songs.contains(songName) && songScores.scores[songScores.songs.indexOf(songName)] > accuracy){return;} // Don't overwrite a better score!
+	// 		if(!songScores.songs.contains(songName)) songScores.songs.push(songName);
+	// 		songScores.scores[songScores.songs.indexOf(songName)] = accuracy;
+	// 		songScores.funniNumber = getfunninumber();
+	// 		File.saveContent(GETSCOREPATH() + "songs.json",Json.stringify(songScores));
+	// 	}catch(e){
+	// 		trace("Error saving:"  + e.message);
+	// 		MusicBeatState.instance.showTempmessage('Unable to save score! ${e.message}');
+	// 	}
+	// }
+	// static function handlError(err:String){
+	// 	if(!MainMenuState.firstStart){
+	// 		MainMenuState.handleError(err);
+	// 	}else{
+	// 		MusicBeatState.instance.showTempmessage(err);
+	// 	}
+	// }
+	// static function loadScores(){
+	// 	var path = GETSCOREPATH();
+	// 	if (!FileSystem.exists(path)) {
+	// 		FileSystem.createDirectory(path);
+	// 	}
+	// 	if (!FileSystem.exists(path + "songs.json")) {
+	// 		songScores = {
+	// 			scores : [0],
+	// 			songs : ["bopeebo"],
+	// 			funniNumber : 1
+	// 		};
+	// 		File.saveContent(path + "songs.json",Json.stringify(songScores));
+	// 	}else{
+	// 		try{
+	// 			var e:Scorekillme = cast Json.parse(File.getContent(path+"songs.json"));
+	// 			// File.saveContent(path + "_songs.json",Json.stringify(e));
+	// 			// File.saveContent(path + "_songs.json",Json.stringify(e));
+	// 			// songScores = cast e.scores;
+	// 			if(e == null){throw("songs.json is invalid!");}
+	// 			trace(e);
+	// 			// trace("e");
+	// 			if(getfunninumber(e) != e.funniNumber){
+	// 				handlError("Something isn't adding up with your scores, you get bopeebo'd");
+	// 				trace("bopeebo'd lmao");
+	// 				songScores = {
+	// 					scores : [0],
+	// 					songs : ["bopeebo"],
+	// 					funniNumber : 1
+	// 				};
+	// 			}
+	// 			songScores = e;
+	// 		}catch(err){
+	// 			handlError("Something went wrong when loading song scores, RESETTING! " + err.message);
+	// 			trace("Something went wrong when loading song scores, RESETTING! " + err.message);
+	// 			try{File.saveContent(path + "songs.json-bak",File.getContent(path+"songs.json"));}catch(err){trace("rip scores, file is bein cring");}
+
+	// 			songScores = {
+	// 				scores : [0],
+	// 				songs : ["bopeebo"],
+	// 				funniNumber : 1
+	// 			};
+	// 			File.saveContent(path + "songs.json",Json.stringify(songScores));
+	// 		}
+	// 	}
+	// 	if(songScores == null){
+	// 		trace("What the fuck, why are you null?!?!!?");
+	// 		songScores = {
+	// 				scores : [0],
+	// 				songs : ["bopeebo"],
+	// 				funniNumber : 1
+	// 			};
+
+	// 	}
+	// }
 	override public function create():Void
 	{
-		
-		#if sys
-		if (!sys.FileSystem.exists(Sys.getCwd() + "/assets/replays"))
-			sys.FileSystem.createDirectory(Sys.getCwd() + "/assets/replays");
-		#end
+		Assets.loadLibrary("shared");
 		@:privateAccess
 		{
 			trace("Loaded " + openfl.Assets.getLibrary("default").assetsLoaded + " assets (DEFAULT)");
@@ -200,19 +434,28 @@ class TitleState extends MusicBeatState
 		PlayerSettings.init();
 
 
+		#if windows
+		DiscordClient.initialize();
+
+		Application.current.onExit.add (function (exitCode) {
+			DiscordClient.shutdown();
+		});
+		
+		#end
+
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		// DEBUG BULLSHIT
 
 		super.create();
 
-
-		FlxG.save.bind('funkin', 'ninjamuffin99');
-
+		
+		if(CoolUtil.font != Paths.font("vcr.ttf")) flixel.system.FlxAssets.FONT_DEFAULT = CoolUtil.font;
 		KadeEngineData.initSave();
 
 		Highscore.load();
-		checkCharacters();
+		checkCharacters();			
+
 
 		if (FlxG.save.data.weekUnlocked != null)
 		{
@@ -227,13 +470,15 @@ class TitleState extends MusicBeatState
 			if (!StoryMenuState.weekUnlocked[0])
 				StoryMenuState.weekUnlocked[0] = true;
 		}
+		// loadScores();
+		pauseMenuMusic = Sound.fromFile((if (FileSystem.exists('mods/pauseMenu.ogg')) 'mods/pauseMenu.ogg' else if (FileSystem.exists('assets/music/breakfast.ogg')) 'assets/music/breakfast.ogg' else "assets/shared/music/breakfast.ogg"));
 
 		#if FREEPLAY
 		FlxG.switchState(new FreeplayState());
 		#elseif CHARTING
 		FlxG.switchState(new ChartingState());
 		#else
-		new FlxTimer().start(1, function(tmr:FlxTimer)
+		new FlxTimer().start(0.5, function(tmr:FlxTimer)
 		{
 			startIntro();
 		});
@@ -260,6 +505,8 @@ class TitleState extends MusicBeatState
 
 			transIn = FlxTransitionableState.defaultTransIn;
 			transOut = FlxTransitionableState.defaultTransOut;
+			lime.app.Application.current.window.onDropFile.add(AnimationDebug.fileDrop);
+			// FlxTween.tween(Main.fpsCounter,{alpha:1},0.2);
 
 
 			// HAD TO MODIFY SOME BACKEND SHIT
@@ -271,14 +518,27 @@ class TitleState extends MusicBeatState
 			// FlxG.sound.list.add(music);
 			// music.play();
 			FlxG.sound.playMusic(Paths.music('StartItchBuild'), 0.1);
-
-			FlxG.sound.music.fadeIn(4, 0, 1);
+			FlxG.sound.music.pause();
+			// LoadingState.loadingText = new FlxText(FlxG.width * 0.8,FlxG.height * 0.8,"Loading...");
+			// LoadingState.loadingText.setFormat();
 			findosuBeatmaps();
 			MainMenuState.firstStart = true;
 			Conductor.changeBPM(70);
 			persistentUpdate = true;
 			FlxG.fixedTimestep = false; // Makes the game not be based on FPS for things, thank you Forever Engine for doing this
 			FlxG.mouse.useSystemCursor = true; // Uses system cursor, did not know this was a thing until Forever Engine
+			if(!FileSystem.exists("mods/menuTimes.json")){ // Causes crashes if done while game is running, unknown why
+				File.saveContent("mods/menuTimes.json",Json.stringify(SickMenuState.musicList));
+			}else{
+				try{
+					var musicList:Array<MusicTime> = Json.parse(File.getContent("mods/menuTimes.json"));
+					SickMenuState.musicList = musicList;
+				}catch(e){
+					MusicBeatState.instance.showTempmessage("Unable to load Music Timing: " + e.message,FlxColor.RED);
+				}
+			}
+
+
 		}
 
 
@@ -297,7 +557,7 @@ class TitleState extends MusicBeatState
 		// logoBl.screenCenter();
 		// logoBl.color = FlxColor.BLACK;
 
-		gfDance = new FlxSprite(FlxG.width * 0.4, FlxG.height * 0.3);
+		gfDance = new FlxSprite(FlxG.width, FlxG.height * 0.07);
 		gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
 		gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
 		gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
@@ -325,7 +585,7 @@ class TitleState extends MusicBeatState
 
 		credGroup = new FlxGroup();
 		add(credGroup);
-		textGroup = new FlxGroup();
+		textGroup = new FlxTypedGroup<FlxSprite>();
 
 		blackScreen = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		credGroup.add(blackScreen);
@@ -349,13 +609,25 @@ class TitleState extends MusicBeatState
 
 		FlxG.mouse.visible = false;
 
+
+		shiftSkip = new FlxText(0,0,0,"Hold shift to go to the options menu after title screen",16);
+		shiftSkip.y = FlxG.height - shiftSkip.height - 12;
+		shiftSkip.x = 6;
+		add(shiftSkip);
+
 		if (initialized)
 			skipIntro();
-		else
-			initialized = true;
+		else{
 
+			createCoolText(['Powered by',"haxeflixel"]);
+			showHaxe();
+			LoadingScreen.hide();
+		}
+			// initialized = true;
 		// credGroup.add(credTextShit);
 	}
+	var shiftSkip:FlxText;
+	var isShift = false;
 
 	function getIntroTextShit():Array<Array<String>>
 	{
@@ -385,7 +657,7 @@ class TitleState extends MusicBeatState
 			FlxG.fullscreen = !FlxG.fullscreen;
 		}
 
-		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER;
+		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || skipBoth;
 
 		#if mobile
 		for (touch in FlxG.touches.list)
@@ -409,7 +681,10 @@ class TitleState extends MusicBeatState
 				pressedEnter = true;
 			#end
 		}
-
+		if(shiftSkip != null && isShift != FlxG.keys.pressed.SHIFT){
+			isShift = FlxG.keys.pressed.SHIFT;
+			shiftSkip.color = (if(FlxG.keys.pressed.SHIFT) 0x00aa00 else 0xFFFFFF);
+		}
 		if (pressedEnter && !transitioning && skippedIntro)
 		{
 
@@ -423,18 +698,21 @@ class TitleState extends MusicBeatState
 
 			transitioning = true;
 			// FlxG.sound.music.stop();
-
+			if(MainMenuState.nightly != "") MainMenuState.ver += "-" + MainMenuState.nightly;
 			
 			#if !debug
 			if (FlxG.keys.pressed.SHIFT || FileSystem.exists(Sys.getCwd() + "/noUpdates") || checkedUpdate || !FlxG.save.data.updateCheck)
 				FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 			else
 			{
+
+				showTempmessage("Checking for updates..",FlxColor.WHITE);
+				tempMessage.screenCenter(X);
 				new FlxTimer().start(2, function(tmr:FlxTimer)
 				{
 					// Get current version of FNFBR, Uses kade's update checker 
 	
-					var http = new haxe.Http("https://pastebin.com/raw/ni6wc8bK"); // It's recommended to change this if forking
+					var http = new haxe.Http("https://raw.githubusercontent.com/superpowers04/Super-Engine/" + (if(MainMenuState.nightly == "") "master" else "nightly") + "/version.downloadMe"); // It's recommended to change this if forking
 					var returnedData:Array<String> = [];
 					
 					http.onData = function (data:String)
@@ -445,9 +723,9 @@ class TitleState extends MusicBeatState
 						updatedVer = returnedData[0];
 						OutdatedSubState.needVer = updatedVer;
 						OutdatedSubState.currChanges = returnedData[1];
-						if (!MainMenuState.ver.contains(updatedVer.trim()))
+						if (!MainMenuState.ver.contains(updatedVer.trim()) || (MainMenuState.nightly != ""))
 						{
-							trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
+							// trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
 							outdated = true;
 							
 						}
@@ -518,10 +796,20 @@ class TitleState extends MusicBeatState
 
 		switch (curBeat)
 		{
+
+			// case 1:
+			// 	// if (Main.watermarks)  You're not more important than fucking newgrounds
+			// 	// 	createCoolText(['Kade Engine', 'by']);
+			// 	// else
+			// 	createCoolText(['Powered by',"haxeflixel"]);
+			// 	showHaxe();
+			case 0:
+				deleteCoolText();
+			// 	destHaxe();
 			case 1:
 				createCoolText(['ninjamuffin99', 'phantomArcade', 'kawaisprite', 'evilsk8er']);
 			// credTextShit.visible = true;
-			case 3:
+			case 2:
 				addMoreText('present');
 			// credTextShit.text += '\npresent...';
 			// credTextShit.addText();
@@ -551,6 +839,9 @@ class TitleState extends MusicBeatState
 
 			// credTextShit.text = 'Shoutouts Tom Fulp';
 			// credTextShit.screenCenter();
+
+
+
 			case 9:
 				createCoolText([curWacky[0]]);
 			// credTextShit.visible = true;
@@ -582,12 +873,171 @@ class TitleState extends MusicBeatState
 	{
 		if (!skippedIntro)
 		{
+			if(!FlxG.sound.music.playing){
+				FlxG.sound.music.play();
+				FlxG.sound.music.fadeIn(0.1,FlxG.save.data.instVol);
+			}
 			remove(ngSpr);
-
+			destHaxe();
 			FlxG.camera.flash(FlxColor.WHITE, 4);
 			remove(credGroup);
 			skippedIntro = true;
-			FlxTween.tween(gfDance,{y:FlxG.height * 0.07},1);
+			var _x = logoBl.x;
+			logoBl.x = -100;
+			var _y = titleText.y;
+			titleText.y = FlxG.height;
+			FlxTween.tween(gfDance,{x: FlxG.width * 0.4},0.4);
+			FlxTween.tween(logoBl,{x: _x},0.5);
+			FlxTween.tween(titleText,{y: _y},0.5);
 		}
+	}
+
+	// HaxeFlixel thing
+
+	var _sprite:Sprite;
+	var _gfx:Graphics;
+
+	var _times:Array<Float>;
+	var _colors:Array<Int>;
+	var _functions:Array<Void->Void>;
+	var _curPart:Int = 0;
+	var _cachedBgColor:FlxColor;
+	var _cachedTimestep:Bool;
+	var _cachedAutoPause:Bool;
+	var _timers:Array<FlxTimer>;
+	var _sound:FlxSound;
+	function showHaxe(){
+		_times = [0.041, 0.184, 0.334, 0.495, 0.636,1];
+		_colors = [0x00b922, 0xffc132, 0xf5274e, 0x3641ff, 0x04cdfb,0xFFFFFF,0xFFFFFF];
+		_functions = [drawGreen, drawYellow, drawRed, drawBlue, drawLightBlue,function(){return;}];
+		_sprite = new Sprite();
+		FlxG.stage.addChild(_sprite);
+		_gfx = _sprite.graphics;
+
+
+		_sprite.x = (FlxG.width / 2);
+		_sprite.y = (FlxG.height * 0.60) - 20 * FlxG.game.scaleY;
+		_sprite.scaleX = FlxG.game.scaleX;
+		_sprite.scaleY = FlxG.game.scaleY;
+		_sound = FlxG.sound.load(flixel.system.FlxAssets.getSound("flixel/sounds/flixel"),FlxG.save.data.instVol - 0.2); // Put the volume down by 0.2 for safety of eardrums
+		_sound.play();
+		for (time in _times)
+		{
+			new FlxTimer().start(time, _timerCallback);
+		}
+	}
+	function destHaxe(){
+		if(_sprite == null) return;
+		if(_sound != null){
+			_sound.pause();
+			_sound.destroy();
+		} 
+		// remove(_sprite);
+		flixel.util.FlxTimer.globalManager.clear();
+		FlxG.stage.removeChild(_sprite);
+		_sprite = null;
+		_gfx = null;
+		_times = null;
+		_colors = null;
+		_functions = null;
+	}
+	function _timerCallback(Timer:FlxTimer):Void
+	{
+		_functions[_curPart]();
+		_curPart++;
+		textGroup.members[1].color = _colors[_curPart];
+		if (_curPart == 6)
+		{
+			// Make the logo a tad bit longer, so our users fully appreciate our hard work :D
+			FlxTween.tween(_sprite, {alpha: 0}, 3.0, {ease: FlxEase.quadOut, onComplete: __onComplete});
+			FlxTween.tween(textGroup.members[0], {alpha: 0}, 3.0, {ease: FlxEase.quadOut});
+			FlxTween.tween(textGroup.members[1], {alpha: 0}, 3.0, {ease: FlxEase.quadOut});
+		}
+	}
+	var skipBoth:Bool = false;
+	function  __onComplete(tmr:FlxTween){
+		if(_sound != null){
+			_sound.pause();
+			_sound.destroy();
+		} 
+		initialized = true;
+		destHaxe();
+		FlxG.sound.music.play();
+		FlxG.sound.music.fadeIn(0.1,FlxG.save.data.instVol);
+		if(isShift || FlxG.keys.pressed.ENTER){
+			skipBoth = true;
+		}
+	}
+	function drawGreen():Void
+	{
+		_gfx.beginFill(0x00b922);
+		_gfx.moveTo(0, -37);
+		_gfx.lineTo(1, -37);
+		_gfx.lineTo(37, 0);
+		_gfx.lineTo(37, 1);
+		_gfx.lineTo(1, 37);
+		_gfx.lineTo(0, 37);
+		_gfx.lineTo(-37, 1);
+		_gfx.lineTo(-37, 0);
+		_gfx.lineTo(0, -37);
+		_gfx.endFill();
+	}
+
+	function drawYellow():Void
+	{
+		_gfx.beginFill(0xffc132);
+		_gfx.moveTo(-50, -50);
+		_gfx.lineTo(-25, -50);
+		_gfx.lineTo(0, -37);
+		_gfx.lineTo(-37, 0);
+		_gfx.lineTo(-50, -25);
+		_gfx.lineTo(-50, -50);
+		_gfx.endFill();
+	}
+
+	function drawRed():Void
+	{
+		_gfx.beginFill(0xf5274e);
+		_gfx.moveTo(50, -50);
+		_gfx.lineTo(25, -50);
+		_gfx.lineTo(1, -37);
+		_gfx.lineTo(37, 0);
+		_gfx.lineTo(50, -25);
+		_gfx.lineTo(50, -50);
+		_gfx.endFill();
+	}
+
+	function drawBlue():Void
+	{
+		_gfx.beginFill(0x3641ff);
+		_gfx.moveTo(-50, 50);
+		_gfx.lineTo(-25, 50);
+		_gfx.lineTo(0, 37);
+		_gfx.lineTo(-37, 1);
+		_gfx.lineTo(-50, 25);
+		_gfx.lineTo(-50, 50);
+		_gfx.endFill();
+	}
+
+	function drawLightBlue():Void
+	{
+		_gfx.beginFill(0x04cdfb);
+		_gfx.moveTo(50, 50);
+		_gfx.lineTo(25, 50);
+		_gfx.lineTo(1, 37);
+		_gfx.lineTo(37, 1);
+		_gfx.lineTo(50, 25);
+		_gfx.lineTo(50, 50);
+		_gfx.endFill();
+	}
+
+
+}
+
+
+
+class FuckinNoDestCam extends FlxCamera{
+	public override function destroy(){
+		return;
 	}
 }

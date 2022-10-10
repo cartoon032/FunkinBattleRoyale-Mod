@@ -30,6 +30,11 @@ class WiggleEffect
 		shader.uTime.value[0] += elapsed;
 	}
 
+	public function setValue(value:Float):Void
+	{
+		shader.uTime.value[0] = value;
+	}
+
 	function set_effectType(v:WiggleEffectType):WiggleEffectType
 	{
 		effectType = v;
@@ -125,6 +130,49 @@ class WiggleShader extends FlxShader
 		{
 			vec2 uv = sineWave(openfl_TextureCoordv);
 			gl_FragColor = texture2D(bitmap, uv);
+		}')
+	public function new()
+	{
+		super();
+	}
+}
+
+
+
+
+class ChromAbEffect
+{
+	public var shader:ChromAbShader = new ChromAbShader();
+	public var strength:Float = 0.1;
+
+	public function new():Void
+	{
+		shader.strength.value = [0];
+	}
+
+	public function update(elapsed:Float):Void
+	{
+		shader.strength.value[0] = strength;
+	}
+}
+
+class ChromAbShader extends FlxShader
+{
+	@:glFragmentSource('
+		#pragma header
+		
+		uniform float strength;
+
+		void main()
+		{
+			vec2 uv = openfl_TextureCoordv;
+			vec4 col = flixel_texture2D(bitmap, uv);
+			col.r = flixel_texture2D(bitmap, vec2(uv.x+strength, uv.y)).r;
+			col.b = flixel_texture2D(bitmap, vec2(uv.x-strength, uv.y)).b;
+
+			col *= (1.0 - strength * 0.5);
+
+			gl_FragColor = col;
 		}')
 	public function new()
 	{

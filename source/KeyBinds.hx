@@ -166,11 +166,59 @@ class KeyBinds
             FlxG.save.data.R2Bind = "L";
             trace("No R2");
         }
-
+        if(FlxG.save.data.EX0Bind == null){
+            FlxG.save.data.EX0Bind = "Q";
+            trace("No EX0");
+        }
+        if(FlxG.save.data.EX1Bind == null){
+            FlxG.save.data.EX1Bind = "W";
+            trace("No EX1");
+        }
+        if(FlxG.save.data.EX2Bind == null){
+            FlxG.save.data.EX2Bind = "E";
+            trace("No EX2");
+        }
+        if(FlxG.save.data.EX3Bind == null){
+            FlxG.save.data.EX3Bind = "R";
+            trace("No EX3");
+        }
+        if(FlxG.save.data.EX4Bind == null){
+            FlxG.save.data.EX4Bind = "C";
+            trace("No EX4");
+        }
+        if(FlxG.save.data.EX5Bind == null){
+            FlxG.save.data.EX5Bind = "V";
+            trace("No EX5");
+        }
+        if(FlxG.save.data.EX6Bind == null){
+            FlxG.save.data.EX6Bind = "N";
+            trace("No EX6");
+        }
+        if(FlxG.save.data.EX7Bind == null){
+            FlxG.save.data.EX7Bind = "M";
+            trace("No EX7");
+        }
+        if(FlxG.save.data.EX8Bind == null){
+            FlxG.save.data.EX8Bind = "U";
+            trace("No EX8");
+        }
+        if(FlxG.save.data.EX9Bind == null){
+            FlxG.save.data.EX9Bind = "I";
+            trace("No EX9");
+        }
+        if(FlxG.save.data.EX10Bind == null){
+            FlxG.save.data.EX10Bind = "O";
+            trace("No EX10");
+        }
+        if(FlxG.save.data.EX11Bind == null){
+            FlxG.save.data.EX11Bind = "P";
+            trace("No EX11");
+        }
+        /* imma be real idk myself why i did this
         trace('Keybind :${FlxG.save.data.leftBind}-${FlxG.save.data.downBind}-${FlxG.save.data.upBind}-${FlxG.save.data.rightBind}');
         trace('Alt Key :${FlxG.save.data.AltleftBind}-${FlxG.save.data.AltdownBind}-${FlxG.save.data.AltupBind}-${FlxG.save.data.AltrightBind}');
         trace('6/7 Keys :${FlxG.save.data.L1Bind}-${FlxG.save.data.D1Bind}-${FlxG.save.data.R1Bind}-{${FlxG.save.data.N4Bind}// for 7K}-${FlxG.save.data.L2Bind}-${FlxG.save.data.U1Bind}-${FlxG.save.data.R2Bind}');
-        trace('9 Keys :${FlxG.save.data.N0Bind}-${FlxG.save.data.N1Bind}-${FlxG.save.data.N2Bind}-${FlxG.save.data.N3Bind}-${FlxG.save.data.N4Bind}-${FlxG.save.data.N5Bind}-${FlxG.save.data.N6Bind}-${FlxG.save.data.N7Bind}-${FlxG.save.data.N8Bind}');
+        trace('9 Keys :${FlxG.save.data.N0Bind}-${FlxG.save.data.N1Bind}-${FlxG.save.data.N2Bind}-${FlxG.save.data.N3Bind}-${FlxG.save.data.N4Bind}-${FlxG.save.data.N5Bind}-${FlxG.save.data.N6Bind}-${FlxG.save.data.N7Bind}-${FlxG.save.data.N8Bind}'); */
     }
 
 }

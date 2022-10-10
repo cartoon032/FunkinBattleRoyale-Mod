@@ -16,36 +16,53 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 
+#if windows
+import Discord.DiscordClient;
+#end
 class OnlineOptionsMenu extends OptionsMenu
 {
 	public static var instance:OnlineOptionsMenu;
 	override function create()
 	{
+    #if windows
+    DiscordClient.changePresence("In Online Option Menu",null);
+    #end
 		OnlinePlayMenuState.receiver.HandleData = HandleData;
-    options= [ // Required to prevent broken options from crashing or causing issues, everything here should work
-      new OptionCategory("Customization", [
+    var options:Array<OptionCategory> = [
+      new OptionCategory("Modifications", [
         new OpponentOption("Change the opponent character"),
         new PlayerOption("Change the player character"),
         new GFOption("Change the GF used"),
         new NoteSelOption("Change the note assets used, pulled from mods/noteassets"),
-        new CharAutoOption("Allow the song to choose the opponent if you have them"),
-        new ReloadCharlist("Refreshes the character list, used for if you added characters"),
         new SelStageOption("Select the stage to use, Default will use song default"),
+        new SelScriptOption("Enable/Disable scripts that run withsongs"),
+        new CharAutoOption("Force the opponent you've selected or allow the song to choose the opponent if you have them installed"),
+        new ReloadCharlist("Refreshes the character and stage list, used for if you added characters or stages"),
+        new AllowServerScriptsOption("Allow servers to run scripts. THIS IS DANGEROUS, ONLY ENABLE IF YOU TRUST THE SERVERS")
       ]),
       new OptionCategory("Gameplay", [
         new DFJKOption(controls),
         new SixKeyMenu(controls),
         new NineKeyMenu(controls),
         new DownscrollOption("Change the layout of the strumline."),
+        new MiddlescrollOption("Move the strumline to the middle of the screen"),
+  
+        new AccuracyDOption("Change how accuracy is calculated. (Accurate = Simple, Complex = Milisecond Based)"),
+        new OffsetMenu("Get a note offset based off of your inputs!"),
+        new InputHandlerOption("Change the input engine used"),
+        new PopupScoreLocationOption("Where you want your score Popup to be"),
+        new PopupScoreOffset("Offset to Center of screen. more = center"),
+        new ScoreSystem("Change how score is calculate"),
+        new AltScoreSystem("The another score show on the result screen")
+      ]),
+      new OptionCategory("Modifiers", [
+        new PracticeModeOption("Disables the ability to get a gameover."),
         new GhostTapOption("Ghost Tapping is when you tap a direction and it doesn't give you a miss."),
         new Judgement("Customize your Hit Timings (LEFT or RIGHT)"),
-        new FPSCapOption("Cap your FPS"),
         new ScrollSpeedOption("Change your scroll speed (1 = Chart dependent)"),
-        new AccuracyDOption("Change how accuracy is calculated. (Accurate = Simple, Complex = Milisecond Based)"),
-        new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg"),
-        new Osuscore("The more combo you have the more score you get")
-        // new InputHandlerOption("Change the input engine used, only works locally, Disables Kade options unless supported by engine")
+        new FastSongScrollSpeedOption("your scroll speed for when you speed up the song (1 = Using normal Scroll Speed)")
       ]),
+  
       new OptionCategory("Appearance", [
         new GUIGapOption("Change the distance between the end of the screen and text"),
         new DistractionsAndEffectsOption("Toggle stage distractions that can hinder your gameplay."),
@@ -54,24 +71,40 @@ class OnlineOptionsMenu extends OptionsMenu
         new AccuracyOption("Display accuracy information."),
         new SongPositionOption("Show the songs current position (as a bar)"),
         new CpuStrums("CPU's strumline lights up when a note hits it."),
+        new NoteFadeOption("help make some chart with note immediately spawn playable"),
+        new SongInfoOption("Change how your performance is displayed"),
       ]),
       new OptionCategory("Misc", [
+        new CheckForUpdatesOption("Toggle check for updates when booting the game, useful if you're in the Discord with pings on"),
         new FPSOption("Toggle the FPS Counter"),
-        new GUIGapOption("Change the distance between the end of the screen and text"),
+        new MissSoundsOption("Play a sound when you miss"),
+        new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg"),
+        new ResetButtonOption("Toggle pressing R to gameover."),
         new FlashingLightsOption("Toggle flashing lights that can cause epileptic seizures and strain."),
+        new AnimDebugOption("Access animation debug in a offline session, 1=BF,2=Dad,3=GF. Also shows extra information"),
         new PlayVoicesOption("Plays your character's voices when you press a note."),
+        new AltSingMultiKeyOption("Using thing like singLEFT2 for the extra note (Spacebar always use singSpace)"),
+        new ShowConnectedIPOption("Showing what server you are currently connect to")
       ]),
-      new OptionCategory("Preformance", [
-        new CheckForUpdatesOption("Check for updates when booting the game"),
-        new NoteSplashOption("Shows note splashes when you get a 'Sick' rating"),
+      new OptionCategory("Performance", [
+        new FPSCapOption("Cap your FPS"),
+        new UseBadArrowsOption("Use custom arrow texture instead of coloring normal notes black"),
         new ShitQualityOption("Disables elements not essential to gameplay like the stage"),
         new NoteRatingOption("Toggles the rating that appears when you press a note"),
-        new UnloadSongOption("Unload the song when exiting the game, can cause issues but should help with memory"),
-        new UseBadArrowsOption("Use custom arrow texture instead of coloring normal notes black"),
+        // new UnloadSongOption("Unload the song when exiting the game"),
+        // new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu"),
+      ]),
+      new OptionCategory("Visibility", [
+              new FontOption("Force menus to use the built-in font or mods/font.ttf for easier reading"),
+        new BackTransOption("Change underlay opacity"),
+        new BackgroundSizeOption("Change underlay size"),
+        new NoteSplashOption("Shows note splashes when you get a 'Sick' rating"),
+        new OpponentStrumlineOption("Whether to show the opponent's notes or not"),
         new ShowP2Option("Show Opponent"),
         new ShowGFOption("Show Girlfriend"),
         new ShowP1Option("Show Player 1"),
-      ])
+        //new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu")
+      ]),
     ];
 		super.create();
 	}

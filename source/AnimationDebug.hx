@@ -22,13 +22,12 @@ import openfl.net.FileReference;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flash.display.BitmapData;
 
-import haxe.Json;
+import tjson.Json;
 
 import flixel.graphics.FlxGraphic;
 import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUIButton;
-import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUIState;
 import flixel.addons.ui.FlxUISubState;
 import flixel.addons.ui.FlxUIInputText;
@@ -50,11 +49,13 @@ import CharacterJson;
 
 using StringTools;
 
-
+#if windows
+import Discord.DiscordClient;
+#end
 
 class AnimationDebug extends MusicBeatState
 {
-	static var INTERNALANIMATIONLIST:Array<String> = ["idle","singLEFT","singDOWN","singUP","singRIGHT","singSPACE","singLEFT2","singDOWN2","singUP2","singRIGHT2","singLEFTmiss","singDOWNmiss","singUPmiss","singRIGHTmiss","singSPACEmiss","singLEFT2miss","singDOWN2miss","singUP2miss","singRIGHT2miss","Idle-alt","singLEFT-alt","singDOWN-alt","singUP-alt","singRIGHT-alt","hey","lose","dodge"]; // Why is this yelling you ask? Because yes
+	static var INTERNALANIMATIONLIST:Array<String> = ["idle","singLEFT","singDOWN","singUP","singRIGHT","singSPACE","singLEFT2","singDOWN2","singUP2","singRIGHT2","singLEFTmiss","singDOWNmiss","singUPmiss","singRIGHTmiss","singSPACEmiss","singLEFT2miss","singDOWN2miss","singUP2miss","singRIGHT2miss","Idle-alt","singLEFT-alt","singDOWN-alt","singUP-alt","singRIGHT-alt","scared","hey","win","cheer","lose","dodge","hurt"]; // Why is this yelling you ask? Because yes
 	public static var instance:AnimationDebug;
 	var gf:Character;
 	public var dad:Character;
@@ -94,6 +95,8 @@ class AnimationDebug extends MusicBeatState
 	public static var reloadChar:Bool = false;
 	var animationList:Array<String> = [];
 	var xmlAnimList:Array<String> = [];
+	var healthBar:FlxBar;
+	var iconP1:HealthIcon;
 
 	public var editMode:Int = 0;
 	static var showOffsets:Bool = false;
@@ -106,12 +109,44 @@ class AnimationDebug extends MusicBeatState
 	'Animation Editing Mode'
 	];
 
+	var lastMouseY = 0;
+	var lastMouseX = 0;
+	var lastRMouseY = 0;
+	var lastRMouseX = 0;
+
 	var quitHeld:Int = 0;
 	var quitHeldBar:FlxBar;
 	var quitHeldBG:FlxSprite;
+	var bf:Character;
+	public static function fileDrop(file:String){
+		#if windows
+		file = file.replace("\\","/"); // Windows uses \ at times but we use / around here
+		#end
+		var validFile:String = "";
+		var ending1 = "";
+		var ending2 = "";
+		if(file.endsWith(".png") && FileSystem.exists(file.replace(".png",".xml"))){
+			validFile = file.replace(".png",".xml");
+			ending1 = "png";
+			ending2 = "xml";
+		}else if(file.endsWith(".xml") && FileSystem.exists(file.replace(".xml",".png"))){
+			validFile = file.replace(".xml",".png");
+			ending1 = "xml";
+			ending2 = "png";
+		}
+		if(validFile == "")return;
+		var _file = file.substr(file.lastIndexOf("/") + 1);
+		var _validFile = validFile.substr(file.lastIndexOf("/") + 1);
+		var name = file.substring(file.lastIndexOf("/") + 1,file.lastIndexOf("."));
+		if(FileSystem.exists('mods/characters/$name/')){name = '${name}DRAGDROP-${FlxG.random.int(0,999999)}';}
+		FileSystem.createDirectory('mods/characters/$name');
+		File.copy(file,'mods/characters/$name/character.$ending1');
+		File.copy(validFile,'mods/characters/$name/character.$ending2');
+		LoadingState.loadAndSwitchState(new AnimationDebug(name,false,1,false,true));
+	} 
 
 
-	public function new(?daAnim:String = 'bf',?isPlayer=false,?charType_:Int=1,?charSel:Bool = false)
+	public function new(?daAnim:String = 'bf',?isPlayer=false,?charType_:Int=1,?charSel:Bool = false,?dragDrop:Bool = false)
 	{
 		// if (!PlayState.hasStarted){
 		// 	// try{
@@ -138,7 +173,7 @@ class AnimationDebug extends MusicBeatState
 		// } 
 			// MainMenuState.handleError("A song needs to be loaded first due to a crashing bug!");
 		super();
-		
+		dragdrop = dragDrop;
 		this.daAnim = daAnim;
 		this.isPlayer = isPlayer;
 		charType = charType_;
@@ -148,12 +183,20 @@ class AnimationDebug extends MusicBeatState
 		trace('Animation debug with ${daAnim},${if(isPlayer) "true" else "false"},${charType}');
 
 	}
+	var dragdrop = false;
 	override function beatHit(){
 		super.beatHit();
+		if(FlxG.keys.pressed.V && editMode != 2){dad.dance();}
 		if(gf != null) gf.dance();
 	}
+	var health:Int = 2;
 	override function create()
 	{
+		#if windows
+		DiscordClient.changePresence("Editing Character",null);
+		#end
+		var phase:Int = 0;
+		var phases:Array<String> = ["Adding cams","Adding Stage","Adding First UI","super.create","Adding char","Moving character","Adding more UI","Adding healthbar"];
 		try{
 			camGame = new FlxCamera();
 			camHUD = new FlxCamera();
@@ -172,6 +215,7 @@ class AnimationDebug extends MusicBeatState
 			FlxG.sound.music.play(); // Music go brrr
 			// }
 
+			phase++;
 			var gridBG:FlxSprite = FlxGridOverlay.create(50, 20);
 			gridBG.scrollFactor.set();
 			gridBG.cameras = [camGame];
@@ -188,28 +232,30 @@ class AnimationDebug extends MusicBeatState
 				stageFront.cameras = [camGame];
 				add(stageFront);
 
-				if (charType != 2){
-					gf = new Character(400, 100, "gf",false,2,true,
-					FlxAtlasFrames.fromSparrow(FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/characters/GF_assets.png')), File.getContent('assets/shared/images/characters/GF_assets.xml'))
-					);
-					gf.scrollFactor.set(0.95, 0.95);
-					gf.animation.finishCallback = function(name:String) gf.idleEnd(true);
-					gf.cameras = [camGame];
-					add(gf);
-				}
+				gf = new Character(400, 100, "gf",false,2,true);
+				gf.scrollFactor.set(0.90, 0.90);
+				gf.animation.finishCallback = function(name:String) gf.idleEnd(true);
+				gf.dance();
+				gf.cameras = [camGame];
+				add(gf);
+
 				if (charType == 2){
-					gf = new Character(790, 100, "bf",true,2,true,
-					FlxAtlasFrames.fromSparrow(FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/characters/BOYFRIEND.png')), File.getContent('assets/shared/images/characters/BOYFRIEND.xml'))
-					);
-					gf.scrollFactor.set(0.95, 0.95);
-					gf.dance();
-					// gf.animation.finishCallback = function(name:String) gf.idleEnd(true);
-					gf.cameras = [camGame];
-					add(gf);
+					gf.alpha = 0.5;
+					gf.color = 0xA5004D;
+				}else{
+					bf = new Character((if(charType == 1) 100 else 790), 100, "bf",(charType == 0),charType,true);
+					bf.scrollFactor.set(0.95, 0.95);
+					bf.dance();
+					bf.cameras = [camGame];
+					bf.alpha = 0.5;
+					bf.color = if(charType == 1) 0xaf66ce else 0x31b0d1;
+					add(bf);
+
 				}
 			}catch(e){
 				trace("Hey look, an error:" + e.stack + ";\n\\Message:" + e.message);
 			}
+			phase++;
 			offsetTopText = new FlxText(30,20,0,'');
 			offsetTopText.setFormat(CoolUtil.font, 24, FlxColor.BLACK, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.WHITE);
 			offsetTopText.scrollFactor.set();
@@ -238,13 +284,17 @@ class AnimationDebug extends MusicBeatState
 
 
 			camGame.follow(camFollow);
+			phase++;
 			super.create();
+			phase++;
 			spawnChar();
 			if(dad == null)throw("Player object is null!");
-			updateCharPos(0,0,false,false);
+			phase++;
+			updateCharPos(0,0,false,false,false);
 
 
 
+			phase++;
 			var contText:FlxText = new FlxText(FlxG.width * 0.81,FlxG.height * 0.94,0,'Press H for help');
 			contText.setFormat(CoolUtil.font, 24, FlxColor.BLACK, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.WHITE);
 			contText.color = FlxColor.BLACK;
@@ -267,8 +317,9 @@ class AnimationDebug extends MusicBeatState
 			quitHeldBar.createFilledBar(FlxColor.GRAY, FlxColor.LIME);
 			quitHeldBar.cameras = quitHeldBG.cameras = [camHUD];
 			add(quitHeldBar);
-
-		}catch(e) {if(PlayState.SONG == null) MainMenuState.handleError('Error occurred, Try loading a song and then opening this again. ${e.details()}'); else MainMenuState.handleError('Error occurred, while loading Animation Debug. ${e.stack} ${e.message}');}
+			phase++;
+			if(dragdrop)showTempmessage('Imported character $daAnim');
+		}catch(e) {MainMenuState.handleError('Error occurred, while loading Animation Debug. Current phase:${phases[phase]}; ${e.message}');}
 	}
 	function spawnChar(?reload:Bool = false,?resetOffsets = true,?charProp:CharacterJson = null){
 		try{
@@ -301,6 +352,7 @@ class AnimationDebug extends MusicBeatState
 				default:characterX=100;
 			};
 			dad = new Character(characterX, characterY, daAnim,flipX,charType,true,null,charProp);
+			if(dad == null)throw("Player object is null!");
 			// dad.screenCenter();
 			dad.debugMode = true;
 			dad.cameras = [camGame];
@@ -324,7 +376,7 @@ class AnimationDebug extends MusicBeatState
 			animList = [];
 			charAnims = ["**Unbind"];
 			if (dad.charXml != null){
-				var regTP:EReg = (~/<SubTexture name="([A-z0-9\-_ .,\\\|]+)[0-9][0-9][0-9][0-9]"/gm);
+				var regTP:EReg = (~/<SubTexture name="([A-z0-9\-_ !?:;\(\)\[\]'\/\{\}+@#$%^&*~`.,\\\|]+)[0-9][0-9][0-9][0-9]"/gm);
 				var input:String = dad.charXml;
 				while (regTP.match(input)) {
 					input=regTP.matchedRight();
@@ -392,6 +444,9 @@ class AnimationDebug extends MusicBeatState
 		FlxG.mouse.visible = false;
 		if (charSel){
 			FlxG.switchState(new CharSelection()); 
+		}else if(dragdrop){
+			FlxG.switchState(new MainMenuState()); 
+
 		}
 		else switch(PlayState.stateType){
 			case 2: LoadingState.loadAndSwitchState(new onlinemod.OfflinePlayState()); 
@@ -399,19 +454,6 @@ class AnimationDebug extends MusicBeatState
 			default: LoadingState.loadAndSwitchState(new PlayState());
 		}
 	}
-	override function showTempmessage(str:String,?color:FlxColor = FlxColor.LIME,?time = 5){
-		if (tempMessage != null && tempMessTimer != null){tempMessage.destroy();tempMessTimer.cancel();}
-		trace(str);
-		tempMessage = new FlxText(40,60,24,str);
-		tempMessage.setFormat(CoolUtil.font, 24, color, LEFT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
-		tempMessage.scrollFactor.set();
-		tempMessage.autoSize = true;
-		tempMessage.wordWrap = false;tempMessage.cameras = [camHUD];
-		add(tempMessage);
-		tempMessTimer = new FlxTimer().start(time, function(tmr:FlxTimer)
-		{
-			if (tempMessage != null) tempMessage.destroy();
-		},1);}
 
 	function outputCharOffsets(){
 		var text = (if(isAbsoluteOffsets) "These are absolute, these should replace the offsets in the config.json." else 'These are not absolute, these should be added to the existing offsets in your config.json.') + (if (dad.clonedChar != dad.curCharacter) ' This character is cloning ${dad.clonedChar}' else '') +
@@ -439,9 +481,7 @@ class AnimationDebug extends MusicBeatState
 								"no_antialiasing" : ${!dad.antialiasing},
 								"dance_idle" : ${dad.dance_idle},
 								"animations_offsets" : [],
-								"sing_duration" : ${dad.dadVar},
-								"spirit_trail" : ${dad.spiritTrail}
-				
+								"sing_duration" : ${dad.dadVar}
 							}';
 				trace(e);
 				charJson = Json.parse(e);
@@ -510,7 +550,12 @@ class AnimationDebug extends MusicBeatState
 			trace('${dad.x},${dad.y}');
 
 			dad.x -= characterX;
-			dad.y -= characterY;
+			if(charType == 2){
+				dad.y -= 300;
+				
+			}else{
+				dad.y -= characterY;
+			}
 			dad.y = -dad.y;
 
 			trace('${dad.x},${dad.y}');
@@ -533,7 +578,7 @@ class AnimationDebug extends MusicBeatState
 			errorStage = 6; // Saving
 			var backed = false;
 			if (FileSystem.exists(dad.loadedFrom)) {backed=true;File.copy(dad.loadedFrom,dad.loadedFrom + "-bak.json");}
-			File.saveContent(dad.loadedFrom,haxe.Json.stringify(charJson, "\t"));
+			File.saveContent(dad.loadedFrom,Json.stringify(charJson, "fancy"));
 			showTempmessage('Saved to ${if (dad.loadedFrom.length > 20) '...' + dad.loadedFrom.substring(-20) else dad.loadedFrom} successfully.' + (if(backed) "Old json was backed up to -bak.json." else ""));
 			FlxG.sound.play(Paths.sound("scrollMenu"), 0.4);
 			spawnChar(true);
@@ -557,10 +602,12 @@ class AnimationDebug extends MusicBeatState
 		// dad.y -= y;
 		// dadBG.x += x;
 		// dadBG.y -= y;
+		if(dad.animOffsets['all'] == null) dad.animOffsets['all'] = [0.0,0.0];
 		dad.animOffsets['all'][0] -= x;
 		dad.animOffsets['all'][1] += y;
 
 		dad.setOffsets(dad.animation.curAnim.name);
+		if(dadBG.animOffsets['all'] == null) dadBG.animOffsets['all'] = [0.0,0.0];
 		dadBG.animOffsets['all'][0] -= x;
 		dadBG.animOffsets['all'][1] += y;
 		dadBG.setOffsets(dad.animation.curAnim.name);
@@ -638,28 +685,23 @@ class AnimationDebug extends MusicBeatState
 	// var editorAnim:Map;
 
 
-	function editAnimation(Anim:String,charAnim:CharJsonAnimation,?replace:Bool = false,?unbind:Bool = false){
+	function editAnimation(Anim:String,charAnim:CharJsonAnimation,?unbind:Bool = false){
 		var exists:Bool = false;
 		var id:Int = 0;
-		trace(haxe.Json.stringify(charAnim,"\t"));
 		for (i => v in charJson.animations) {
 			if (v.anim == Anim) {exists=true;id = i;break;}
 		}
-
-		if (replace){
-			if (unbind){
-				if (exists)
-					charJson.animations[id] = null;
-				return;
-			}
-			if (exists){
-				charJson.animations[id] = charAnim;
-			}else{
-				charJson.animations.push(charAnim);
-			}
+		if (unbind){
+			if (exists)
+				charJson.animations[id] = null;
+			return;
+		}
+		if (exists){
+			charJson.animations[id] = charAnim;
 		}else{
-
-		} // Finish this later
+			charJson.animations.push(charAnim);
+		}
+		
 	}
 
 	var uiMap:Map<String,Dynamic> = new Map<String,Dynamic>(); 
@@ -673,6 +715,8 @@ class AnimationDebug extends MusicBeatState
 		dad.playAnim("ANIMATIONDEBUG_tempAnim");
 	}
 	function setupUI(dest:Bool = false){
+		try{
+
 		if (dest){
 			uiBox.destroy();
 			uiBox = null;
@@ -715,7 +759,13 @@ class AnimationDebug extends MusicBeatState
 		{
 			// trace('Drop3: ${Std.parseInt(anim)}');
 			animUICurName = charAnims[Std.parseInt(anim)];
-			playTempAnim(animUICurName);
+			if(animUICurName == "**Unbind"){
+				if(charAnims[1] != null) animUICurName = charAnims[1];
+				dad.alpha = 0.5;
+			}else{
+				dad.alpha = 1;
+			}
+			if(animUICurName != "**Unbind") playTempAnim(animUICurName);
 			// uiMap["animSel"].text = charAnims[Std.parseInt(anim)];
 		});
 		animDropDown3.selectedLabel = '';animDropDown3.cameras = [camHUD];
@@ -738,10 +788,27 @@ class AnimationDebug extends MusicBeatState
 		looped.checked = false;
 		uiMap["loop"] = looped;
 		uiBox.add(looped);
-		var oneshot = new FlxUICheckBox(30, 40, null, null, "Oneshot/High priority");
-		oneshot.checked = false;
-		uiMap["oneshot"] = oneshot;
-		uiBox.add(oneshot);
+		var flipanim = new FlxUICheckBox(120, 20, null, null, "FlipX");
+		flipanim.checked = false;
+		uiMap["flipanim"] = flipanim;
+		uiBox.add(flipanim);
+		// var oneshot = new FlxUICheckBox(30, 40, null, null, "Oneshot/High priority");
+		// oneshot.checked = false;
+		// uiMap["oneshot"] = oneshot;
+		// uiBox.add(oneshot);
+		var animTxt = new FlxText(30, 40,0,"Priority(-1 for def)");
+		uiMap["prtxt"] = animTxt;
+		uiBox.add(animTxt);
+		var e = new FlxUIInputText(150, 40, 20, '-1');
+		uiMap["priorityText"] = e;
+		uiMap["priorityText"].customFilterPattern = ~/(?!\-[0-9]*)/gi;
+
+		uiBox.add(e);
+
+		var animFPS = new FlxUIInputText(30, 120, null, "0");
+		animFPS.filterMode = 2;
+		uiMap["loopStart"] = animFPS;
+		uiBox.add(animFPS);
 		var animTxt = new FlxText(30, 60,0,"Animation FPS");
 		uiMap["FPStxt"] = animTxt;
 		var animFPS = new FlxUIInputText(30, 80, null, "24");
@@ -757,24 +824,34 @@ class AnimationDebug extends MusicBeatState
 		var animTxt = new FlxText(30, 100,0,"Loop Start Frame");
 		uiMap["lstxt"] = animTxt;
 		uiBox.add(animTxt);
-		var animFPS = new FlxUIInputText(30, 120, null, "0");
-		animFPS.filterMode = 2;
-		uiMap["loopStart"] = animFPS;
+		uiMap["loopStart"] = new FlxUIInputText(30, 120, null, "0");
+		uiMap["loopStart"].filterMode = 2;
 		uiBox.add(animFPS);
-		var commitButton = new FlxUIButton(20,160,"Add animation",function(){
-			var Anim = uiMap["animSel"].text;
-			editAnimation(Anim,{
-				anim: Anim,
-				name: animUICurName,
-				loop: uiMap["loop"].checked,
-				fps: Std.parseInt(uiMap["FPS"].text),
-				loopStart:Std.parseInt(uiMap["loopStart"].text),
-				indices: [],
-				oneshot: (uiMap["oneshot"].checked || animUICurAnim == "hey" || animUICurAnim == "lose")
-			},true,(animUICurName == "**Unbind"));
-			spawnChar(true,false,charJson);
+		uiMap["commitButton"] = new FlxUIButton(20,160,"Add animation",function(){
+			try{
+
+				var Anim = uiMap["animSel"].text;
+				if((animUICurName == "**Unbind")) {
+					editAnimation(Anim,null,true);
+				}else{
+
+					editAnimation(Anim,{
+						anim: Anim,
+						name: animUICurName,
+						loop: uiMap["loop"].checked,
+						flipx:uiMap["flipanim"].checked,
+						fps: Std.parseInt(uiMap["FPS"].text),
+						loopStart:Std.parseInt(uiMap["loopStart"].text),
+						indices: [],
+						priority: (if(uiMap["priorityText"] != null || uiMap["priorityText"].text == null) -1 else Std.parseInt(uiMap["priorityText"].text))
+					},false);
+				}
+				spawnChar(true,false,charJson);
+			}catch(e){
+				showTempmessage('Error while adding animation: ${e.message}',FlxColor.RED);
+			}
 		});
-		uiBox.add(commitButton);
+		uiBox.add(uiMap["commitButton"]);
 
 
 
@@ -797,8 +874,141 @@ class AnimationDebug extends MusicBeatState
 		uiBox2.add(looped);
 		var looped = checkBox(30, 60,"Flip X","flip_x");
 		uiBox2.add(looped);
-		var looped = checkBox(30, 80,"Spirit Trail","spirit_trail");
+		// var looped = checkBox(30, 80,"Spirit Trail","spirit_trail");
+		// uiBox2.add(looped);
+		var looped = checkBox(30, 80,"Invert left/right singing for BF Clone","flip_notes");
 		uiBox2.add(looped);
+		// var animTxt = new FlxText(30, 100,0,"Color, R/G/B");
+
+		uiBox2.add(new FlxText(30, 120,0,"Scale:"));
+		uiMap["scale"] = new FlxUIInputText(80, 120, 20, '${charJson.scale}');
+		uiMap["scale"].customFilterPattern = ~/(?![0-9]*\.[0-9]*)/gi;
+		uiMap["scale"].callback = function(text,_){
+			var int = Std.parseFloat(text);
+			if(int > 10){
+				text = "10.0";
+			}else if (Math.isNaN(int) || int < 0 || text == ""){
+				text = "1.0";
+			}
+			uiMap["scale"].text = text;
+			charJson.scale = Std.parseFloat(text);
+		}
+		uiBox2.add(uiMap["scale"]);
+
+		uiBox2.add(new FlxText(30, 140,0,"Sing Duration:"));
+		uiMap["Sing Duration"] = new FlxUIInputText(90, 140, 20, '${charJson.sing_duration}');
+		uiMap["Sing Duration"].customFilterPattern = ~/(?![0-9]*\.[0-9]*)/gi;
+		uiMap["Sing Duration"].callback = function(text,_){
+			var int = Std.parseFloat(text);
+			if(int > 10){
+				text = "10.0";
+			}else if (Math.isNaN(int) || int < 0 || text == ""){
+				text = "1.0";
+			}
+			uiMap["Sing Duration"].text = text;
+			charJson.sing_duration = Std.parseFloat(text);
+		}
+		uiBox2.add(uiMap["Sing Duration"]);
+		uiBox2.add(new FlxText(30, 160,0,"Color:"));
+		uiMap["charColor"] = new FlxUIInputText(90, 160, 100, '${if(charJson.color != null) dad.definingColor.toWebString() else '#000000'}');
+		// uiMap["charColor"].customFilterPattern = ~/(?![#xXa-f0-9A-F])/gi;
+		uiMap["charColor"].callback = function(text,a){
+			// text = text.toUpperCase();
+			var col = FlxColor.fromString(text);
+			if('$col' == "null"){ // Weird way of doing it but still returns null even if valid for some reason
+				if(a == "enter" || a == "focuslost") showTempmessage("Invalid color, valid syntax: #RRGGBB, #AARRGGBB, 0xAARRGGBB.\n R = Red, G = Green, B = Blue, A = alpha. 0123456789abcdef allowed ",FlxColor.RED,10);
+				return;
+			}
+			charJson.color = col;
+			// uiMap["charColor"].text = col.toWebString();
+			if(uiMap["healthBar"] != null){
+				uiMap["healthBar"].createFilledBar(dad.definingColor,dad.definingColor);
+			}
+		}
+		uiMap["charColor"].focusLost = function(){
+			uiMap["charColor"].callback(uiMap["charColor"].text,"focuslost");
+		}
+		uiBox2.add(uiMap["charColor"]);
+
+		// e = new FlxUIInputText(90, 140, 20, '${charJson.healthicon}');
+		// uiMap["Health Icon"] = e;
+		// uiMap["Sing Duration"].customFilterPattern = ~/(?![0-9]*\.[0-9]*)/gi;
+		// uiMap["Health Icon"].callback = function(text,_){
+		// 	charJson.healthicon = text;
+		// }
+		// uiBox2.add(e);
+		// var uiMap["Sing Duration"] = new FlxUIInputText(140, 130, 20, '${charJson.sing_duration}');
+
+		// uiMap["Sing Duration"].customFilterPattern = ~/(?!\[[0-9]+\])/gi;
+		// uiMap["Sing Duration"] = animFPS;
+		// uiMap["Sing Duration"].callback = function(text,_){
+		// 	var int = Std.parseFloat(text);
+		// 	if(int > 10){
+		// 		text = "10.0";
+		// 	}else if (Math.isNaN(int) || int < 0 || text == ""){
+		// 		text = "1.0";
+		// 	}
+		// 	uiMap["Sing Duration"].text = text;
+		// 	charJson.sing_duration = Std.parseFloat(text);
+		// }
+		// uiBox2.add(uiMap["Sing Duration"]);
+
+		// var animFPS = new FlxUIInputText(30, 120, 20, "0");
+		// animFPS.filterMode = 2;
+		// uiMap["colorRed"] = animFPS;
+		// var animFPS = new FlxUIInputText(60, 120, 20, "0");
+		// animFPS.filterMode = 2;
+		// uiMap["colorGreen"] = animFPS;
+		// var animFPS = new FlxUIInputText(90, 120, 20, "0");
+		// animFPS.filterMode = 2;
+		// uiMap["colorBlue"] = animFPS;
+
+		// uiBox2.add(animTxt);
+		// uiBox2.add(uiMap["colorRed"]);
+		// uiBox2.add(uiMap["colorGreen"]);
+		// uiBox2.add(uiMap["colorBlue"]);
+		// try{
+		// 	if(charJson.color != null && charJson.color[0] != null){
+		// 		uiMap["colorRed"] = '${charJson.color[0]}';
+		// 		uiMap["colorGreen"] = '${charJson.color[1]}';
+		// 		uiMap["colorBlue"] = '${charJson.color[2]}';
+		// 	}
+		// }catch(e){}
+		// if(charJson.color == null || charJson.color[0] == null) charJson.color = [0,0,0];
+		// uiMap["colorRed"].callback = function(text,_){
+		// 	var int = Std.parseInt(text);
+		// 	if(int > 255){
+		// 		text = "255";
+		// 	}else if (Math.isNaN(int) || int < 0 || text == ""){
+		// 		text = "0";
+		// 	}
+		// 	uiMap["colorRed"].text = text;
+			
+		// 	charJson.color[0] = Std.parseInt(text);
+		// }
+		// uiMap["colorGreen"].callback = function(text,_){
+		// 	var int = Std.parseInt(text);
+		// 	if(int > 255){
+		// 		text = "255";
+		// 	}else if (Math.isNaN(int) || int < 0 || text == ""){
+		// 		text = "0";
+		// 	}
+		// 	uiMap["colorGreen"].text = text;
+		// 	charJson.color[1] = Std.parseInt(text);
+		// }
+		// uiMap["colorBlue"].callback = function(text,_){
+		// 	var int = Std.parseInt(text);
+		// 	if(int > 255){
+		// 		text = "255";
+		// 		int = 255;
+		// 	}else if (Math.isNaN(int) || int < 0 || text == ""){
+		// 		// text = "0";
+		// 		int = 0;
+		// 	}
+		// 	uiMap["colorBlue"].text = text;
+		// 	charJson.color[2] = int;
+		// }
+
 
 
 		var commitButton = new FlxUIButton(20,240,"Update character to show changes",function(){
@@ -814,7 +1024,37 @@ class AnimationDebug extends MusicBeatState
 		});
 		commitButton.resize(120,20);
 		uiBox2.add(commitButton);
+		try{
 
+			var healthBarBG = new FlxSprite(0, FlxG.height * 0.9 - FlxG.save.data.guiGap).loadGraphic(Paths.image('healthBar'));
+			if (FlxG.save.data.downscroll)
+				healthBarBG.y = 50 + FlxG.save.data.guiGap;
+			healthBarBG.screenCenter(X);
+			healthBarBG.scrollFactor.set();
+			add(healthBarBG);
+			var healthBar = new FlxBar(healthBarBG.x + 4, healthBarBG.y + 4, RIGHT_TO_LEFT, Std.int(healthBarBG.width - 8), Std.int(healthBarBG.height - 8), this,'health', 0, 2);
+			
+			healthBar.scrollFactor.set();
+			healthBar.createColoredFilledBar(dad.definingColor, dad.definingColor);
+			healthBar.updateBar();
+			var iconP1 = new HealthIcon(dad.curCharacter, true,dad.clonedChar);
+			iconP1.y = healthBar.y - (iconP1.height / 2);
+			switch(charType){
+				case 0: iconP1.x = healthBar.x + healthBar.width;
+				case 1: iconP1.x = healthBar.x;
+				case 2: iconP1.x = healthBar.x + (healthBar.width * 0.5);
+
+			} 
+			iconP1.x -= iconP1.width;
+			iconP1.centerOffsets();
+			iconP1.updateHitbox();
+			healthBarBG.cameras = iconP1.cameras = healthBar.cameras = [camHUD];
+			uiMap["healthBar"] = healthBar;
+			uiMap["healthBarBG"] = healthBarBG;
+			uiMap["hi1"] = iconP1;
+			add(iconP1);
+		}catch(e){trace('oh no, the healthbar had an error, what ever will we do ${e.message}');}
+		}catch(e){MainMenuState.handleError('Error while loading GUI: ${e.message}');}
 	}
 	// static function textBox(x:Float,y:Float,defText:String,name:String,internalName:String):FlxInputTextUpdatable{
 	// 	var ret = new FlxUIInputText(30, 100, null, "24");
@@ -853,6 +1093,8 @@ class AnimationDebug extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		// textAnim.text = dad.animation.curAnim.name;
+		if (FlxG.sound.music != null)
+			Conductor.songPosition = FlxG.sound.music.time;
 		if (quitHeldBar.visible && quitHeld <= 0){
 			quitHeldBar.visible = false;
 			quitHeldBG.visible = false;
@@ -863,9 +1105,8 @@ class AnimationDebug extends MusicBeatState
 			quitHeldBar.visible = true;
 			quitHeldBG.visible = true;
 			if (quitHeld > 1000) exit(); 
-			}else if (quitHeld > 0){
+		}else if (quitHeld > 0){
 			quitHeld -= 10;
-
 		}
 		var shiftPress = FlxG.keys.pressed.SHIFT;
 		var ctrlPress = FlxG.keys.pressed.CONTROL;
@@ -877,6 +1118,37 @@ class AnimationDebug extends MusicBeatState
 		switch(editMode){
 			case 0:{
 				if (FlxG.keys.justPressed.B) {toggleOffsetText(!showOffsets);}
+				if(FlxG.mouse.justPressed){
+					lastMouseX = Std.int(FlxG.mouse.x);
+					lastMouseY = Std.int(FlxG.mouse.y);
+				}
+				if(FlxG.mouse.justPressedRight){
+					lastRMouseX = Std.int(FlxG.mouse.screenX);
+					lastRMouseY = Std.int(FlxG.mouse.screenY);
+				}
+
+				if(FlxG.mouse.pressedRight && FlxG.mouse.justMoved){
+
+					var mx = Std.int(FlxG.mouse.screenX);
+					var my = Std.int(FlxG.mouse.screenY);
+
+					camFollow.x+=lastRMouseX - mx;
+					camFollow.y+=lastRMouseY - my;
+					lastRMouseX = mx;
+					lastRMouseY = my;
+				}
+				if(FlxG.mouse.pressed && FlxG.mouse.justMoved){
+					var mx = Std.int(FlxG.mouse.x);
+					var my = Std.int(FlxG.mouse.y);
+					if(shiftPress){
+						updateCharPos(-(lastMouseX - mx),(lastMouseY - my),false,false);
+					}else{
+						moveOffset(lastMouseX - mx,lastMouseY - my,false,false);
+					}
+					lastMouseX = mx;
+					lastMouseY = my;
+
+				}
 
 				pressArray = [
 					 (FlxG.keys.pressed.A), // Play note animation
@@ -914,7 +1186,6 @@ class AnimationDebug extends MusicBeatState
 				if (altPress && !shiftPress) modifier += "2";
 				if (shiftPress && altPress) modifier += "2miss";
 				if (ctrlPress) modifier += "-alt";
-
 				if(FlxG.keys.pressed.SEVEN)swapSides();
 				// var animToPlay = "";
 				for (i => v in pressArray) {
@@ -928,8 +1199,8 @@ class AnimationDebug extends MusicBeatState
 								animToPlay = 'singUP' + modifier;
 							case 3:
 								animToPlay = 'singRIGHT' + modifier;
-							case 4:
-								dad.dance();
+
+								
 								
 							case 5: // Offset adjusting
 								moveOffset(0,1,false,ctrlPress);
@@ -951,6 +1222,7 @@ class AnimationDebug extends MusicBeatState
 
 							case 13: // Unload character offsets
 								resetOffsets();
+								updateCameraPos(false,720, 500);
 							case 14: // Write to file
 								outputCharOffsets();
 							case 15: // Save Char JSON
@@ -1001,6 +1273,10 @@ class AnimationDebug extends MusicBeatState
 			}
 			case 1:{
 
+				if(FlxG.mouse.justPressed){
+					lastRMouseX = Std.int(FlxG.mouse.screenX);
+					lastRMouseY = Std.int(FlxG.mouse.screenY);
+				}
 				pressArray = [
 					 (FlxG.keys.justPressed.M),
 					 (FlxG.keys.justPressed.UP), // Adjust camera position
@@ -1012,6 +1288,15 @@ class AnimationDebug extends MusicBeatState
 					 (FlxG.keys.pressed.DOWN),
 					 (FlxG.keys.pressed.RIGHT),
 				];
+				if(FlxG.mouse.pressed && FlxG.mouse.justMoved){
+					var mx = Std.int(FlxG.mouse.screenX);
+					var my = Std.int(FlxG.mouse.screenY);
+
+					updateCameraPos(true,lastRMouseX - mx,lastRMouseY - my,false,false);
+					lastRMouseX = mx;
+					lastRMouseY = my;
+					// offsetTopText.text = "X: " + lastMouseX + ",Y: " + lastMouseY;
+				}
 				for (i => v in pressArray) {
 					if (v){
 						switch(i){
@@ -1044,6 +1329,21 @@ class AnimationDebug extends MusicBeatState
 				}
 			}
 			case 2:{
+				if(FlxG.mouse.justPressedRight){
+					lastRMouseX = Std.int(FlxG.mouse.screenX);
+					lastRMouseY = Std.int(FlxG.mouse.screenY);
+				}
+
+				if(FlxG.mouse.pressedRight && FlxG.mouse.justMoved){
+
+					var mx = Std.int(FlxG.mouse.screenX);
+					var my = Std.int(FlxG.mouse.screenY);
+
+					camFollow.x+=lastRMouseX - mx;
+					camFollow.y+=lastRMouseY - my;
+					lastRMouseX = mx;
+					lastRMouseY = my;
+				}
 				// if (FlxG.keys.justPressed.M && canSwitch()){
 				// 	editMode = 0;
 				// 	setupUI(true);
@@ -1083,7 +1383,7 @@ class AnimHelpScreen extends FlxUISubState{
 		exitText.setFormat(CoolUtil.font, 28, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		exitText.scrollFactor.set();
 		helpObjs.push(exitText);
-		var controlsText:FlxText = new FlxText(10,145,0,'Controls:'
+		var controlsText:FlxText = new FlxText(10,70,0,'Controls:'
 		+(switch(editMode) {
 			case 0:
 				'\n\nWASD / Space Bar - Note anims'
@@ -1091,6 +1391,9 @@ class AnimHelpScreen extends FlxUISubState{
 				+'\n *Shift - Miss variant'
 				+'\n *Ctrl - Alt Variant'
 				+'\n *Alt - Second Variant'
+				+'\nRightClick - Move Camera(Doesn\'t save)'
+				+'\nClick - Move Offset'
+				+'\n *Shift - Moves character position'
 				+'\nIJKL - Move char, Moves per press for accuracy'
 				+'\nArrows - Move Offset, Moves per press for accuracy'
 				+'\n *Shift - Hold to move'
@@ -1237,8 +1540,6 @@ class AnimDebugOptions extends MusicBeatSubstate
 			"scale" => {type:2,value:getValue("scale",1),description:"Scale for the character",min:0.1,max:10},
 			"no_antialiasing" => {type:0,value:getValue("no_antialiasing",false),
 				description:"Disables smoothing out pixels, Enabled for pixel characters"},
-			"spirit_trail" => {type:0,value:getValue("spirit_trail",false),
-				description:"Enables the trail used for the Spirit character"},
 			"flip_notes" => {type:0,value:getValue("flip_notes",true),
 				description:"Whether to flip left/right when on the right, true by default"},
 			"sing_duration" => {type:2,value:getValue("sing_duration",4),

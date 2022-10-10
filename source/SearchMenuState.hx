@@ -3,12 +3,14 @@ package;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.graphics.FlxGraphic;
 import flixel.group.FlxGroup;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxStringUtil;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxInputText;
+import flixel.tweens.FlxTween;
 
 import sys.io.File;
 import sys.FileSystem;
@@ -36,6 +38,8 @@ class SearchMenuState extends MusicBeatState
 	var infotext:FlxText;
 	var overLay:FlxGroup = new FlxTypedGroup();
 	var infoTextBoxSize:Int = 2;
+	public static var background:FlxGraphic;
+	public static var backgroundOver:FlxGraphic;
 	var toggleables:Map<String,Bool> = [
 		"search" => true
 	];
@@ -43,6 +47,7 @@ class SearchMenuState extends MusicBeatState
 		"Find" => "Find"
 	];
 	var useAlphabet:Bool = true;
+
 	
 
 	function addTitleText(str:String = ""){
@@ -68,22 +73,48 @@ class SearchMenuState extends MusicBeatState
 		return list;
 	}
 	function updateInfoText(str:String = ""){
-		infotext.text = str;
-		infotext.scrollFactor.set();
+		if(infotext != null){
+
+			infotext.text = str;
+			infotext.scrollFactor.set();
+		}
 	}
 	// var bgColor:FlxColor = 0xFFFF6E6E;
+	static public inline function resetVars(){
+		if (ChartingState.charting) ChartingState.charting = false;
+		if (FlxG.save.data.songUnload && PlayState.SONG != null) {PlayState.SONG = null;} // I'm not even sure if this is needed but whatever
+		PlayState.songScript = "";PlayState.hsBrTools = null;onlinemod.OfflinePlayState.instFile = onlinemod.OfflinePlayState.voicesFile = "";
+		SickMenuState.chgTime = true;
+		onlinemod.OfflinePlayState.nameSpace = "";
+	}
+	public static var doReset:Bool = true;
 	override function create()
 	{try{
-		PlayState.songScript = "";PlayState.hsBrTools = null;
-		bg = new FlxSprite().loadGraphic(Paths.image("menuDesat"));
-		bg.color = bgColor;
+		if(doReset)resetVars();
+		if(bg == null){
+			// if(FileSystem.exists("mods/bg.png")){
+			// 	bg = new FlxSprite().loadGraphic(Paths.getImageDirect("mods/bg.png"));
+			// }else{
+			// 	bg = new FlxSprite().loadGraphic(Paths.image("menuDesat"));
+
+			// }
+			bg = new FlxSprite().loadGraphic(SearchMenuState.background); 
+			// bg = new FlxSprite().loadGraphic(Paths.image(bgImage));
+			bg.color = bgColor;
+		}
 		bg.scrollFactor.set(0.01,0.01);
 		SickMenuState.musicHandle();
 		add(bg);
+		var bgOver = new FlxSprite().loadGraphic(SearchMenuState.backgroundOver);
+		bgOver.scrollFactor.set(0.01,0.01);
+		add(bgOver);
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		reloadList();
 		add(grpSongs);
 		if (toggleables['search']){
+				var blackBorder = new FlxSprite(-30,0).makeGraphic((Std.int(FlxG.width + 40)),140,FlxColor.BLACK);
+				blackBorder.alpha = 0.5;
+				add(blackBorder);
 				FlxG.mouse.visible = true;
 				//Searching
 				searchField = new FlxInputText(10, 100, 1152, 20);
@@ -97,11 +128,11 @@ class SearchMenuState extends MusicBeatState
 			}
 
 		var infotexttxt:String = "Hold shift to scroll faster";
-		infotext = new FlxText(5, FlxG.height - (18 * infoTextBoxSize ), FlxG.width - 100, infotexttxt, 16);
+		infotext = new FlxText(5, FlxG.height - (20 * infoTextBoxSize ), FlxG.width - 5, infotexttxt, 16);
 		infotext.wordWrap = true;
 		infotext.scrollFactor.set();
 		infotext.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		var blackBorder = new FlxSprite(-30,FlxG.height - (18 * infoTextBoxSize )).makeGraphic((Std.int(FlxG.width)),(18 * infoTextBoxSize),FlxColor.BLACK);
+		var blackBorder = new FlxSprite(-30,FlxG.height - (20 * infoTextBoxSize )).makeGraphic((Std.int(FlxG.width + 40)),(20 * infoTextBoxSize),FlxColor.BLACK);
 		blackBorder.alpha = 0.5;
 		overLay.add(blackBorder);
 		overLay.add(infotext);
@@ -160,8 +191,10 @@ class SearchMenuState extends MusicBeatState
 			{
 				ret();
 			}
-			if (controls.UP_P && FlxG.keys.pressed.SHIFT){changeSelection(-5);} else if (controls.UP_P){changeSelection(-1);}
-			if (controls.DOWN_P && FlxG.keys.pressed.SHIFT){changeSelection(5);} else if (controls.DOWN_P){changeSelection(1);}
+			if (controls.UP_P && FlxG.keys.pressed.SHIFT){changeSelection(-5);} 
+			else if (controls.UP_P || (controls.UP && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(-1);}
+			if (controls.DOWN_P && FlxG.keys.pressed.SHIFT){changeSelection(5);} 
+			else if (controls.DOWN_P || (controls.DOWN && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(1);}
 			extraKeys();
 			if (controls.ACCEPT && songs.length > 0)
 			{
@@ -171,6 +204,16 @@ class SearchMenuState extends MusicBeatState
 	}
 	function extraKeys(){
 		return;
+	}
+	var curTween:FlxTween;
+	override function beatHit(){
+		super.beatHit();
+		if(grpSongs != null && grpSongs.members[curSelected] != null && grpSongs.members[curSelected].useAlphabet){
+			
+			grpSongs.members[curSelected].scale.set(1.2,1.2);
+			if(curTween != null)curTween.cancel();
+			curTween = FlxTween.tween(grpSongs.members[curSelected].scale,{x:1,y:1},(60 / Conductor.bpm));
+		}
 	}
 	function ret(){
 		FlxG.mouse.visible = false;
@@ -202,12 +245,13 @@ class SearchMenuState extends MusicBeatState
 					}
 					item.targetY = bullShit - curSelected;
 
-					// item.color = 0xdddddd;
+					if(!useAlphabet) item.color = 0xbbbbbb;
 					item.alpha = 0.8;
 					if (item.targetY == 0)
 					{
 						item.alpha = 1;
-						// item.color = 0xffffff;
+
+						if(!useAlphabet) item.color = 0xffffff;
 					}
 				}else{item.kill();} // Else, try to kill it to lower the amount of sprites loaded
 				bullShit++;

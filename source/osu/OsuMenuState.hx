@@ -6,12 +6,16 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxStringUtil;
+import flixel.util.FlxTimer;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxInputText;
 
 import sys.io.File;
 import sys.FileSystem;
 
+#if windows
+import Discord.DiscordClient;
+#end
 using StringTools;
 
 class OsuMenuState extends onlinemod.OfflineMenuState
@@ -32,6 +36,12 @@ class OsuMenuState extends onlinemod.OfflineMenuState
 
   override function create()
   {
+    #if windows
+    new FlxTimer().start(0.1, function(tmr)
+    {
+      DiscordClient.changePresence("Browsing OSU! Menu",null);
+    });
+    #end
     ChartingState.charting = false;
     dataDir = TitleState.osuBeatmapLoc;
     super.create();

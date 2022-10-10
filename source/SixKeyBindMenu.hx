@@ -278,7 +278,7 @@ class SixKeyBindMenu extends FlxSubState
             for(i in 0...6){
 
                 var textStart = (i == curSelected) ? "> " : "  ";
-                keyTextDisplay.text += textStart + keyText[i] + ": " + ((keys[i] != keyText[i]) ? (keys[i] + " / ") : "" ) + keyText[i] + " ARROW\n";
+                keyTextDisplay.text += textStart + keyText[i] + ": " + keys[i] + "\n";
 
             }
         }

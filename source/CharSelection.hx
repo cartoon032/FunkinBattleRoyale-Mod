@@ -14,6 +14,9 @@ import flixel.tweens.FlxEase;
 import sys.io.File;
 import sys.FileSystem;
 
+#if windows
+import Discord.DiscordClient;
+#end
 using StringTools;
 
 class CharSelection extends SearchMenuState
@@ -22,6 +25,9 @@ class CharSelection extends SearchMenuState
 	var uiIcon:HealthIcon;
 	override function create()
 	{try{
+	#if windows
+	DiscordClient.changePresence("Selection Character",null);
+	#end
 	// searchList = TitleState.choosableCharacters;
 	searchList = [];
 	for (i in TitleState.choosableCharacters) {

@@ -28,32 +28,37 @@ import flixel.input.FlxKeyManager;
 
 using StringTools;
 
-class NineKeyBindMenu extends FlxSubState
+class TwelveKeyBindMenu extends FlxSubState
 {
 
     var keyTextDisplay:FlxText;
     var keyWarning:FlxText;
     var warningTween:FlxTween;
-    var keyText:Array<String> = ["LEFT", "DOWN", "UP", "RIGHT", "MIDDLE", "LEFT2", "DOWN2", "UP2", "RIGHT2"];
-    var defaultKeys:Array<String> = ["A", "S", "D", "F", "SPACE", "J", "K", "L", "SEMICOLON"];
-    var defaultArrowKeys:Array<String> = ["A", "S", "D", "F", "SPACE", "LEFT", "DOWN", "UP", "RIGHT"];
+    var keyText:Array<String> = ["LEFT", "DOWN", "UP", "RIGHT", "LEFT3", "DOWN3 (10K/11K will use this)", "UP3 (10K/11K will use this)", "RIGHT3", "LEFT2", "DOWN2", "UP2", "RIGHT2"];
+    var defaultKeys:Array<String> = ["Q", "W", "E", "R", "C", "V", "N", "M", "U", "I", "O", "P"];
+    var defaultArrowKeys:Array<String> = ["UP","UP","UP","UP","UP","UP","UP","UP","UP","UP","UP","UP"];
 
     var defaultGpKeys:Array<String> = ["DPAD_LEFT", "DPAD_DOWN", "DPAD_UP", "DPAD_RIGHT"];
     var curSelected:Int = 0;
 
-    var keys:Array<String> = [FlxG.save.data.N0Bind,
-                              FlxG.save.data.N1Bind,
-                              FlxG.save.data.N2Bind,
-                              FlxG.save.data.N3Bind,
-                              FlxG.save.data.N4Bind,
-                              FlxG.save.data.N5Bind,
-                              FlxG.save.data.N6Bind,
-                              FlxG.save.data.N7Bind,
-                              FlxG.save.data.N8Bind,];
+    var keys:Array<String> = [FlxG.save.data.EX0Bind,
+                              FlxG.save.data.EX1Bind,
+                              FlxG.save.data.EX2Bind,
+                              FlxG.save.data.EX3Bind,
+                              FlxG.save.data.EX4Bind,
+                              FlxG.save.data.EX5Bind,
+                              FlxG.save.data.EX6Bind,
+                              FlxG.save.data.EX7Bind,
+                              FlxG.save.data.EX8Bind,
+                              FlxG.save.data.EX9Bind,
+                              FlxG.save.data.EX10Bind,
+                              FlxG.save.data.EX11Bind
+                            ];
     var gpKeys:Array<String> = [FlxG.save.data.gpleftBind,
                               FlxG.save.data.gpdownBind,
                               FlxG.save.data.gpupBind,
-                              FlxG.save.data.gprightBind];
+                              FlxG.save.data.gprightBind
+                            ];
     var tempKey:String = "";
     var blacklist:Array<String> = ["ESCAPE", "ENTER", "BACKSPACE", "SPACE", "TAB"];
 
@@ -65,7 +70,7 @@ class NineKeyBindMenu extends FlxSubState
         if (KeyBinds.gamepad) {
             return '${FlxG.save.data.gpleftBind}-${FlxG.save.data.gpdownBind}-${FlxG.save.data.gpupBind}-${FlxG.save.data.gprightBind}';
         }
-        return '${FlxG.save.data.N0Bind}-${FlxG.save.data.N1Bind}-${FlxG.save.data.N2Bind}-${FlxG.save.data.N3Bind}-${FlxG.save.data.N4Bind}-${FlxG.save.data.N5Bind}-${FlxG.save.data.N6Bind}-${FlxG.save.data.N7Bind}-${FlxG.save.data.N8Bind}';
+        return '${FlxG.save.data.EX0Bind}-${FlxG.save.data.EX1Bind}-${FlxG.save.data.EX2Bind}-${FlxG.save.data.EX3Bind}-${FlxG.save.data.EX4Bind}-${FlxG.save.data.EX5Bind}-${FlxG.save.data.EX6Bind}-${FlxG.save.data.EX7Bind}-${FlxG.save.data.EX8Bind}-${FlxG.save.data.EX9Bind}-${FlxG.save.data.EX10Bind}-${FlxG.save.data.EX11Bind}';
     }
 
 	override function create()
@@ -268,7 +273,7 @@ class NineKeyBindMenu extends FlxSubState
 
         if (KeyBinds.gamepad)
         {
-            for(i in 0...9){
+            for(i in 0...12){
 
                 var textStart = (i == curSelected) ? "> " : "  ";
                 trace(gpKeys[i]);
@@ -278,7 +283,7 @@ class NineKeyBindMenu extends FlxSubState
         }
         else
         {
-            for(i in 0...9){
+            for(i in 0...12){
 
                 var textStart = (i == curSelected) ? "> " : "  ";
                 keyTextDisplay.text += textStart + keyText[i] + ": " + keys[i] + "\n";
@@ -297,15 +302,18 @@ class NineKeyBindMenu extends FlxSubState
         FlxG.save.data.gpdownBind = gpKeys[1];
         FlxG.save.data.gpleftBind = gpKeys[0];
         FlxG.save.data.gprightBind = gpKeys[3];
-        FlxG.save.data.N0Bind = keys[0];
-        FlxG.save.data.N1Bind = keys[1];
-        FlxG.save.data.N2Bind = keys[2];
-        FlxG.save.data.N3Bind = keys[3];
-        FlxG.save.data.N4Bind = keys[4];
-        FlxG.save.data.N5Bind = keys[5];
-        FlxG.save.data.N6Bind = keys[6];
-        FlxG.save.data.N7Bind = keys[7];
-        FlxG.save.data.N8Bind = keys[8];
+        FlxG.save.data.EX0Bind = keys[0];
+        FlxG.save.data.EX1Bind = keys[1];
+        FlxG.save.data.EX2Bind = keys[2];
+        FlxG.save.data.EX3Bind = keys[3];
+        FlxG.save.data.EX4Bind = keys[4];
+        FlxG.save.data.EX5Bind = keys[5];
+        FlxG.save.data.EX6Bind = keys[6];
+        FlxG.save.data.EX7Bind = keys[7];
+        FlxG.save.data.EX8Bind = keys[8];
+        FlxG.save.data.EX9Bind = keys[9];
+        FlxG.save.data.EX10Bind = keys[10];
+        FlxG.save.data.EX11Bind = keys[11];
 
 
         FlxG.save.flush();
@@ -316,7 +324,7 @@ class NineKeyBindMenu extends FlxSubState
 
     function reset(){
 
-        for(i in 0...9){
+        for(i in 0...12){
             keys[i] = defaultKeys[i];
         }
         quit();
@@ -324,7 +332,7 @@ class NineKeyBindMenu extends FlxSubState
     }
     function resetArrows(){
 
-        for(i in 0...9){
+        for(i in 0...12){
             keys[i] = defaultArrowKeys[i];
         }
         quit();
@@ -423,9 +431,9 @@ class NineKeyBindMenu extends FlxSubState
     {
         curSelected += _amount;
                 
-        if (curSelected > 8)
+        if (curSelected > 11)
             curSelected = 0;
         if (curSelected < 0)
-            curSelected = 8;
+            curSelected = 11;
     }
 }

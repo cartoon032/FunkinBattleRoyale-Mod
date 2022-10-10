@@ -1,16 +1,21 @@
-# FunkinBattleRoyale-Mod
-This is a mod of [Funkin Battle Royale](https://github.com/XieneDev/FunkinBattleRoyale/)<br>
-This is powered by a modded version of [Kade Engine](https://github.com/KadeDev/Kade-Engine) with a hint of [FPSPlus](https://github.com/ThatRozebudDude/FPS-Plus-Public/) added in and with some inspiration from [Psych Engine](https://github.com/ShadowMario/FNF-PsychEngine)/[FNF Multi](https://shadowmario.itch.io/funkinmulti) <br>
-I do not own Friday Night Funkin, Kade Engine or Funkin Battle Royale, I'd highly recommend checking them out.
-This is client aims to allow people to use normal Funkin Battle Royale servers with custom characters or play custom charts and such when offline<br>
-Last Build:[![Build](https://github.com/superpowers04/FunkinBattleRoyale-Mod/actions/workflows/main.yml/badge.svg)](https://github.com/superpowers04/FunkinBattleRoyale-Mod/actions/workflows/main.yml) Click on a commit and go to the artifacts to download, you need a github account to download artifacts
-<br>[Discord server](https://discord.gg/28GPGTRuuR)
+# Super Engine - T Mod
+Originally this mod only for Pull request to main but at some point i add too much crap and the original author not a multi key player herself
+so she ask me to maintain the mod myself
+some notable feature
+- Multi Key from 1k-13k
+- Song Speed *slow down is broke ._.''*
+- Discord RPC
+- and alot more
+<br>[Discord server](https://discord.gg/28GPGTRuuR) *this the same invite link to SE discord*
 
+<br><br>Note that due to how i am,most of the time i release update to my friend and forgot to commit the said update
+<br><br>So if you want an update or have a suggestion DM me on Discord NayToon#9001 I'm up most of the time
+<br><br>also i commit in a one mega commit that got everything in it so it might look like i don't do much but i did alot
 
 ## Compiling
 - Follow the guide on the Funkin github page [here](https://github.com/ninjamuffin99/Funkin#build-instructions), this should be completely compatible with that guide
 
-
+# Read mods/readme.txt for info about custom characters, charts, stages and more. Custom characters and charts beyond vanilla charts, bf and gf SHOULD NOT be hardcoded into this engine
 
 
 # Information
@@ -34,12 +39,13 @@ Links: **[GameBanana mod page](https://gamebanana.com/gamefiles/14264) ⋅ [late
 
 # Credits for every mod included/used
 ## Friday Night Funkin'
- - [ninjamuffin99](https://twitter.com/ninja_muffin99) - Programming
- - [PhantomArcade3K](https://twitter.com/phantomarcade3k) and [Evilsk8r](https://twitter.com/evilsk8r) - Art
- - [Kawai Sprite](https://twitter.com/kawaisprite) - Music
+- [ninjamuffin99](https://twitter.com/ninja_muffin99) - Programming
+- [PhantomArcade3K](https://twitter.com/phantomarcade3k) and
+- [Evilsk8r](https://twitter.com/evilsk8r) - Art
+- [Kawai Sprite](https://twitter.com/kawaisprite) - Music
 
 This game was made with love to Newgrounds and its community. Extra love to Tom Fulp.
-## Funkin Battle Royale Mod
+## Super Engine
 - [Superpowers04](https://github.com/superpowers04) - Pretty much everything
 - [NayToon](https://github.com/cartoon032) - Some help and providing early Windows builds
 - [XieneDev](https://github.com/XieneDev/) - Responsible for the base mod
@@ -66,4 +72,5 @@ This game was made with love to Newgrounds and its community. Extra love to Tom 
 - [V.S. Ex Tabi](https://gamebanana.com/mods/286388) - The arrow examples are from here
 - [Smoke 'Em Out Struggle](https://gamebanana.com/mods/166531) - Used Garcello's character for testing custom characters/custom animations
 ### Special Thanks
+- [JWambaugh](https://github.com/JWambaugh) - The epic tjson library that I copied and modified for Super Engine
 - [NoLime](https://gamebanana.com/members/1762727) - Giving permission to have [BF Girlfriend mode](https://gamebanana.com/mods/185105) as a built-in character

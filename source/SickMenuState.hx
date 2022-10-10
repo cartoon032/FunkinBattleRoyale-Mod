@@ -3,6 +3,7 @@ package;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.graphics.FlxGraphic;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.tweens.FlxEase;
@@ -14,6 +15,9 @@ import sys.FileSystem;
 import flixel.util.FlxColor;
 import flixel.system.FlxSound;
 
+#if windows
+import Discord.DiscordClient;
+#end
 typedef MusicTime ={
 	var file:String;
 	var begin:Int;
@@ -81,7 +85,7 @@ class SickMenuState extends MusicBeatState
 			grpControls.add(controlLabel);
 		}
 	}
-	public static function musicHandle(?isMainMenu:Bool = false,?_bg:FlxSprite = null){
+	public static function musicHandle(?isMainMenu:Bool = false,?_bg:FlxSprite = null,?recolor:Bool = false){
 
 
 			var time:Int = Date.now().getHours();
@@ -104,11 +108,12 @@ class SickMenuState extends MusicBeatState
 					if(isMainMenu && _bg != null){
 						MainMenuState.bgcolor = switchToColor;
 					}
+					var col = _bg.color;
 					new FlxTimer().start(0.1, function(tmr:FlxTimer)
 					{
 						FlxG.sound.music.volume -= 0.1;
-						if(isMainMenu && _bg != null){
-							_bg.color = FlxColor.interpolate(_bg.color,switchToColor,0.2);
+						if((isMainMenu || recolor) && _bg != null){
+							_bg.color = FlxColor.interpolate(col,switchToColor,tmr.loops * 0.1);
 						}              
 						if(tmr.elapsedLoops > 9){
 							SickMenuState.curSongTime = FlxG.sound.music.time;
@@ -121,30 +126,49 @@ class SickMenuState extends MusicBeatState
 					return;}
 				SickMenuState.fading = false;
 				SickMenuState.musicFileLoc = mt.file;
+				
 				SickMenuState.menuMusic = Sound.fromFile(SickMenuState.musicFileLoc);
 				SickMenuState.musicTime = curMusicTime;
 				Conductor.changeBPM(mt.bpm);
 
 			// if (_bg != null){ }
 
-			FlxG.sound.playMusic(SickMenuState.menuMusic);
+			FlxG.sound.playMusic(SickMenuState.menuMusic,FlxG.save.data.instVol);
 			if (!MainMenuState.firstStart) FlxG.sound.music.time = FlxMath.wrap(Math.floor(SickMenuState.curSongTime),0,Math.floor(FlxG.sound.music.length));
-		}else if (!FlxG.sound.music.playing) FlxG.sound.playMusic(SickMenuState.menuMusic);
-		if(!isMainMenu && _bg != null){
-			_bg.color = FlxColor.interpolate(_bg.color,SickMenuState.musicList[musicTime].color,0.2);
-		}
+			}else if (!FlxG.sound.music.playing) FlxG.sound.playMusic(SickMenuState.menuMusic);
+			if(!isMainMenu && !recolor && _bg != null){
+				_bg.color = FlxColor.interpolate(_bg.color,SickMenuState.musicList[musicTime].color,0.2);
+			}else if(recolor && _bg != null){
+				_bg.color = mt.color;
+			}
 	}
 
 	override function create()
 	{
-		if (ChartingState.charting) ChartingState.charting = false;
-		if (FlxG.save.data.songUnload && PlayState.SONG != null) {PlayState.SONG = null;}
-		PlayState.songScript = "";PlayState.hsBrTools = null;
-		SickMenuState.chgTime = true;
-		bg = new FlxSprite().loadGraphic(Paths.image(bgImage));
-		bg.color = 0xFFFF6E6E;
+		// if (ChartingState.charting) ChartingState.charting = false;
+		SearchMenuState.resetVars();
+		DiscordClient.changePresence("In Main Menu",null);
+		// if (FlxG.save.data.songUnload && PlayState.SONG != null) {PlayState.SONG = null;}
+		// PlayState.songScript = "";PlayState.hsBrTools = null;
+		if(SearchMenuState.background == null){
+			SearchMenuState.background = if(FileSystem.exists("mods/bg.png")) Paths.getImageDirect("mods/bg.png"); else Paths.getImageDirect("assets/images/menuDesat.png");
+			SearchMenuState.backgroundOver = if(FileSystem.exists("mods/fg.png")) Paths.getImageDirect("mods/fg.png"); else FlxGraphic.fromRectangle(0,0,0x00000000);
+			SearchMenuState.background.persist = SearchMenuState.backgroundOver.persist = true;
+			SearchMenuState.background.destroyOnNoUse = SearchMenuState.backgroundOver.destroyOnNoUse = false;
+		}
+
+
+		if(bg == null){
+			
+			bg = new FlxSprite().loadGraphic(SearchMenuState.background); 
+			bg.color = 0xFFFF6E6E;
+		}
+
 		bg.scrollFactor.set(0.01,0.01);
 		add(bg);
+		var bgOver = new FlxSprite().loadGraphic(SearchMenuState.backgroundOver);
+		bgOver.scrollFactor.set(0.01,0.01);
+		add(bgOver);
 		musicHandle(isMainMenu,bg);
 
 
@@ -187,6 +211,16 @@ class SickMenuState extends MusicBeatState
 		{
 
 			select(curSelected);
+		}
+	}
+	var curTween:FlxTween;
+	override function beatHit(){
+		super.beatHit();
+		if(grpControls.members[curSelected] != null && grpControls.members[curSelected].useAlphabet){
+			
+			grpControls.members[curSelected].scale.set(1.2,1.2);
+			if(curTween != null)curTween.cancel();
+			curTween = FlxTween.tween(grpControls.members[curSelected].scale,{x:1,y:1},(60 / Conductor.bpm));
 		}
 	}
 	function select(sel:Int){

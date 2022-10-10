@@ -8,6 +8,9 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxAxes;
 
+#if windows
+import Discord.DiscordClient;
+#end
 class OnlineNickState extends MusicBeatState
 {
   var errorText:FlxText;
@@ -17,7 +20,10 @@ class OnlineNickState extends MusicBeatState
 
   override function create()
   {
-    var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image("menuDesat"));
+    #if windows
+    DiscordClient.changePresence(null,"Is thinking about their nickname");
+    #end
+    var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
     bg.color = 0xFFFF6E6E;
 		add(bg);
 

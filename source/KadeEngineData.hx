@@ -84,7 +84,7 @@ class KadeEngineData
 			FlxG.save.data.customStrumLine = 0;
 
 		if (FlxG.save.data.opponent == null)
-			FlxG.save.data.opponent = "dad";
+			FlxG.save.data.opponent = "bf";
 
 
 		if (FlxG.save.data.playerChar == null)
@@ -143,7 +143,22 @@ class KadeEngineData
 		if (FlxG.save.data.songInfo == null) FlxG.save.data.songInfo = 0;
 		if (FlxG.save.data.mainMenuChar == null) FlxG.save.data.mainMenuChar = false;
 		if (FlxG.save.data.useFontEverywhere == null) FlxG.save.data.useFontEverywhere = false;
-		if (FlxG.save.data.osuscore == null) FlxG.save.data.osuscore = false;
+		if (FlxG.save.data.scoresystem == null) FlxG.save.data.scoresystem = 0;
+		if (FlxG.save.data.altscoresystem == null) FlxG.save.data.altscoresystem = 0;
+		if (FlxG.save.data.popupscorelocation == null) FlxG.save.data.popupscorelocation = 0;
+		if (FlxG.save.data.popupscoreoffset == null) FlxG.save.data.popupscoreoffset = 0;
+		if (FlxG.save.data.FastSongScrollSpeed == null) FlxG.save.data.FastSongScrollSpeed = 1;
+		if (FlxG.save.data.allowServerScripts == null) FlxG.save.data.allowServerScripts = false;
+		if (FlxG.save.data.notefade == null) FlxG.save.data.notefade = 1;
+		if (FlxG.save.data.altsingformultikey == null) FlxG.save.data.altsingformultikey = false;
+		if (FlxG.save.data.ShowConnectedIP == null) FlxG.save.data.ShowConnectedIP = false;
+		
+		if (FlxG.save.data.instVol == null) FlxG.save.data.instVol = 0.8;
+		if (FlxG.save.data.masterVol == null) FlxG.save.data.masterVol = 1;
+		if (FlxG.save.data.voicesVol == null) FlxG.save.data.voicesVol = 1;
+		if (FlxG.save.data.missVol == null) FlxG.save.data.missVol = 0.1;
+		if (FlxG.save.data.hitVol == null) FlxG.save.data.hitVol = 0.6;
+		if (FlxG.save.data.otherVol == null) FlxG.save.data.otherVol = 0.6;
 
 		Conductor.recalculateTimings();
 		PlayerSettings.player1.controls.loadKeyBinds();

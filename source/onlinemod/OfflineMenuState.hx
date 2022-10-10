@@ -10,10 +10,15 @@ import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUIText;
 import flixel.math.FlxRandom;
+import flixel.system.FlxSound;
+import flixel.tweens.FlxTween;
 
 import sys.io.File;
 import sys.FileSystem;
 
+#if windows
+import Discord.DiscordClient;
+#end
 using StringTools;
 
 class OfflineMenuState extends SearchMenuState
@@ -26,6 +31,9 @@ class OfflineMenuState extends SearchMenuState
   var dataDir:String = "assets/onlinedata/data/";
   var optionsButton:FlxUIButton;
   var invertedChart:Bool = false;
+	var SpeedText:FlxText;
+	var Speedtwee:FlxTween;
+	public static var rate:Float = 1.0;
 
   function goOptions(){
       FlxG.mouse.visible = false;
@@ -37,17 +45,25 @@ class OfflineMenuState extends SearchMenuState
   }
   override function create()
   {
+    #if windows
+    DiscordClient.changePresence('Browsing Offline Menu',null);
+    #end
     super.create();
     optionsButton = new FlxUIButton(1100, 40, "Options", goOptions);
     optionsButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
     optionsButton.resize(150, 30);
     add(optionsButton);
-    sideButton = new FlxUIButton(1050, 160, "Chart Options", chartOptions);
+    sideButton = new FlxUIButton(820, 40, "Chart Options", chartOptions);
     sideButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
-    sideButton.resize(150, 60);
+    sideButton.resize(250, 30);
     add(sideButton);
-    ChartingState.charting = false;
-    PlayState.sectionStart = false;
+		SpeedText = new FlxText(0, 65, 0, "Song Speed : " + rate + "x", 24);
+		SpeedText.font = CoolUtil.font;
+    SpeedText.setFormat(CoolUtil.font, 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		SpeedText.borderSize = 1;
+		SpeedText.alignment = CENTER;
+		SpeedText.screenCenter(X);
+		add(SpeedText);
   }
   function sortDirListing(listing:Array<String>){
     
@@ -95,11 +111,42 @@ class OfflineMenuState extends SearchMenuState
     FlxG.switchState(new MainMenuState());
   }
   override function extraKeys(){
-    if (FlxG.keys.justPressed.R){
-      changeSelection(Math.floor(songs.length * Math.random()));
+    if (FlxG.keys.justPressed.R && !FlxG.keys.pressed.SHIFT){
+      changeSelection(FlxG.random.int(-songs.length,songs.length));
     }
+		if (FlxG.keys.pressed.SHIFT)
+		{
+			if (FlxG.keys.justPressed.LEFT)
+				{
+					if(Speedtwee != null)Speedtwee.cancel();
+					SpeedText.scale.set(1.2,1.2);
+					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
+					rate -= 0.05;
+				}
+			if (FlxG.keys.justPressed.RIGHT)
+				{
+					if(Speedtwee != null)Speedtwee.cancel();
+					SpeedText.scale.set(1.2,1.2);
+					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
+					rate += 0.05;
+				}
+			if (FlxG.keys.justPressed.R)
+				{
+					if(Speedtwee != null)Speedtwee.cancel();
+					SpeedText.scale.set(1.2,1.2);
+					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
+					rate = 1;
+				}
+
+			if (rate > 5)
+				rate = 5;
+			else if (rate < 0.25)
+				rate = 0.25;
+			SpeedText.text = "Song Speed : " + HelperFunctions.truncateFloat(rate, 2) + "x";
+		}
   }
   override function select(sel:Int = 0){
+      FlxG.sound.music.fadeOut(0.4);
       OfflinePlayState.chartFile = songs[curSelected];
       PlayState.songScript = "";
       PlayState.isStoryMode = false;
@@ -107,6 +154,7 @@ class OfflineMenuState extends SearchMenuState
       PlayState.songDir = songDirs[curSelected];
       // Set difficulty
       PlayState.storyDifficulty = 1;
+      PlayState.songspeed = rate;
       if (StringTools.endsWith(songs[curSelected], '-hard.json'))
       {
         songName = songName.substr(0,songName.indexOf('-hard.json'));
@@ -120,5 +168,13 @@ class OfflineMenuState extends SearchMenuState
       PlayState.actualSongName = songName;
 
       LoadingState.loadAndSwitchState(new OfflinePlayState());
+  }
+  override function update(e){
+		super.update(e);
+		@:privateAccess
+		{
+			if (FlxG.sound.music.playing)
+				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, rate);
+		}
   }
 }

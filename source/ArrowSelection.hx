@@ -28,7 +28,7 @@ class ArrowSelection extends SearchMenuState
 			var babyArrow:StrumArrow = new StrumArrow(i,0, if (FlxG.save.data.downscroll) FlxG.height - 165 else 50);
 
 			babyArrow.init();
-			babyArrow.x += Note.swagWidth * i + i;
+			babyArrow.x += Note.swagWidth[PlayState.mania] * i + i;
 
 			babyArrow.updateHitbox();
 			babyArrow.scrollFactor.set();

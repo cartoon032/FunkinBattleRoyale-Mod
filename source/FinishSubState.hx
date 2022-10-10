@@ -18,7 +18,11 @@ import flixel.util.FlxTimer;
 import flixel.FlxObject;
 import flixel.ui.FlxBar;
 import flixel.FlxCamera;
+import flixel.math.FlxMath;
 
+#if windows
+import Discord.DiscordClient;
+#end
 class FinishSubState extends MusicBeatSubstate
 {
 	var curSelected:Int = 0;
@@ -36,6 +40,13 @@ class FinishSubState extends MusicBeatSubstate
 	var healthBar:FlxBar;
 	var iconP1:HealthIcon; 
 	var iconP2:HealthIcon;
+	var scoretype:Array<String> = ["","FNF Score","OSU! Score","Osu!Mania Score","Bal Score","Stupid Score"];
+	var randommode:Array<String> = ["","Full Random","Full Random With Jack Prevent","Random Per Section"];
+	var extrainfo:Bool = false;
+	var noteratingscore:Array<Int> = [350,200,-300];
+	var settingsText:FlxText;
+	var chartdifficult:Float = NoteStuffExtra.CalculateDifficult(0.93,0);
+	var Opponentchartdifficult:Float = NoteStuffExtra.CalculateDifficult(0.93,1);
 	public static var pauseGame:Bool = true;
 	public static var autoEnd:Bool = true;
 	public function new(x:Float, y:Float,?won = true,?week:Bool = false,?error:String = "")
@@ -161,8 +172,9 @@ class FinishSubState extends MusicBeatSubstate
 				comboText.color = FlxColor.WHITE;
 				comboText.scrollFactor.set();
 				comboText.fieldWidth = FlxG.width - comboText.x;
-				var contText:FlxText = new FlxText(FlxG.width - 475,FlxG.height + 100,0,'Press ENTER to exit\nor R to reload.');
+				var contText:FlxText = new FlxText(0,FlxG.height + 100,FlxG.width,'Press ENTER to exit\nor R to reload.');
 				contText.size = 28;
+				contText.alignment = "right";
 				contText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,4,1);
 				contText.color = FlxColor.WHITE;
 				contText.scrollFactor.set();
@@ -175,37 +187,86 @@ class FinishSubState extends MusicBeatSubstate
 				add(comboText);
 				add(contText);
 			}else{
-
 				var finishedText:FlxText = new FlxText(20 + FlxG.save.data.guiGap,-55,0, (if(week) "Week" else "Song") + " " + (if(win) "Won!" else "failed...") );
 				finishedText.size = 34;
 				finishedText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,4,1);
 				finishedText.color = FlxColor.WHITE;
 				finishedText.scrollFactor.set();
-				var comboText:FlxText = new FlxText(20 + FlxG.save.data.guiGap,-75,0,'Song/Chart:\n\nSicks - ${PlayState.sicks}\nGoods - ${PlayState.goods}\nBads - ${PlayState.bads}\nShits - ${PlayState.shits}\n\nLast combo: ${PlayState.combo} (Max: ${PlayState.maxCombo})\nMisses: ${PlayState.misses}\n\nScore: ${PlayState.songScore}'+ (FlxG.save.data.osuscore ? '\nFNF Score: ${PlayState.altsongScore}' : '\nOSU! Score: ${PlayState.altsongScore}')+'\nAccuracy: ${HelperFunctions.truncateFloat(PlayState.accuracy,2)}%\n\n${Ratings.GenerateLetterRank(PlayState.accuracy)}');
+				var comboText:FlxText = new FlxText(20 + FlxG.save.data.guiGap,-75,0,
+				'Song/Chart:'
+				+ '\n\nSicks - ${PlayState.sicks}'
+				+ '\nGoods - ${PlayState.goods}'
+				+ '\nBads - ${PlayState.bads}'
+				+ '\nShits - ${PlayState.shits}'
+				+ '\n\nLast combo: ${PlayState.combo} (Max: ${PlayState.maxCombo})'
+				+ '\nMisses: ${PlayState.misses}'
+				+ (PlayState.badNote > 0 ? '\nBad Note: ${PlayState.badNote}' : '')
+				+ '\n\n${scoretype[FlxG.save.data.scoresystem + 1]}: ${PlayState.songScore}'
+				+ (FlxG.save.data.altscoresystem > 0 ? '\n${scoretype[FlxG.save.data.altscoresystem]}: ${PlayState.altsongScore}' : '')
+				+ '\nAccuracy: ${HelperFunctions.truncateFloat(PlayState.accuracy,2)}%'
+				+ '\n\n${Ratings.GenerateLetterRank(PlayState.accuracy)}'
+				+ '\n');
 				comboText.size = 28;
 				comboText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,4,1);
 				comboText.color = FlxColor.WHITE;
 				comboText.scrollFactor.set();
+				#if windows
+				if(!win){
+					DiscordClient.changePresence("GAME OVER -- "
+					+ PlayState.detailsText
+					+ Ratings.GenerateLetterRank(PlayState.accuracy),
+					"\nAcc: " + HelperFunctions.truncateFloat(PlayState.accuracy, 2)
+					+ "% | Score: " + PlayState.songScore
+					+ " | Misses: " + PlayState.misses, PlayState.iconRPC,false,null,"dead");
+				}
+				else{
+					DiscordClient.changePresence("Finish --"
+					+ PlayState.detailsText
+					+ Ratings.GenerateLetterRank(PlayState.accuracy),
+					"\nAcc: " + HelperFunctions.truncateFloat(PlayState.accuracy, 2)
+					+ "% | Score: " + PlayState.songScore
+					+ " | Misses: " + PlayState.misses, PlayState.iconRPC,false,null,"finish-playstate");
+				}
+				#end
 // Std.int(FlxG.width * 0.45)
-				var settingsText:FlxText = new FlxText(comboText.width * 1.10 + FlxG.save.data.guiGap,-30,0,
-				(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
-				+'\n\nSettings:'
-				+'\n\n Downscroll: ${FlxG.save.data.downscroll}'
-				+'\n Ghost Tapping: ${FlxG.save.data.ghost}'
-				+'\n Practice: ${FlxG.save.data.practiceMode}'
-				+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count:${PlayState.instance.interpCount}' : "")
-				+'\n Safe Frames: ${FlxG.save.data.frames}'
-				+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver},T Mod'
-				+'\n Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms'
-				+'\n Key count: ${PlayState.keyAmmo[PlayState.mania]}K'
-				);
+
+				for(i in 0...3){
+					switch(FlxG.save.data.scoresystem)
+					{
+						case 0: noteratingscore[i] = Math.round(noteratingscore[i] * PlayState.songspeed); //FNF
+						case 1: noteratingscore[i] = Math.round(noteratingscore[i] + (noteratingscore[i] * ((PlayState.combo * PlayState.songspeed) / 25))); //Osu!
+						case 2: noteratingscore[i] = Math.round((1000000 / PlayState.bfnoteamount) * (noteratingscore[i] / 350)); //Osu!mania
+						case 3: noteratingscore[i] = Math.round(noteratingscore[i] * PlayState.ScoreMultiplier * PlayState.songspeed); //FF
+						case 4: noteratingscore[i] = Math.round(noteratingscore[i] * PlayState.combo * PlayState.songspeed); //Stupid
+					}
+				}
+
+				settingsText = new FlxText(comboText.width * 1.10 + FlxG.save.data.guiGap,-30,0,'');
+				settingsText.text =
+					(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
+					+ (FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : "")
+					+'\n\nSettings:'
+					+'\n\n Downscroll: ${FlxG.save.data.downscroll}'
+					+'\n Ghost Tapping: ${FlxG.save.data.ghost}'
+					+'\n Practice: ${FlxG.save.data.practiceMode}'
+					+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count:${PlayState.instance.interpCount}' : "")
+					+'\n Safe Frames: ${FlxG.save.data.frames}'
+					+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver},T${MainMenuState.modver}'
+					+'\n Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms'
+					+(FlxG.save.data.scoresystem == 3 || FlxG.save.data.altscoresystem == 4 ? '\n Bal ScoreMultiplier : ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 2)}' : '')
+					+'\n Key count: ' + (QuickOptionsSubState.getSetting("Play Both Side") ? '4k + 4k' : '${PlayState.keyAmmo[PlayState.mania]}K') + (QuickOptionsSubState.getSetting("Force Mania") > -1 ? '*' : '')
+					+ (QuickOptionsSubState.getSetting("ADOFAI Chart") ? '\n ADOFAI Mode : true' : '')
+					+ (QuickOptionsSubState.getSetting("Random Notes") != 0 ? '\n Random Mode: ${randommode[QuickOptionsSubState.getSetting("Random Notes")]}' : '')
+					+'\n'
+					;
 				settingsText.size = 28;
 				settingsText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,4,1);
 				settingsText.color = FlxColor.WHITE;
 				settingsText.scrollFactor.set();
 
-				var contText:FlxText = new FlxText(FlxG.width - 475 - FlxG.save.data.guiGap,FlxG.height + 100,0,'Press ENTER to continue\nor R to restart.');
+				var contText:FlxText = new FlxText(0,FlxG.height + 100,FlxG.width,'Press ENTER to continue Press R to restart\nor Tab for extra info.');
 				contText.size = 28;
+				contText.alignment = "right";
 				contText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,4,1);
 				contText.color = FlxColor.WHITE;
 				contText.scrollFactor.set();
@@ -216,6 +277,8 @@ class FinishSubState extends MusicBeatSubstate
 				// chartInfoText.scrollFactor.set();
 				
 
+				if(win && !PlayState.instance.hasDied && FlxG.save.data.scoresystem != 4)
+					Highscore.setScore('${PlayState.nameSpace}-${PlayState.actualSongName}${(if(PlayState.invertedChart) "-inverted" else "")}',PlayState.songScore,[PlayState.songScore,'${HelperFunctions.truncateFloat(PlayState.accuracy,2)}%',Ratings.GenerateLetterRank(PlayState.accuracy),(PlayState.songspeed != 1 ? "(" + PlayState.songspeed + "x)" : "")]);
 				add(bg);
 				add(finishedText);
 				add(comboText);
@@ -271,7 +334,49 @@ class FinishSubState extends MusicBeatSubstate
 			}
 
 			if (FlxG.keys.justPressed.R)
-			{if(win){FlxG.resetState();}else{restart();}}
+				{
+					if(win)FlxG.resetState();
+					else restart();
+				}
+			if (FlxG.keys.justPressed.TAB)
+				{
+					extrainfo = !extrainfo;
+					if(!extrainfo)
+						settingsText.text =
+							(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
+							+ (FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : "")
+							+'\n\nSettings:'
+							+'\n\n Downscroll: ${FlxG.save.data.downscroll}'
+							+'\n Ghost Tapping: ${FlxG.save.data.ghost}'
+							+'\n Practice: ${FlxG.save.data.practiceMode}'
+							+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count:${PlayState.instance.interpCount}' : "")
+							+'\n Safe Frames: ${FlxG.save.data.frames}'
+							+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver},T${MainMenuState.modver}'
+							+'\n Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms'
+							+ (FlxG.save.data.scoresystem == 3 || FlxG.save.data.altscoresystem == 4 ? '\n Bal ScoreMultiplier : ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 2)}' : '')
+							+'\n Key count: ' + (QuickOptionsSubState.getSetting("Play Both Side") ? '4k + 4k' : '${PlayState.keyAmmo[PlayState.mania]}K') + (QuickOptionsSubState.getSetting("Force Mania") > -1 ? '*' : '')
+							+ (QuickOptionsSubState.getSetting("ADOFAI Chart") ? '\n ADOFAI Mode : true' : '')
+							+ (QuickOptionsSubState.getSetting("Random Notes") != 0 ? '\n Random Mode: ${randommode[QuickOptionsSubState.getSetting("Random Notes")]}' : '')
+							+'\n'
+							;
+					else
+						settingsText.text = 
+							(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
+							+ (FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : "")
+							+ '\n\nScore System ${scoretype[FlxG.save.data.scoresystem + 1]}'
+							+ '\n Sick : ${noteratingscore[0]}'
+							+ '\n Good : ${noteratingscore[1]}'
+							+ '\n Bad : 0'
+							+ '\n Shit : ${noteratingscore[2]}'
+							+ (FlxG.save.data.scoresystem == 3 ? '\nScoreMultiplier : ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 2)}' : '')
+							+ '\nMax Score : ' + (FlxG.save.data.scoresystem == 1 ? 'OSU! Score is not supported' : FlxG.save.data.scoresystem == 4 ? '2,147,483,647' : QuickOptionsSubState.getSetting("Play Both Side") ? Std.string(noteratingscore[0] * (PlayState.bfnoteamount + PlayState.dadnoteamount)) : Std.string(noteratingscore[0] * PlayState.bfnoteamount))
+							+ '\nYour Note Total : ${PlayState.bfnoteamount}'
+							+ '\nOpponent Note Total : ${PlayState.dadnoteamount}'
+							+ '\nChart difficult : ' + (PlayState.mania != 0 ? 'Multi Key not supported' : chartdifficult > 0.1 ? Std.string(chartdifficult) : PlayState.bfnoteamount < 10 ? '0/10 Where gameplay' : 'Error happen :crying:')
+							+ '\nOpponent Chart difficult : ' + (PlayState.mania != 0 ? 'Multi Key not supported' : Opponentchartdifficult > 0.1 ? Std.string(Opponentchartdifficult) : PlayState.dadnoteamount < 10 ? '0/10 Where gameplay' : 'Error happen :crying:')
+							+'\n'
+							;
+					}
 		}else{
 			if(FlxG.keys.justPressed.ANY){
 				PlayState.boyfriend.animation.finishCallback = null;

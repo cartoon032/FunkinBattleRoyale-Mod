@@ -2,7 +2,6 @@ package;
 
 typedef CharacterJson =
 {
-	var spirit_trail:Bool;
 	var flip_x:Bool;
 	var flip:Dynamic; // Controls if the character should be flipped when on the player's side
 	var offset_flip:Dynamic; // Flips the offsets on the left, 0/not specififed = off completely, 1 = use player2, 2 = flip left, 3 = flip right  
@@ -15,7 +14,7 @@ typedef CharacterJson =
 	var sing_duration:Float;
 	var scale:Float;
 	var no_antialiasing:Bool;
-	var dance_idle:Bool;
+	// var dance_idle:Bool;
 	var common_stage_offset:Array<Float>;
 	var cam_pos:Array<Float>;
 	var char_pos:Array<Float>;
@@ -46,6 +45,7 @@ typedef CharJsonAnimation ={
 	var name:String;
 	var fps:Int;
 	var loop:Bool;
+	var ?flipx:Null<Bool>;
 	var indices:Array<Int>;
 	var ?loopStart:Null<Int>; // Tells the game where to restart the animation if looped
 	var ?playAfter:Null<String>; // Tells the game to swap animations, useful for a start animation and then a loop animation
@@ -53,6 +53,7 @@ typedef CharJsonAnimation ={
 	var ?song:Null<String>; // Set on specific songname
 	var ?char_side:Null<Int>; // Set song specific side, 0 for BF, 1 for Dad, 2 for GF, 3 for disabled
 	var ?oneshot:Null<Bool>; // Should animation overlap everything?
+	var ?priority:Null<Int>; // Animation priority, 0 is idle, 10 is sing, 5 is hey, and the rest is up to you. The engine will handle the rest
 }
 
 typedef CharacterAssetFiles ={

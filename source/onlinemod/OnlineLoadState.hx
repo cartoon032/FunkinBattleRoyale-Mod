@@ -10,12 +10,16 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxAxes;
 import flixel.util.FlxTimer;
+import flixel.math.FlxMath;
 
 import haxe.io.Bytes;
 import openfl.utils.ByteArray;
 import sys.io.File;
 import sys.io.FileOutput;
 import sys.FileSystem;
+#if windows
+import Discord.DiscordClient;
+#end
 
 class OnlineLoadState extends MusicBeatState
 {
@@ -67,7 +71,10 @@ class OnlineLoadState extends MusicBeatState
 
 	override function create()
 	{
-		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('onlinemod/online_bg2'));
+		#if windows
+		DiscordClient.changePresence(null,"Loading...");
+		#end
+		var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
 		add(bg);
 
 
@@ -121,11 +128,11 @@ class OnlineLoadState extends MusicBeatState
 
 				if (fileSize > 1000000) //MB
 				{
-					fileSizeText.text = Std.int(bytesReceived/10000)/100 + "/" + Std.int(fileSize/10000)/100 + "MB";
+					fileSizeText.text = Std.int(bytesReceived/10000)/100 + "/" + Std.int(fileSize/10000)/100 + "MB" + " (" + FlxMath.roundDecimal((Std.int(bytesReceived) / Std.int(fileSize)) / 100, 2) + "%)";
 				}
 				else //KB
 				{
-					fileSizeText.text =  Std.int(bytesReceived/10)/100 + "/" + Std.int(fileSize/10)/100 + "KB";
+					fileSizeText.text =  Std.int(bytesReceived/10)/100 + "/" + Std.int(fileSize/10)/100 + "KB" + " (" + FlxMath.roundDecimal((Std.int(bytesReceived) / Std.int(fileSize)) / 100, 2) + "%)";
 				}
 			}
 		}

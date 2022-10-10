@@ -25,8 +25,8 @@ class Overlay extends TextField
 
 		this.x = x;
 		this.y = y;
-		width = 200;
-		height = 150;
+		width = 320;
+		height = 640;
 
 		currentFPS = 0;
 		selectable = false;
@@ -60,13 +60,20 @@ class Overlay extends TextField
 		}
 
 		var currentCount = times.length;
-		currentFPS = Math.round((currentCount + cacheCount) / 2);
-		var mem:Float = Math.round(System.totalMemory / 1024 / 1024 * 100) / 100;
+		currentFPS = Math.round((currentCount + cacheCount) * 0.5);
+
+		var mem:Float = Math.round((
+		#if cpp
+		cpp.NativeGc.memInfo(0)
+		#else
+		System.totalMemory
+		#end
+		/ 1024) / 1000);
 
 		if (currentCount != cacheCount /*&& visible*/)
 		{
 			// text = "FPS: " + currentFPS;
-			text = "FPS: " + currentFPS + "\nMemory: " + (mem > 0 ? mem + " MB" : "bigger than 2GB can't be display") +  debugVar;
+			text = "" + currentFPS + " FPS/" + deltaTime + " MS\nMemory: " + mem + " MB" +  debugVar;
 		}
 
 		cacheCount = currentCount;

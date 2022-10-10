@@ -33,12 +33,16 @@ class QuickOptionsSubState extends MusicBeatSubstate
 			"Swap characters" => {type:0,value:false},
 			"Opponent arrows" => {type:0,value:true},
 			"Song hscripts" => {type:0,value:true},
-			"Hurt notes" => {type:0,value:true},
-			"Scroll speed" => {type:2,value:0,min:0,max:10}
+			"Custom Arrows" => {type:0,value:true},
+			"Scroll speed" => {type:2,value:0,min:0,max:10},
+			"Random Notes" => {type:2,value:0,min:0,max:3,lang:[0 => "Off",1 => "Full Random",2 => "Full Random With Jack Prevent",3 => "Random note per section"]},
+			"Force Mania" => {type:2,value:-1,min:-1,max:12,lang:[-1 => " Off",0 => "0 : 4K",1 => "1 : 6K",2 => "2 : 7K",3 => "3 : 9K",4 => "4 : 5K",5 => "5 : 8K",6 => "6 : 1K",7 => "7 : 2K",8 => "8 : 3K",9 => "9 : 10K",10 => "10 : 11K",11 => "11 : 12K",12 => "12 : 13K"]},
+			"Play Both Side" => {type:0,value:false},
+			"ADOFAI Chart" => {type:0,value:false}
 		];
 	public static var osuSettings:Map<String,QOSetting> = [
 			"Scroll speed" => {type:2,value:0,min:0,max:10},
-			"Key Count" => {type:2,value:4,min:1,max:9}
+			"Key Count" => {type:2,value:4,min:1,max:13}
 		];
 	var settings:Map<String,QOSetting> = [];
 	var menuItems:Array<String> = [];
@@ -47,7 +51,10 @@ class QuickOptionsSubState extends MusicBeatSubstate
 	public static function getSetting(setting:String):Dynamic{
 		return normalSettings[setting].value;
 	}
-	function setValue(str:String,value:Dynamic){
+	public static function setSetting(setting:String,value:Dynamic){
+		normalSettings[setting].value = value;
+	}
+	inline function setValue(str:String,value:Dynamic){
 		settings[str].value = value;
 	}
 

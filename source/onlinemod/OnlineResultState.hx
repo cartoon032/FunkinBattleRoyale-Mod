@@ -9,6 +9,9 @@ import flixel.util.FlxAxes;
 
 using StringTools;
 
+#if windows
+import Discord.DiscordClient;
+#end
 class OnlineResultState extends MusicBeatState
 {
   var clients:Map<Int, String>;
@@ -22,7 +25,8 @@ class OnlineResultState extends MusicBeatState
 
   override function create()
   {
-    var bg:FlxSprite = new FlxSprite().loadGraphic('assets/images/onlinemod/online_bg1.png');
+    var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
+    bg.color = 0xF1A0B1;
 		add(bg);
 
 
@@ -81,6 +85,9 @@ class OnlineResultState extends MusicBeatState
 
 
     super.create();
+    #if windows
+    DiscordClient.changePresence('Looking at Result Screen with ${onlinemod.OnlineLobbyState.clientCount} player' + (onlinemod.OnlineLobbyState.clientCount > 1 ? 's' : ''),if(FlxG.save.data.ShowConnectedIP)'IP : ${FlxG.save.data.lastServer}:${FlxG.save.data.lastServerPort}' else null,false,null,(onlinemod.OnlineLobbyState.clientCount <= 1 ? 'empty-' : '') + "online-lobby");
+    #end
   }
 
   function HandleData(packetId:Int, data:Array<Dynamic>)
@@ -94,12 +101,18 @@ class OnlineResultState extends MusicBeatState
 
         OnlineLobbyState.addPlayer(id, nick);
         Chat.PLAYER_JOIN(nick);
+        #if windows
+        DiscordClient.changePresence('In Online Lobby with ${onlinemod.OnlineLobbyState.clientCount} player' + (onlinemod.OnlineLobbyState.clientCount > 1 ? 's' : ''),if(FlxG.save.data.ShowConnectedIP)'IP : ${FlxG.save.data.lastServer}:${FlxG.save.data.lastServerPort}' else null,false,null,(onlinemod.OnlineLobbyState.clientCount <= 1 ? 'empty-' : '') + "online-lobby");
+        #end
       case Packets.PLAYER_LEFT:
         var id:Int = data[0];
         var nickname:String = OnlineLobbyState.clients[id];
 
         Chat.PLAYER_LEAVE(nickname);
         OnlineLobbyState.removePlayer(id);
+        #if windows
+        DiscordClient.changePresence('In Online Lobby with ${onlinemod.OnlineLobbyState.clientCount} player' + (onlinemod.OnlineLobbyState.clientCount > 1 ? 's' : ''),if(FlxG.save.data.ShowConnectedIP)'IP : ${FlxG.save.data.lastServer}:${FlxG.save.data.lastServerPort}' else null,false,null,(onlinemod.OnlineLobbyState.clientCount <= 1 ? 'empty-' : '') + "online-lobby");
+        #end
       case Packets.GAME_START:
         var jsonInput:String = data[0];
         var folder:String = data[1];
@@ -125,22 +138,20 @@ class OnlineResultState extends MusicBeatState
 
   override function update(elapsed:Float)
   {
+		@:privateAccess
+		{
+			if (FlxG.sound.music.playing)
+				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, onlinemod.OnlineLobbyState.Speed);
+		}
     if (Chat.chatField.hasFocus)
     {
-      OnlinePlayMenuState.SetVolumeControls(false);
       if (FlxG.keys.justPressed.ENTER)
-      {
-        Chat.SendChatMessage();
-      }
-
+        {
+          Chat.SendChatMessage();
+        }
     }
-    else
-    {
-      OnlinePlayMenuState.SetVolumeControls(true);
-      if (controls.BACK)
+    if (FlxG.keys.justPressed.ESCAPE)
       FlxG.switchState(new OnlineLobbyState(true));
-    }
-
     super.update(elapsed);
   }
 }

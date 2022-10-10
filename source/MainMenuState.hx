@@ -30,7 +30,7 @@ using StringTools;
 class MainMenuState extends SickMenuState
 {
 	public static var ver:String = "0.10.0";
-	public static var modver:String = "3.2";
+	public static var modver:String = "7.1";
 	
 	public static var firstStart:Bool = true;
 
@@ -42,8 +42,9 @@ class MainMenuState extends SickMenuState
 	public static var bgcolor:Int = 0;
 	var char:Character = null;
 	static var hasWarnedInvalid:Bool = false;
+	static var hasWarnedNightly:Bool = (nightly == "");
 	
-	public static function handleError(?error:String = "An error occurred",?details:String=""):Void{
+	public static function handleError(?exception:haxe.Exception = null,?error:String = "An error occurred",?details:String="",?forced:Bool = true):Void{
 		// if (MainMenuState.errorMessage != "") return; // Prevents it from trying to switch states multiple times
 		if(MainMenuState.errorMessage.contains(error)) return; // Prevents the same error from showing twice
 		MainMenuState.errorMessage += "\n" + error;
@@ -52,15 +53,48 @@ class MainMenuState extends SickMenuState
 			try{
 				onlinemod.OnlinePlayMenuState.socket.close();
 				onlinemod.OnlinePlayMenuState.socket=null;
+				QuickOptionsSubState.setSetting("Song hscripts",true);
 			}catch(e){trace('You just got an exception in yo exception ${e.message}');}
 		}
-		// FlxG.switchState(new MainMenuState());
-		Main.game.forceStateSwitch(new MainMenuState());
+		try{
+			LoadingScreen.hide();
+		}catch(e){
+			trace("Unable to hide loading screen, forcing it hidden");
+		}
+		if(exception != null){
+			try{
+				trace('${exception.message}\n${exception.stack}');
+			}catch(e){}
+		}
+		// try{
+		// 	var callStack:Array<StackItem> = cast CallStack.exceptionStack(true);
+		// 	for (stackItem in callStack)
+		// 	{
+		// 		switch (stackItem)
+		// 		{
+		// 			case FilePos(s, file, line, column):
+		// 				Sys.println(file + ":" + line + "");
+		// 			default:
+		// 				Sys.println(stackItem);
+		// 		}
+		// 	}
+		// }catch(e){trace('I fucking errored while tracing a stack: ${e.message}');}
+		try{
+			LoadingScreen.object.alpha = 0;
+			
+		}catch(e){
+			trace("bruhh");
+		}
+		if(forced)
+			Main.game.forceStateSwitch(new MainMenuState());
+		else
+			FlxG.switchState(new MainMenuState());
 		
 	}
 
 	override function create()
 	{
+		forceQuit = false;
 		ChartingState.charting = false;
 		PlayState.sectionStart = false;
 		if (Main.errorMessage != ""){
@@ -76,11 +110,19 @@ class MainMenuState extends SickMenuState
 			controls.setKeyboardScheme(KeyboardScheme.Solo, true);
 		else
 			controls.setKeyboardScheme(KeyboardScheme.Duo(true), true);
+		loading = false;
 		isMainMenu = true;
 		super.create();
 
 		bg.scrollFactor.set(0.1,0.1);
 		bg.color = MainMenuState.bgcolor;
+		if (onlinemod.OnlinePlayMenuState.socket != null){
+			try{
+				QuickOptionsSubState.setSetting("Song hscripts",true);
+				onlinemod.OnlinePlayMenuState.socket.close();
+				onlinemod.OnlinePlayMenuState.socket=null;
+			}catch(e){trace('Error closing socket? ${e.message}');}
+		}
 		var versionShit:FlxText = new FlxText(5, FlxG.height - 50, 0, 'FNF ${gameVer}/Kade ${kadeEngineVer}/Super-Engine ${ver}/T Mod ${modver}', 12);
 		versionShit.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionShit.borderSize = 2;
@@ -88,8 +130,8 @@ class MainMenuState extends SickMenuState
 		add(versionShit);
 
 		if (TitleState.outdated){
-			var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'SE/BR is outdated, Latest: ${TitleState.updatedVer}, please be patient while i update it', 32);
-			outdatedLMAO.setFormat(CoolUtil.font, 32, FlxColor.RED, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'SE is outdated, Latest: ${TitleState.updatedVer}, please be patient while i update it', 32);
+			outdatedLMAO.setFormat(CoolUtil.font, 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			outdatedLMAO.scrollFactor.set();
  			outdatedLMAO.screenCenter(FlxAxes.X);
 			add(outdatedLMAO);
@@ -100,14 +142,14 @@ class MainMenuState extends SickMenuState
 			FlxG.save.data.playerChar = "bf";
 		}
 		if (!TitleState.choosableCharacters.contains(FlxG.save.data.opponent)){
-			errorMessage += '\n${FlxG.save.data.opponent} is an invalid opponent! Reset back to Dad!';
-			FlxG.save.data.opponent = "dad";
+			errorMessage += '\n${FlxG.save.data.opponent} is an invalid opponent! Reset back to BF!';
+			FlxG.save.data.opponent = "bf";
 		}
 		if (!TitleState.choosableCharacters.contains(FlxG.save.data.gfChar)){
 			errorMessage += '\n${FlxG.save.data.gfChar} is an invalid GF! Reset back to GF!';
 			FlxG.save.data.gfChar = "gf";
 		}
-		// if(FlxG.save.data.mainMenuChar && MainMenuState.errorMessage == "" && !FlxG.keys.pressed.CONTROL && !FlxG.keys.pressed.SHIFT){
+		// if(MainMenuState.errorMessage == "" && !FlxG.keys.pressed.CONTROL && !FlxG.keys.pressed.SHIFT){
 		// 	try{
 		// 		char = new Character(FlxG.width * 0.55,FlxG.height * 0.10,FlxG.save.data.playerChar,true,0,true);
 		// 		if(char != null) add(char);
@@ -116,7 +158,7 @@ class MainMenuState extends SickMenuState
 
 
 		if (MainMenuState.errorMessage == "" && TitleState.invalidCharacters.length > 0 && !hasWarnedInvalid) {
-			errorMessage = "You have some characters missing config.json files.";
+			errorMessage += "You have some characters missing config.json files.";
 			hasWarnedInvalid = true;
 		} 
 		if (MainMenuState.errorMessage != ""){
@@ -134,7 +176,7 @@ class MainMenuState extends SickMenuState
 	}
 
 	override function goBack(){
-		if (otherMenu) {mmSwitch(true);FlxG.sound.play(Paths.sound('cancelMenu'));return;}
+		if (otherMenu) {mmSwitch(true);FlxG.sound.play(Paths.sound('cancelMenu'));return;} else{selected = false;}
 		// FlxG.switchState(new TitleState());
 		// do nothing
 	}
@@ -152,15 +194,15 @@ class MainMenuState extends SickMenuState
 		// if(char != null && char.animation.curAnim.finished) char.dance(true);
 	}
 	override function changeSelection(change:Int = 0){
-		if(char != null && change != 0) char.playAnim(Note.noteAnims[FlxG.random.int(0,3)],true);
+		// if(char != null && change != 0) char.playAnim(Note.noteAnims[FlxG.random.int(0,3)],true);
 		super.changeSelection(change);
 	}
 
 	var otherMenu:Bool = false;
 
 	function otherSwitch(){
-		options = ["story mode","freeplay","Convert Charts from other mods","download charts","download characters"];
-		descriptions = ['Play through the story mode', 'Play any song from the game', 'Convert charts from other mods to work here. Will put them in Multi Songs, will not be converted to work with FNF Multiplayer though.',"Download charts made for or ported to Super Engine","Download characters made for or ported to Super Engine"];
+		options = ["story mode","freeplay","download charts","download characters"];
+		descriptions = ['Play through the story mode', 'Play any song from the game',"Download charts made for or ported to Super Engine","Download characters made for or ported to Super Engine"];
 		if (TitleState.osuBeatmapLoc != '') {options.push("osu beatmaps"); descriptions.push("Play osu beatmaps converted over to FNF");}
 		options.push("back"); descriptions.push("Go back to the main menu");
 		generateList();
@@ -171,7 +213,7 @@ class MainMenuState extends SickMenuState
 	}
 	function mmSwitch(regen:Bool = false){
 		options = ['modded songs','online', 'online songs','other',"changelog", 'options'];
-		descriptions = ["Play songs from your mods/charts folder","Play online with other people.","Play songs that have been downloaded during online games.",'Story mode, Freeplay, Osu beatmaps, and download characters or songs',"Check the latest update and it's changes",'Customise your experience to fit you'];
+		descriptions = ["Play songs from your mods/charts folder, packs or weeks","Join and Play online with other people on a Battle Royale compatible server.","Play songs that have been downloaded during online games.",'Story mode, Freeplay, Osu beatmaps, and download characters or songs',"Check the latest update and it's changes",'Customise your experience to fit you'];
 		if(regen)generateList();
 		curSelected = 0;
 		if(regen)changeSelection();

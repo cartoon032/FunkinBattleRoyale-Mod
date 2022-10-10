@@ -14,8 +14,9 @@ import Section.SwagSection;
 
 class OfflinePlayState extends PlayState
 {
-	var loadedVoices:FlxSound;
-	var loadedInst:Sound;
+	public static var instanc:OfflinePlayState;
+	public var loadedVoices:FlxSound;
+	public var loadedInst:Sound;
 	var loadingtext:FlxText;
 	var shouldLoadJson:Bool = true;
 	var stateType = 2;
@@ -23,39 +24,64 @@ class OfflinePlayState extends PlayState
 	public static var voicesFile = "";
 	public static var instFile = "";
 	public static var chartFile:String = "";
-	function loadSongs(){
-    for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg']) {
-    	if (FileSystem.exists('${Sys.getCwd()}/$i')){
-    		instFile = i;
-    	}
-    }
-    if (instFile == ""){MainMenuState.handleError('${PlayState.actualSongName} is missing a inst file!');}
-    for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Voices.ogg']) {
-    	if (FileSystem.exists('${Sys.getCwd()}/$i')){
-    		voicesFile = i;
-    	}
-    }
-    if (voicesFile != ""){loadedVoices = new FlxSound().loadEmbedded(Sound.fromFile(voicesFile));}
-    trace('Loading $voicesFile, $instFile');
+	public static var nameSpace:String = "";
+	public static var stateNames:Array<String> = ["-freep","","-Offl","","-Multi","-OSU","-Story","","",""];
+	var willChart:Bool = false;
+	override public function new(?charting:Bool = false){
+	willChart = charting;
+	super();
+  }
+  function loadSongs(){
+
+		if(instFile == ""){
+
+			for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg']) {
+				if (FileSystem.exists('${Sys.getCwd()}/$i')){
+					instFile = i;
+				}
+			}
+			if (instFile == ""){MainMenuState.handleError('${PlayState.actualSongName} is missing a inst file!');}
+			for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Voices.ogg']) {
+				if (FileSystem.exists('${Sys.getCwd()}/$i')){
+					voicesFile = i;
+				}
+			}
+			if (voicesFile != ""){loadedVoices = new FlxSound().loadEmbedded(Sound.fromFile(voicesFile));}
+		}else{
+			if (voicesFile != ""){loadedVoices = new FlxSound().loadEmbedded(Sound.fromFile(voicesFile));}
+		}
+		trace('Inst - ${instFile}');
+		trace('Voices - ${voicesFile}');
     
     loadedInst = Sound.fromFile(instFile);
-  }
-  function loadJSON(){
-  	try{
-
-  		if (!ChartingState.charting) PlayState.SONG = Song.parseJSONshit(File.getContent(chartFile));
-  	}catch(e) MainMenuState.handleError('Error loading chart \'${chartFile}\': ${e.message}');
-  }
-  override function create()
-  {
-  	try{
-	  	if (shouldLoadJson) loadJSON();
-	    PlayState.SONG.player1 = FlxG.save.data.playerChar;
-	    if (FlxG.save.data.charAuto && TitleState.retChar(PlayState.SONG.player2) != ""){ // Check is second player is a valid character
-	    	PlayState.SONG.player2 = TitleState.retChar(PlayState.SONG.player2);
-	    }else{
-	    	PlayState.SONG.player2 = FlxG.save.data.opponent;
-	    }
+}
+function loadJSON(){
+	try{
+		if (!ChartingState.charting)
+			{
+				PlayState.SONG = Song.parseJSONshit(File.getContent(chartFile));
+				if(nameSpace != ""){
+				if(TitleState.retChar(nameSpace + "|" + PlayState.player2) != null){
+					PlayState.player2 = nameSpace + "|" + PlayState.player2;
+				}
+				if(TitleState.retChar(nameSpace + "|" + PlayState.SONG.player1) != null){
+					PlayState.player1 = nameSpace + "|" + PlayState.player1;
+				}
+			}
+		}
+	}catch(e) MainMenuState.handleError('Error loading chart \'${chartFile}\': ${e.message}');
+}
+override function create()
+{
+	try{
+		instanc = this;
+		if (shouldLoadJson) loadJSON();
+	    // PlayState.player1 = FlxG.save.data.playerChar;
+	    // if ((FlxG.save.data.charAuto) && TitleState.retChar(PlayState.player2) != ""){ // Check is second player is a valid character
+	    // 	PlayState.player2 = TitleState.retChar(PlayState.player2);
+	    // }else{
+	    // 	PlayState.player2 = FlxG.save.data.opponent;
+	    // }
 	    PlayState.stateType=stateType;
 	    // var voicesFile = 'assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg'
 	    // if (!FileSystem.exists('${FileSystem.exists(Sys.getCwd()}/assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg')){
@@ -67,12 +93,16 @@ class OfflinePlayState extends PlayState
 	    // }
 	    if (shouldLoadSongs) loadSongs();
 
-
+	    var oldScripts:Bool = false;
+	    if(willChart){ // Loading scripts is redundant when we're just going to go into charting state
+	    	oldScripts = QuickOptionsSubState.getSetting("Song hscripts");
+	    	QuickOptionsSubState.setSetting("Song hscripts",false);
+	    }
 	    super.create();
 
 
 	    // Add XieneDev watermark
-	    var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "XieneDev Battle Royale", 16);
+	    var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "SuperEngine" + stateNames[stateType] + " " + MainMenuState.ver + " T Mod-" + MainMenuState.modver, 16);
 			xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 			xieneDevWatermark.scrollFactor.set();
 			add(xieneDevWatermark);
@@ -81,6 +111,10 @@ class OfflinePlayState extends PlayState
 
 	    FlxG.mouse.visible = false;
 	    FlxG.autoPause = true;
+	    if(willChart){
+	    	QuickOptionsSubState.setSetting("Song hscripts",oldScripts);
+			FlxG.switchState(new ChartingState());
+	    }
 	  }catch(e){MainMenuState.handleError('Caught "create" crash: ${e.message}');}
 	}
 
@@ -99,7 +133,7 @@ class OfflinePlayState extends PlayState
 
 		// curSong = songData.song;
 
-		if (PlayState.SONG.needsVoices)
+		if (PlayState.SONG.needsVoices && loadedVoices.length > Math.max(4000,loadedInst.length - 20000) && loadedVoices.length < loadedInst.length + 10000)
 			vocals = loadedVoices;
 		else
 			vocals = new FlxSound();
@@ -202,20 +236,25 @@ class OfflinePlayState extends PlayState
 		// generatedMusic = true;
   //  }catch(e){MainMenuState.handleError('Caught "gensong" crash: ${e.message}');}}
 
+
   override function endSong()
   {
-    canPause = false;
-    FlxG.sound.music.onComplete = null;
-  	if (ChartingState.charting){
-  	    	FlxG.switchState(new ChartingState());return;}
-		persistentUpdate = false;
-		persistentDraw = true;
-		paused = true;
+  	if(PlayState.isStoryMode){
+  		super.endSong();
+  	}else{
 
-		vocals.stop();
-		FlxG.sound.music.stop();
+	    canPause = false;
+	    FlxG.sound.music.onComplete = null;
+	  	if (ChartingState.charting){FlxG.switchState(new ChartingState());return;}
+			persistentUpdate = false;
+			persistentDraw = true;
+			paused = true;
 
-    	super.openSubState(new FinishSubState(PlayState.boyfriend.getScreenPosition().x, PlayState.boyfriend.getScreenPosition().y,true));
+			vocals.stop();
+			FlxG.sound.music.stop();
+
+	    	super.openSubState(new FinishSubState(PlayState.boyfriend.getScreenPosition().x, PlayState.boyfriend.getScreenPosition().y,true));
+  	}
   }
 }
 

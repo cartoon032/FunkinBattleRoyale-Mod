@@ -4,9 +4,8 @@ import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
-import flash.media.Sound;
-import sys.FileSystem;
-import sys.io.File;
+import flixel.graphics.FlxGraphic;
+import flash.display.BitmapData;
 
 class Paths
 {
@@ -37,6 +36,9 @@ class Paths
 
 		return getPreloadPath(file);
 	}
+	// static function getFileExists(file:String, type:AssetType, library:Null<String>){
+	// 	return OpenFlAssets.exists(levelPath, type);
+	// }
 
 	static public function getLibraryPath(file:String, library = "preload")
 	{
@@ -100,20 +102,12 @@ class Paths
 
 	static public function voices(song:String)
 	{
-		switch(PlayState.stateType){
-			case 2: return onlinemod.OfflinePlayState.voicesFile;
-			case 4: return multi.MultiPlayState.voicesFile;
-			default: return 'songs:assets/songs/${song.toLowerCase()}/Voices.$SOUND_EXT';
-		}
+		return 'songs:assets/songs/${song.toLowerCase()}/Voices.$SOUND_EXT';
 	}
 
 	static public function inst(song:String)
 	{
-		switch(PlayState.stateType){
-			case 2: return onlinemod.OfflinePlayState.instFile;
-			case 4: return multi.MultiPlayState.instFile;
-			default: return 'songs:assets/songs/${song.toLowerCase()}/Inst.$SOUND_EXT';
-		}
+		return 'songs:assets/songs/${song.toLowerCase()}/Inst.$SOUND_EXT';
 	}
 
 	static public function image(key:String, ?library:String)
@@ -138,5 +132,8 @@ class Paths
 	static public function getPackerAtlas(key:String, ?library:String)
 	{
 		return FlxAtlasFrames.fromSpriteSheetPacker(image(key, library), file('images/$key.txt', library));
+	}
+	static public function getImageDirect(path:String):FlxGraphic{
+		return FlxGraphic.fromBitmapData(BitmapData.fromFile(path));
 	}
 }

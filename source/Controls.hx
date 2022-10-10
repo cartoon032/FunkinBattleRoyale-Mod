@@ -83,6 +83,45 @@ enum abstract Action(String) to String from String
 	var N6_R = "n6-release";
 	var N7_R = "n7-release";
 	var N8_R = "n8-release";
+
+	var EX0 = "EX0";
+	var EX1 = "EX1";
+	var EX2 = "EX2";
+	var EX3 = "EX3";
+	var EX4 = "EX4";
+	var EX5 = "EX5";
+	var EX6 = "EX6";
+	var EX7 = "EX7";
+	var EX8 = "EX8";
+	var EX9 = "EX9";
+	var EX10 = "EX10";
+	var EX11 = "EX11";
+
+	var EX0_P = "EX0-press";
+	var EX1_P = "EX1-press";
+	var EX2_P = "EX2-press";
+	var EX3_P = "EX3-press";
+	var EX4_P = "EX4-press";
+	var EX5_P = "EX5-press";
+	var EX6_P = "EX6-press";
+	var EX7_P = "EX7-press";
+	var EX8_P = "EX8-press";
+	var EX9_P = "EX9-press";
+	var EX10_P = "EX10-press";
+	var EX11_P = "EX11-press";
+
+	var EX0_R = "EX0-release";
+	var EX1_R = "EX1-release";
+	var EX2_R = "EX2-release";
+	var EX3_R = "EX3-release";
+	var EX4_R = "EX4-release";
+	var EX5_R = "EX5-release";
+	var EX6_R = "EX6-release";
+	var EX7_R = "EX7-release";
+	var EX8_R = "EX8-release";
+	var EX9_R = "EX9-release";
+	var EX10_R = "EX10-release";
+	var EX11_R = "EX11-release";
 }
 #else
 @:enum
@@ -157,6 +196,45 @@ abstract Action(String) to String from String
 	var N6_R = "n6-release";
 	var N7_R = "n7-release";
 	var N8_R = "n8-release";
+	
+	var EX0 = "EX0";
+	var EX1 = "EX1";
+	var EX2 = "EX2";
+	var EX3 = "EX3";
+	var EX4 = "EX4";
+	var EX5 = "EX5";
+	var EX6 = "EX6";
+	var EX7 = "EX7";
+	var EX8 = "EX8";
+	var EX9 = "EX9";
+	var EX10 = "EX10";
+	var EX11 = "EX11";
+
+	var EX0_P = "EX0-press";
+	var EX1_P = "EX1-press";
+	var EX2_P = "EX2-press";
+	var EX3_P = "EX3-press";
+	var EX4_P = "EX4-press";
+	var EX5_P = "EX5-press";
+	var EX6_P = "EX6-press";
+	var EX7_P = "EX7-press";
+	var EX8_P = "EX8-press";
+	var EX9_P = "EX9-press";
+	var EX10_P = "EX10-press";
+	var EX11_P = "EX11-press";
+
+	var EX0_R = "EX0-release";
+	var EX1_R = "EX1-release";
+	var EX2_R = "EX2-release";
+	var EX3_R = "EX3-release";
+	var EX4_R = "EX4-release";
+	var EX5_R = "EX5-release";
+	var EX6_R = "EX6-release";
+	var EX7_R = "EX7-release";
+	var EX8_R = "EX8-release";
+	var EX9_R = "EX9-release";
+	var EX10_R = "EX10-release";
+	var EX11_R = "EX11-release";
 }
 #end
 
@@ -197,6 +275,18 @@ enum Control
 	N6;
 	N7;
 	N8;
+	EX0;
+	EX1;
+	EX2;
+	EX3;
+	EX4;
+	EX5;
+	EX6;
+	EX7;
+	EX8;
+	EX9;
+	EX10;
+	EX11;
 }
 
 enum KeyboardScheme
@@ -285,6 +375,45 @@ class Controls extends FlxActionSet
 	var _n6R = new FlxActionDigital(Action.N6_R);
 	var _n7R = new FlxActionDigital(Action.N7_R);
 	var _n8R = new FlxActionDigital(Action.N8_R);
+
+	var _ex0 = new FlxActionDigital(Action.EX0);
+	var _ex1 = new FlxActionDigital(Action.EX1);
+	var _ex2 = new FlxActionDigital(Action.EX2);
+	var _ex3 = new FlxActionDigital(Action.EX3);
+	var _ex4 = new FlxActionDigital(Action.EX4);
+	var _ex5 = new FlxActionDigital(Action.EX5);
+	var _ex6 = new FlxActionDigital(Action.EX6);
+	var _ex7 = new FlxActionDigital(Action.EX7);
+	var _ex8 = new FlxActionDigital(Action.EX8);
+	var _ex9 = new FlxActionDigital(Action.EX9);
+	var _ex10 = new FlxActionDigital(Action.EX10);
+	var _ex11 = new FlxActionDigital(Action.EX11);
+
+	var _ex0P = new FlxActionDigital(Action.EX0_P);
+	var _ex1P = new FlxActionDigital(Action.EX1_P);
+	var _ex2P = new FlxActionDigital(Action.EX2_P);
+	var _ex3P = new FlxActionDigital(Action.EX3_P);
+	var _ex4P = new FlxActionDigital(Action.EX4_P);
+	var _ex5P = new FlxActionDigital(Action.EX5_P);
+	var _ex6P = new FlxActionDigital(Action.EX6_P);
+	var _ex7P = new FlxActionDigital(Action.EX7_P);
+	var _ex8P = new FlxActionDigital(Action.EX8_P);
+	var _ex9P = new FlxActionDigital(Action.EX9_P);
+	var _ex10P = new FlxActionDigital(Action.EX10_P);
+	var _ex11P = new FlxActionDigital(Action.EX11_P);
+
+	var _ex0R = new FlxActionDigital(Action.EX0_R);
+	var _ex1R = new FlxActionDigital(Action.EX1_R);
+	var _ex2R = new FlxActionDigital(Action.EX2_R);
+	var _ex3R = new FlxActionDigital(Action.EX3_R);
+	var _ex4R = new FlxActionDigital(Action.EX4_R);
+	var _ex5R = new FlxActionDigital(Action.EX5_R);
+	var _ex6R = new FlxActionDigital(Action.EX6_R);
+	var _ex7R = new FlxActionDigital(Action.EX7_R);
+	var _ex8R = new FlxActionDigital(Action.EX8_R);
+	var _ex9R = new FlxActionDigital(Action.EX9_R);
+	var _ex10R = new FlxActionDigital(Action.EX10_R);
+	var _ex11R = new FlxActionDigital(Action.EX11_R);
 
 	#if (haxe >= "4.0.0")
 	var byName:Map<String, FlxActionDigital> = [];
@@ -531,6 +660,83 @@ class Controls extends FlxActionSet
 	inline function get_N7_R() return _n7R.check();
 	inline function get_N8_R() return _n8R.check();
 
+	public var EX0(get, never):Bool;
+	public var EX1(get, never):Bool;
+	public var EX2(get, never):Bool;
+	public var EX3(get, never):Bool;
+	public var EX4(get, never):Bool;
+	public var EX5(get, never):Bool;
+	public var EX6(get, never):Bool;
+	public var EX7(get, never):Bool;
+	public var EX8(get, never):Bool;
+	public var EX9(get, never):Bool;
+	public var EX10(get, never):Bool;
+	public var EX11(get, never):Bool;
+
+	public var EX0_P(get, never):Bool;
+	public var EX1_P(get, never):Bool;
+	public var EX2_P(get, never):Bool;
+	public var EX3_P(get, never):Bool;
+	public var EX4_P(get, never):Bool;
+	public var EX5_P(get, never):Bool;
+	public var EX6_P(get, never):Bool;
+	public var EX7_P(get, never):Bool;
+	public var EX8_P(get, never):Bool;
+	public var EX9_P(get, never):Bool;
+	public var EX10_P(get, never):Bool;
+	public var EX11_P(get, never):Bool;
+
+	public var EX0_R(get, never):Bool;
+	public var EX1_R(get, never):Bool;
+	public var EX2_R(get, never):Bool;
+	public var EX3_R(get, never):Bool;
+	public var EX4_R(get, never):Bool;
+	public var EX5_R(get, never):Bool;
+	public var EX6_R(get, never):Bool;
+	public var EX7_R(get, never):Bool;
+	public var EX8_R(get, never):Bool;
+	public var EX9_R(get, never):Bool;
+	public var EX10_R(get, never):Bool;
+	public var EX11_R(get, never):Bool;
+
+	inline function get_EX0() return _ex0.check();
+	inline function get_EX1() return _ex1.check();
+	inline function get_EX2() return _ex2.check();
+	inline function get_EX3() return _ex3.check();
+	inline function get_EX4() return _ex4.check();
+	inline function get_EX5() return _ex5.check();
+	inline function get_EX6() return _ex6.check();
+	inline function get_EX7() return _ex7.check();
+	inline function get_EX8() return _ex8.check();
+	inline function get_EX9() return _ex9.check();
+	inline function get_EX10() return _ex10.check();
+	inline function get_EX11() return _ex11.check();
+
+	inline function get_EX0_P() return _ex0P.check();
+	inline function get_EX1_P() return _ex1P.check();
+	inline function get_EX2_P() return _ex2P.check();
+	inline function get_EX3_P() return _ex3P.check();
+	inline function get_EX4_P() return _ex4P.check();
+	inline function get_EX5_P() return _ex5P.check();
+	inline function get_EX6_P() return _ex6P.check();
+	inline function get_EX7_P() return _ex7P.check();
+	inline function get_EX8_P() return _ex8P.check();
+	inline function get_EX9_P() return _ex9P.check();
+	inline function get_EX10_P() return _ex10P.check();
+	inline function get_EX11_P() return _ex11P.check();
+
+	inline function get_EX0_R() return _ex0R.check();
+	inline function get_EX1_R() return _ex1R.check();
+	inline function get_EX2_R() return _ex2R.check();
+	inline function get_EX3_R() return _ex3R.check();
+	inline function get_EX4_R() return _ex4R.check();
+	inline function get_EX5_R() return _ex5R.check();
+	inline function get_EX6_R() return _ex6R.check();
+	inline function get_EX7_R() return _ex7R.check();
+	inline function get_EX8_R() return _ex8R.check();
+	inline function get_EX9_R() return _ex9R.check();
+	inline function get_EX10_R() return _ex10R.check();
+	inline function get_EX11_R() return _ex11R.check();
 
 	#if (haxe >= "4.0.0")
 	public function new(name, scheme = None)
@@ -604,6 +810,45 @@ class Controls extends FlxActionSet
 		add(_n6R);
 		add(_n7R);
 		add(_n8R);
+
+		add(_ex0);
+		add(_ex1);
+		add(_ex2);
+		add(_ex3);
+		add(_ex4);
+		add(_ex5);
+		add(_ex6);
+		add(_ex7);
+		add(_ex8);
+		add(_ex9);
+		add(_ex10);
+		add(_ex11);
+
+		add(_ex0P);
+		add(_ex1P);
+		add(_ex2P);
+		add(_ex3P);
+		add(_ex4P);
+		add(_ex5P);
+		add(_ex6P);
+		add(_ex7P);
+		add(_ex8P);
+		add(_ex9P);
+		add(_ex10P);
+		add(_ex11P);
+
+		add(_ex0R);
+		add(_ex1R);
+		add(_ex2R);
+		add(_ex3R);
+		add(_ex4R);
+		add(_ex5R);
+		add(_ex6R);
+		add(_ex7R);
+		add(_ex8R);
+		add(_ex9R);
+		add(_ex10R);
+		add(_ex11R);
 
 		for (action in digitalActions)
 			byName[action.name] = action;
@@ -683,6 +928,45 @@ class Controls extends FlxActionSet
 		add(_n7R);
 		add(_n8R);
 
+		add(_ex0);
+		add(_ex1);
+		add(_ex2);
+		add(_ex3);
+		add(_ex4);
+		add(_ex5);
+		add(_ex6);
+		add(_ex7);
+		add(_ex8);
+		add(_ex9);
+		add(_ex10);
+		add(_ex11);
+
+		add(_ex0P);
+		add(_ex1P);
+		add(_ex2P);
+		add(_ex3P);
+		add(_ex4P);
+		add(_ex5P);
+		add(_ex6P);
+		add(_ex7P);
+		add(_ex8P);
+		add(_ex9P);
+		add(_ex10P);
+		add(_ex11P);
+
+		add(_ex0R);
+		add(_ex1R);
+		add(_ex2R);
+		add(_ex3R);
+		add(_ex4R);
+		add(_ex5R);
+		add(_ex6R);
+		add(_ex7R);
+		add(_ex8R);
+		add(_ex9R);
+		add(_ex10R);
+		add(_ex11R);
+
 		for (action in digitalActions)
 			byName[action.name] = action;
 			
@@ -753,6 +1037,19 @@ class Controls extends FlxActionSet
 			case N6: _n6;
 			case N7: _n7;
 			case N8: _n8;
+
+			case EX0: _ex0;
+			case EX1: _ex1;
+			case EX2: _ex2;
+			case EX3: _ex3;
+			case EX4: _ex4;
+			case EX5: _ex5;
+			case EX6: _ex6;
+			case EX7: _ex7;
+			case EX8: _ex8;
+			case EX9: _ex9;
+			case EX10: _ex10;
+			case EX11: _ex11;
 		}
 	}
 
@@ -860,6 +1157,55 @@ class Controls extends FlxActionSet
 				func(_n8, PRESSED);
 				func(_n8P, JUST_PRESSED);
 				func(_n8R, JUST_RELEASED);
+
+			case EX0:
+				func(_ex0, PRESSED);
+				func(_ex0P, JUST_PRESSED);
+				func(_ex0R, JUST_RELEASED);
+			case EX1:
+				func(_ex1, PRESSED);
+				func(_ex1P, JUST_PRESSED);
+				func(_ex1R, JUST_RELEASED);
+			case EX2:
+				func(_ex2, PRESSED);
+				func(_ex2P, JUST_PRESSED);
+				func(_ex2R, JUST_RELEASED);
+			case EX3:
+				func(_ex3, PRESSED);
+				func(_ex3P, JUST_PRESSED);
+				func(_ex3R, JUST_RELEASED);
+			case EX4:
+				func(_ex4, PRESSED);
+				func(_ex4P, JUST_PRESSED);
+				func(_ex4R, JUST_RELEASED);
+			case EX5:
+				func(_ex5, PRESSED);
+				func(_ex5P, JUST_PRESSED);
+				func(_ex5R, JUST_RELEASED);
+			case EX6:
+				func(_ex6, PRESSED);
+				func(_ex6P, JUST_PRESSED);
+				func(_ex6R, JUST_RELEASED);
+			case EX7:
+				func(_ex7, PRESSED);
+				func(_ex7P, JUST_PRESSED);
+				func(_ex7R, JUST_RELEASED);
+			case EX8:
+				func(_ex8, PRESSED);
+				func(_ex8P, JUST_PRESSED);
+				func(_ex8R, JUST_RELEASED);
+			case EX9:
+				func(_ex9, PRESSED);
+				func(_ex9P, JUST_PRESSED);
+				func(_ex9R, JUST_RELEASED);
+			case EX10:
+				func(_ex10, PRESSED);
+				func(_ex10P, JUST_PRESSED);
+				func(_ex10R, JUST_RELEASED);
+			case EX11:
+				func(_ex11, PRESSED);
+				func(_ex11P, JUST_PRESSED);
+				func(_ex11R, JUST_RELEASED);
 		}
 	}
 
@@ -1081,9 +1427,9 @@ class Controls extends FlxActionSet
 		inline bindKeys(Control.DOWN, [FlxKey.fromString(FlxG.save.data.downBind), FlxKey.fromString(FlxG.save.data.AltdownBind), FlxKey.DOWN]);
 		inline bindKeys(Control.LEFT, [FlxKey.fromString(FlxG.save.data.leftBind), FlxKey.fromString(FlxG.save.data.AltleftBind), FlxKey.LEFT]);
 		inline bindKeys(Control.RIGHT, [FlxKey.fromString(FlxG.save.data.rightBind), FlxKey.fromString(FlxG.save.data.AltrightBind), FlxKey.RIGHT]);
-		inline bindKeys(Control.ACCEPT, [Z, SPACE, ENTER]);
+		inline bindKeys(Control.ACCEPT, [ENTER]);
 		inline bindKeys(Control.BACK, [BACKSPACE, ESCAPE]);
-		inline bindKeys(Control.PAUSE, [P, ENTER, ESCAPE]);
+		inline bindKeys(Control.PAUSE, [ENTER, ESCAPE]);
 		inline bindKeys(Control.RESET, [FlxKey.fromString(FlxG.save.data.killBind)]);
 
 		inline bindKeys(Control.N0, [FlxKey.fromString(FlxG.save.data.N0Bind)]);
@@ -1102,6 +1448,19 @@ class Controls extends FlxActionSet
 		inline bindKeys(Control.L2, [FlxKey.fromString(FlxG.save.data.L2Bind)]);
 		inline bindKeys(Control.U1, [FlxKey.fromString(FlxG.save.data.U1Bind)]);
 		inline bindKeys(Control.R2, [FlxKey.fromString(FlxG.save.data.R2Bind)]);
+
+		inline bindKeys(Control.EX0, [FlxKey.fromString(FlxG.save.data.EX0Bind)]);
+		inline bindKeys(Control.EX1, [FlxKey.fromString(FlxG.save.data.EX1Bind)]);
+		inline bindKeys(Control.EX2, [FlxKey.fromString(FlxG.save.data.EX2Bind)]);
+		inline bindKeys(Control.EX3, [FlxKey.fromString(FlxG.save.data.EX3Bind)]);
+		inline bindKeys(Control.EX4, [FlxKey.fromString(FlxG.save.data.EX4Bind)]);
+		inline bindKeys(Control.EX5, [FlxKey.fromString(FlxG.save.data.EX5Bind)]);
+		inline bindKeys(Control.EX6, [FlxKey.fromString(FlxG.save.data.EX6Bind)]);
+		inline bindKeys(Control.EX7, [FlxKey.fromString(FlxG.save.data.EX7Bind)]);
+		inline bindKeys(Control.EX8, [FlxKey.fromString(FlxG.save.data.EX8Bind)]);
+		inline bindKeys(Control.EX9, [FlxKey.fromString(FlxG.save.data.EX9Bind)]);
+		inline bindKeys(Control.EX10, [FlxKey.fromString(FlxG.save.data.EX10Bind)]);
+		inline bindKeys(Control.EX11, [FlxKey.fromString(FlxG.save.data.EX11Bind)]);
 	}
 
 	function removeKeyboard()

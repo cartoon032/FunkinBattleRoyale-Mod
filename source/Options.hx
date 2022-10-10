@@ -7,6 +7,7 @@ import Controls.KeyboardScheme;
 import flixel.FlxG;
 import openfl.display.FPS;
 import openfl.Lib;
+import tjson.Json;
 
 class OptionCategory
 {
@@ -161,6 +162,34 @@ class NineKeyMenu extends Option
 		return "Key Bindings for 9K";
 	}
 }
+
+class TwelveKeyMenu extends Option
+{
+	private var controls:Controls;
+
+	public function new(controls:Controls)
+	{
+		super();
+		this.controls = controls;
+		description = 'Change your controls';
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		OptionsMenu.instance.openSubState(new TwelveKeyBindMenu());
+		return false;
+	}
+	override function getValue():String {
+		return TwelveKeyBindMenu.getKeyBindsString();
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Key Bindings for 12K";
+	}
+}
+
 class CpuStrums extends Option
 {
 	public function new(desc:String)
@@ -425,10 +454,10 @@ class FPSCapOption extends Option
 	}
 	
 	override function right():Bool {
-		if (FlxG.save.data.fpsCap >= 290)
+		if (FlxG.save.data.fpsCap >= 300)
 		{
-			FlxG.save.data.fpsCap = 290;
-			(cast (Lib.current.getChildAt(0), Main)).setFPSCap(290);
+			FlxG.save.data.fpsCap = 300;
+			(cast (Lib.current.getChildAt(0), Main)).setFPSCap(300);
 		}
 		else
 			FlxG.save.data.fpsCap = FlxG.save.data.fpsCap + 1;
@@ -439,8 +468,8 @@ class FPSCapOption extends Option
 	}
 
 	override function left():Bool {
-		if (FlxG.save.data.fpsCap > 290)
-			FlxG.save.data.fpsCap = 290;
+		if (FlxG.save.data.fpsCap > 300)
+			FlxG.save.data.fpsCap = 300;
 		else if (FlxG.save.data.fpsCap < 20)
 			FlxG.save.data.fpsCap = 20;
 		else
@@ -488,7 +517,7 @@ class ScrollSpeedOption extends Option
 	}
 
 	override function getValue():String {
-		return "Current Scroll Speed: " + HelperFunctions.truncateFloat(FlxG.save.data.scrollSpeed,1);
+		return "Scroll Speed: " + HelperFunctions.truncateFloat(FlxG.save.data.scrollSpeed,1);
 	}
 
 	override function left():Bool {
@@ -978,8 +1007,8 @@ class ReloadCharlist extends Option
 }
 class InputHandlerOption extends Option
 {
-	var ies:Array<String> = ["Kade","Tweaked Kade"];
-	var iesDesc:Array<String> = ["Good old kade","Kade engine without antimash, and some improvements"];
+	var ies:Array<String> = ["Kade","Super Engine"];
+	var iesDesc:Array<String> = ["Kade 1.5/1.4 Input","A custom input engine based off of Kade 1.4/1.5"];
 	public function new(desc:String)
 	{
 		super();
@@ -1009,27 +1038,79 @@ class InputHandlerOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return '${ies[FlxG.save.data.inputHandler]} Input Engine';
+		return '${ies[FlxG.save.data.inputHandler]} Input';
 	}
 }
-class Osuscore extends Option
+class ScoreSystem extends Option
 {
+	var ies:Array<String> = ["FNF","OSU!","OSU!Mania","Balance Score","Stupid"];
+	var iesDesc:Array<String> = ["Good old FNF score","More Combo = More Score, Miss = BIG L","The Max score for every song is about 1M, The reason it not exactly 1M cuz rounding issue","You will get a Score Multiplier if your side have less note than opponent","Fuck it, Score * Combo * songspeed everything count at combo even miss"];
 	public function new(desc:String)
 	{
 		super();
+		if (FlxG.save.data.scoresystem >= ies.length) FlxG.save.data.scoresystem = 0;
 		description = desc;
+
+		acceptValues = true;
 	}
 
-	public override function press():Bool
-	{
-		FlxG.save.data.osuscore = !FlxG.save.data.osuscore;
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.scoresystem];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.scoresystem += 1;
+		if (FlxG.save.data.scoresystem >= ies.length) FlxG.save.data.scoresystem = 0;
 		display = updateDisplay();
 		return true;
 	}
+	override function left():Bool {
+		FlxG.save.data.scoresystem -= 1;
+		if (FlxG.save.data.scoresystem < 0) FlxG.save.data.scoresystem = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
 
 	private override function updateDisplay():String
 	{
-		return "Osu score system " + (!FlxG.save.data.osuscore ? "off" : "on");
+		return 'Score Mode : ${ies[FlxG.save.data.scoresystem]}';
+	}
+}
+class AltScoreSystem extends Option
+{
+	var ies:Array<String> = ["Disable","FNF","OSU!","OSU!Mania","Balance Score","Stupid"];
+	var iesDesc:Array<String> = [":Peace:","Good old FNF score","More Combo = More Score","score cap at 1M i think","less note more score definitely","so i saw a FNF mod that give you alot of score base on RNG and i was also kinda bored so i add one but with no RNG"];
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.altscoresystem >= ies.length) FlxG.save.data.altscoresystem = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.altscoresystem];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.altscoresystem += 1;
+		if (FlxG.save.data.altscoresystem >= ies.length) FlxG.save.data.altscoresystem = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.altscoresystem -= 1;
+		if (FlxG.save.data.altscoresystem < 0) FlxG.save.data.altscoresystem = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Extra Score Mode : ${ies[FlxG.save.data.altscoresystem]}';
 	}
 }
 class NoteSelOption extends Option
@@ -1551,5 +1632,495 @@ class FontOption extends Option
 	private override function updateDisplay():String
 	{
 		return "Force generic font " + (FlxG.save.data.useFontEverywhere ? "on" : "off");
+	}
+}
+class BackTransOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Underlay opacity";
+	}
+
+	override function right():Bool {
+		FlxG.save.data.undlaTrans += 0.05;
+
+		if (FlxG.save.data.undlaTrans > 1)
+			FlxG.save.data.undlaTrans = 1;
+		return true;
+	}
+
+	override function getValue():String {
+		return "Underlay opacity: " + HelperFunctions.truncateFloat(FlxG.save.data.undlaTrans,2);
+	}
+
+	override function left():Bool {
+		FlxG.save.data.undlaTrans -= 0.05;
+
+		if (FlxG.save.data.undlaTrans < 0)
+			FlxG.save.data.undlaTrans = 0;
+
+		return true;
+	}
+}
+class BackgroundSizeOption extends Option
+{
+	var ies:Array<String> = ["Strumline Only","Fill screen"];
+	var iesDesc:Array<String> = ["Only show underlay below strumline","Fill underlay to entire screen",];
+	public function new(desc:String)
+	{
+		if (FlxG.save.data.undlaSize >= ies.length) FlxG.save.data.undlaSize = 0;
+		super();
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.undlaSize];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.undlaSize += 1;
+		if (FlxG.save.data.undlaSize >= ies.length) FlxG.save.data.undlaSize = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.undlaSize -= 1;
+		if (FlxG.save.data.undlaSize < 0) FlxG.save.data.undlaSize = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Underlay style';
+	}
+}
+class LogGameplayOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+
+		FlxG.save.data.logGameplay = !FlxG.save.data.logGameplay;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return ("Log Gameplay " + (FlxG.save.data.logGameplay ? "on" : "off"));
+	}
+}
+class PopupScoreLocationOption extends Option
+{
+	var ies:Array<String> = ["Center","Left Side","Right Side","Opposite Side","Same Side"];
+	var iesDesc:Array<String> = ["Center","Left Side","Right Side","Opposite Side","Same Side"];
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.popupscorelocation >= ies.length) FlxG.save.data.popupscorelocation = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.popupscorelocation];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.popupscorelocation += 1;
+		if (FlxG.save.data.popupscorelocation >= ies.length) FlxG.save.data.popupscorelocation = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.popupscorelocation -= 1;
+		if (FlxG.save.data.popupscorelocation < 0) FlxG.save.data.popupscorelocation = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Popup Score Location : ${ies[FlxG.save.data.popupscorelocation]}';
+	}
+}
+class PopupScoreOffset extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "PopupScoreOffset";
+	}
+
+	override function right():Bool {
+		FlxG.save.data.popupscoreoffset += 0.01;
+
+		if (FlxG.save.data.popupscoreoffset > 0.25)
+			FlxG.save.data.popupscoreoffset = 0.25;
+		return true;
+	}
+
+	override function getValue():String {
+		return "Popup Score Offset: " + HelperFunctions.truncateFloat(FlxG.save.data.popupscoreoffset,2);
+	}
+
+	override function left():Bool {
+		FlxG.save.data.popupscoreoffset -= 0.01;
+
+		if (FlxG.save.data.popupscoreoffset < -0.25)
+			FlxG.save.data.popupscoreoffset = -0.25;
+		return true;
+	}
+}
+class FastSongScrollSpeedOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Fast Song Scroll Speed";
+	}
+
+	override function right():Bool {
+		FlxG.save.data.FastSongScrollSpeed += 0.1;
+
+		if (FlxG.save.data.FastSongScrollSpeed < 1)
+			FlxG.save.data.FastSongScrollSpeed = 1;
+
+		if (FlxG.save.data.FastSongScrollSpeed > 4)
+			FlxG.save.data.FastSongScrollSpeed = 4;
+		return true;
+	}
+
+	override function getValue():String {
+		return "Fast Song Scroll Speed: " + HelperFunctions.truncateFloat(FlxG.save.data.FastSongScrollSpeed,1);
+	}
+
+	override function left():Bool {
+		FlxG.save.data.FastSongScrollSpeed -= 0.1;
+
+		if (FlxG.save.data.FastSongScrollSpeed < 1)
+			FlxG.save.data.FastSongScrollSpeed = 1;
+
+		if (FlxG.save.data.FastSongScrollSpeed > 4)
+			FlxG.save.data.FastSongScrollSpeed = 4;
+
+		return true;
+	}
+}
+class AllowServerScriptsOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+
+		FlxG.save.data.allowServerScripts = !FlxG.save.data.allowServerScripts;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return ("Allow Server Scripts: " + (FlxG.save.data.allowServerScripts ? "on" : "off"));
+	}
+}
+class NoteFadeOption extends Option
+{
+	var ies:Array<String> = ["Off","Default","Faster","Even Faster"];
+	var iesDesc:Array<String> = ["No Note Fade","Slowly fade in note one as a time","Fade in note one as a time but faster","Need to go even further beyond"];
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.notefade >= ies.length) FlxG.save.data.notefade = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.notefade];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.notefade += 1;
+		if (FlxG.save.data.notefade >= ies.length) FlxG.save.data.notefade = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.notefade -= 1;
+		if (FlxG.save.data.notefade < 0) FlxG.save.data.notefade = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Note Fade Mode: ${ies[FlxG.save.data.notefade]}';
+	}
+}
+class AltSingMultiKeyOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+
+		FlxG.save.data.altsingformultikey = !FlxG.save.data.altsingformultikey;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return ("Multi Key use Sing2: " + (FlxG.save.data.altsingformultikey ? "on" : "off"));
+	}
+}
+class ShowConnectedIPOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+
+		FlxG.save.data.ShowConnectedIP = !FlxG.save.data.ShowConnectedIP;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return ("Show Connected Server IP: " + (FlxG.save.data.ShowConnectedIP ? "on" : "off"));
+	}
+}
+class VolumeOption extends Option
+{
+	var opt = "";
+	public function new(desc:String,option:String = "")
+	{
+		opt = option;
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return  opt + " Volume";}
+
+	override function right():Bool {
+		Reflect.setField(FlxG.save.data,opt+"Vol", Reflect.field(FlxG.save.data,opt+"Vol") + (if(FlxG.keys.pressed.SHIFT) 0.01 else 0.1));
+
+		if (Reflect.field(FlxG.save.data,opt+"Vol") > 1)
+			Reflect.setField(FlxG.save.data,opt+"Vol", 1);
+		// display = updateDisplay();
+		return true;
+	}
+
+	override function getValue():String {
+
+		switch(opt){
+			case "master":{
+				FlxG.sound.volume = FlxG.save.data.masterVol;
+			}
+			case "inst":{
+				FlxG.sound.music.volume = FlxG.save.data.instVol;
+			}
+		}
+		return opt + " Volume: " + (HelperFunctions.truncateFloat(Reflect.field(FlxG.save.data,opt+"Vol"),2) * 100) + "%"; // Multiplied by 100 to appear as 0-100 instead of 0-1
+
+	}
+
+	override function left():Bool {
+		Reflect.setField(FlxG.save.data,opt+"Vol", Reflect.field(FlxG.save.data,opt+"Vol") - (if(FlxG.keys.pressed.SHIFT) 0.01 else 0.1));
+		if (Reflect.field(FlxG.save.data,opt+"Vol") < 0)
+			Reflect.setField(FlxG.save.data,opt+"Vol", 0);
+		// display = updateDisplay();
+
+		return true;
+	}
+}
+
+class ImportOption extends Option
+{
+	var opt = "";
+	public function new(desc:String,option:String = "")
+	{
+		opt = option;
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		try{
+			var optionsFile = Json.parse(sys.io.File.getContent('SEOPTIONS.json'));
+			for (_ => v in Reflect.fields(optionsFile)) {
+				if(v.toLowerCase() == "songScores"){continue;} // Importing scores is probably not the best of ideas
+				Reflect.setProperty(FlxG.save.data,v,Reflect.getProperty(optionsFile,v));
+			}
+			OptionsMenu.instance.showTempmessage('Imported options successfully! Exit from the Options Menu to the Main Menu to save them',FlxColor.GREEN,10);
+		}catch(e){
+			FlxG.save.destroy();
+			KadeEngineData.initSave();
+			OptionsMenu.instance.showTempmessage('Unable to import options! Reset back to before this menu was opened! ${e.message}',FlxColor.RED,10);
+		}
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Import Options";
+	}
+
+	override function right():Bool {
+		
+		return false;
+	}
+
+
+	override function left():Bool {
+		return false;
+	}
+}
+
+class EraseOption extends Option
+{
+	var opt = "";
+	public function new(desc:String,option:String = "")
+	{
+		opt = option;
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		try{
+			var e:String = Json.stringify(FlxG.save.data,"fancy");
+			sys.io.File.saveContent('SEOPTIONS-BACKUP.json',e);
+			FlxG.save.erase();
+			KadeEngineData.initSave();
+			OptionsMenu.instance.showTempmessage('Reset options back to defaults and backed them up to SEOPTIONS-BACKUP.json',FlxColor.GREEN,10);
+		}catch(e){
+			OptionsMenu.instance.showTempmessage('Unable to export options! ${e.message}',FlxColor.RED,10);
+		}
+		
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "reset Options to defaults";
+	}
+
+	override function right():Bool {
+		
+		return false;
+	}
+
+
+	override function left():Bool {
+		return false;
+	}
+}
+class ExportOption extends Option
+{
+	var opt = "";
+	public function new(desc:String,option:String = "")
+	{
+		opt = option;
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		try{
+			var e:String = Json.stringify(FlxG.save.data,"fancy");
+			sys.io.File.saveContent('SEOPTIONS.json',e);
+			OptionsMenu.instance.showTempmessage('Exported options successfully!',FlxColor.GREEN,10);
+		}catch(e){
+			OptionsMenu.instance.showTempmessage('Unable to export options! ${e.message}',FlxColor.RED,10);
+		}
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Export Options";
+	}
+
+	override function right():Bool {
+		
+		return false;
+	}
+
+
+	override function left():Bool {
+		return false;
 	}
 }

@@ -66,10 +66,10 @@ class NoteAssets{
 				badImage = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/NOTE_assets_bad.png'));
 				badXml = File.getContent("assets/shared/images/NOTE_assets_bad.xml");
 				// genSplashes();
-				image = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/NOTE_assets.png'));
-				xml = File.getContent("assets/shared/images/NOTE_assets.xml");
-				splashImage = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/noteSplashes.png'));
-				splashXml = File.getContent("assets/shared/images/noteSplashes.xml");
+				image = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/T_Mod_NOTE_assets.png'));
+				xml = File.getContent("assets/shared/images/T_Mod_NOTE_assets.xml");
+				splashImage = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/T_Mod_noteSplashes.png'));
+				splashXml = File.getContent("assets/shared/images/T_Mod_noteSplashes.xml");
 				return;
 			} // Default arrows
 		
@@ -84,8 +84,8 @@ class NoteAssets{
 					}
 				}
 			}else{
-				splashImage = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/noteSplashes.png'));
-				splashXml = File.getContent("assets/shared/images/noteSplashes.xml");
+				splashImage = FlxGraphic.fromBitmapData(BitmapData.fromFile('assets/shared/images/T_Mod_noteSplashes.png'));
+				splashXml = File.getContent("assets/shared/images/T_Mod_noteSplashes.xml");
 			}
 
 			if (FileSystem.exists('${path}/${name}-bad.png') && FileSystem.exists('${path}/${name}-bad.xml')){ // Hurt notes

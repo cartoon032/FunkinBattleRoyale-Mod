@@ -7,8 +7,8 @@ using StringTools;
 
 class CoolUtil
 {
-	public static var fontName = "vcr.ttf";
-	public static var font = if(FileSystem.exists('mods/font.ttf')) 'mods/font.ttf' else Paths.font(fontName);
+	public static var fontName:String = "vcr.ttf";
+	public static var font:String = if(FileSystem.exists('mods/font.ttf')) 'mods/font.ttf' else Paths.font(fontName);
 	public static var difficultyArray:Array<String> = ['EASY', "NORMAL", "HARD"];
 
 	public static function difficultyString():String
@@ -23,6 +23,18 @@ class CoolUtil
 		for (i in 0...daList.length)
 		{
 			daList[i] = daList[i].trim();
+			daList[i].replace("\\n","\n");
+		}
+
+		return daList;
+	}
+	public static function coolFormat(text:String){
+		var daList:Array<String> = text.trim().split('\n');
+
+		for (i in 0...daList.length)
+		{
+			daList[i] = daList[i].trim();
+			daList[i] = daList[i].replace("\\n","\n");
 		}
 
 		return daList;
@@ -42,7 +54,14 @@ class CoolUtil
 	// 	if (songNames[song.toLowerCase()] != null) return if (convLower) songNames[song.toLowerCase()].toLowerCase() else songNames[song.toLowerCase()];
 	// 	return if (convLower) song.toLowerCase() else song;
 	// }
-	
+	public static function orderList(list:Array<String>):Array<String>{
+		haxe.ds.ArraySort.sort(list, function(a, b) {
+		   if(a < b) return -1;
+		   else if(b > a) return 1;
+		   else return 0;
+		});
+		return list;
+	}
 	public static function coolStringFile(path:String):Array<String>
 		{
 			var daList:Array<String> = path.trim().split('\n');

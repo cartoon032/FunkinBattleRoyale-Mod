@@ -21,6 +21,9 @@ import sys.FileSystem;
 import sys.io.File;
 import OptionsFileDef;
 import Reflect;
+#if windows
+import Discord.DiscordClient;
+#end
 
 class OptionsMenu extends MusicBeatState
 {
@@ -40,29 +43,35 @@ class OptionsMenu extends MusicBeatState
 			new OpponentOption("Change the opponent character"),
 			new PlayerOption("Change the player character"),
 			new GFOption("Change the GF used"),
-			new NoteSelOption("Change the note assets used, pulled from mods/noteassets"),
+			// new NoteSelOption("Change the note assets used, pulled from mods/noteassets"),
 			new SelStageOption("Select the stage to use, Default will use song default"),
 			new SelScriptOption("Enable/Disable scripts that run withsongs"),
 			new CharAutoOption("Force the opponent you've selected or allow the song to choose the opponent if you have them installed"),
-			new ReloadCharlist("Refreshes the character and stage list, used for if you added characters or stages")
+			new ReloadCharlist("Refreshes the character and stage list, used for if you added characters or stages"),
+			new AllowServerScriptsOption("Allow servers to run scripts. THIS IS DANGEROUS, ONLY ENABLE IF YOU TRUST THE SERVERS")
 		]),
 		new OptionCategory("Gameplay", [
 			new DFJKOption(controls),
 			new SixKeyMenu(controls),
 			new NineKeyMenu(controls),
+			new TwelveKeyMenu(controls),
 			new DownscrollOption("Change the layout of the strumline."),
 			new MiddlescrollOption("Move the strumline to the middle of the screen"),
 
 			new AccuracyDOption("Change how accuracy is calculated. (Accurate = Simple, Complex = Milisecond Based)"),
 			new OffsetMenu("Get a note offset based off of your inputs!"),
-			new InputHandlerOption("Change the input engine used, only works locally."),
-			new Osuscore("The more combo you have the more score you get")
+			new InputHandlerOption("Change the input engine used"),
+			// new PopupScoreLocationOption("Where you want your score Popup to be"),
+			// new PopupScoreOffset("Offset to Center of screen. more = center"),
+			new ScoreSystem("Change how score is calculate"),
+			new AltScoreSystem("The another score show on the result screen")
 		]),
 		new OptionCategory("Modifiers", [
-		    new PracticeModeOption("Disables the ability to get a gameover."),
+			new PracticeModeOption("Disables the ability to get a gameover."),
 			new GhostTapOption("Ghost Tapping is when you tap a direction and it doesn't give you a miss."),
 			new Judgement("Customize your Hit Timings (LEFT or RIGHT)"),
-			new ScrollSpeedOption("Change your scroll speed (1 = Chart dependent)")
+			new ScrollSpeedOption("Change your scroll speed (1 = Chart dependent)"),
+			new FastSongScrollSpeedOption("your scroll speed for when you speed up the song (1 = Using normal Scroll Speed)")
 		]),
 
 		new OptionCategory("Appearance", [
@@ -73,18 +82,20 @@ class OptionsMenu extends MusicBeatState
 			new AccuracyOption("Display accuracy information."),
 			new SongPositionOption("Show the songs current position (as a bar)"),
 			new CpuStrums("CPU's strumline lights up when a note hits it."),
+			new NoteFadeOption("help make some chart with note immediately spawn playable"),
 			new SongInfoOption("Change how your performance is displayed"),
 		]),
 		new OptionCategory("Misc", [
-			new CheckForUpdatesOption("Toggle check for updates when booting the game, useful if you're in the Discord with pings on"),
+			// new CheckForUpdatesOption("Toggle check for updates when booting the game, useful if you're in the Discord with pings on"),
 			new FPSOption("Toggle the FPS Counter"),
-			new MissSoundsOption("Play a sound when you miss"),
-			new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg"),
 			new ResetButtonOption("Toggle pressing R to gameover."),
-
 			new FlashingLightsOption("Toggle flashing lights that can cause epileptic seizures and strain."),
 			new AnimDebugOption("Access animation debug in a offline session, 1=BF,2=Dad,3=GF. Also shows extra information"),
-			new PlayVoicesOption("Plays your character's voices when you press a note.")
+			new AltSingMultiKeyOption("Using thing like singLEFT2 for the extra note (Spacebar always use singSpace)"),
+			new ShowConnectedIPOption("Showing what server you are currently connect to"),
+			new EraseOption("Backs up your options to SEOPTIONS-BACKUP.json and then resets them"),
+			new ImportOption("Import your options from SEOPTIONS.json"),
+			new ExportOption("Export your options to SEOPTIONS.json to backup or to share with a bug report"),
 		]),
 		new OptionCategory("Performance", [
 			new FPSCapOption("Cap your FPS"),
@@ -96,13 +107,26 @@ class OptionsMenu extends MusicBeatState
 		]),
 		new OptionCategory("Visibility", [
             new FontOption("Force menus to use the built-in font or mods/font.ttf for easier reading"),
+			new BackTransOption("Change underlay opacity"),
+			new BackgroundSizeOption("Change underlay size"),
 			new NoteSplashOption("Shows note splashes when you get a 'Sick' rating"),
 			new OpponentStrumlineOption("Whether to show the opponent's notes or not"),
 			new ShowP2Option("Show Opponent"),
 			new ShowGFOption("Show Girlfriend"),
 			new ShowP1Option("Show Player 1"),
-			// new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu"),
+			//new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu")
 		]),
+		new OptionCategory("Auditory", [
+			new VolumeOption("Adjust the volume of the entire game","master"),
+			new VolumeOption("Adjust the volume of the background music","inst"),
+			new VolumeOption("Adjust the volume of the vocals","voices"),
+			new VolumeOption("Adjust the volume of the hit sounds","hit"),    
+			new VolumeOption("Adjust the volume of miss sounds","miss"),       
+			new VolumeOption("Adjust the volume of other sounds and the default script sound volume","other"),  
+			new MissSoundsOption("Play a sound when you miss"),
+			new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg"),
+			new PlayVoicesOption("Plays the voices a character has when you press a note."),
+		])
 	];
 
 	public var acceptInput:Bool = true;
@@ -127,12 +151,15 @@ class OptionsMenu extends MusicBeatState
 	override function create()
 	{
 
+		#if windows
+		DiscordClient.changePresence("In Option Menu",null);
+		#end
 		instance = this;
 		if(onlinemod.OnlinePlayMenuState.socket == null){
 			initOptions();
 		}
 
-		var menuBG:FlxSprite = new FlxSprite().loadGraphic(Paths.image("menuDesat"));
+		var menuBG:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
 
 		menuBG.color = 0x793397;
 		menuBG.setGraphicSize(Std.int(menuBG.width * 1.1));
