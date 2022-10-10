@@ -52,6 +52,7 @@ jobs:
           haxelib install linc_luajit
           haxelib install newgrounds
           haxelib install hscript
+          haxelib install discord_rpc
           haxelib git hscript-ex https://github.com/ianharrigan/hscript-ex
           haxelib list
         shell: cmd
@@ -69,15 +70,15 @@ jobs:
         with:
           name: windowsBuild-Minimal
           path: |
-                C:/fnfbrbin/windows/bin/FNF Battle Royale.exe
+                C:/fnfbrbin/windows/bin/FNF Super Engine-T.exe
                 C:/fnfbrbin/windows/bin/manifest
                 C:/fnfbrbin/windows/bin/mods
-                C:/fnfbrbin/windows/bin/assets/shared/images/NOTE_assets.xml
-                C:/fnfbrbin/windows/bin/assets/shared/images/NOTE_assets.png
+                C:/fnfbrbin/windows/bin/assets/shared/images/T_Mod_NOTE_assets.xml
+                C:/fnfbrbin/windows/bin/assets/shared/images/T_Mod_NOTE_assets.png
                 C:/fnfbrbin/windows/bin/assets/shared/images/NOTE_assets_bad.xml
                 C:/fnfbrbin/windows/bin/assets/shared/images/NOTE_assets_bad.png
-                C:/fnfbrbin/windows/bin/assets/shared/images/noteSplashes.xml
-                C:/fnfbrbin/windows/bin/assets/shared/images/noteSplashes.png
+                C:/fnfbrbin/windows/bin/assets/shared/images/T_Mod_noteSplashes.xml
+                C:/fnfbrbin/windows/bin/assets/shared/images/T_Mod_noteSplashes.png
                 C:/fnfbrbin/windows/bin/assets/preload/images/num1.png
                 C:/fnfbrbin/windows/bin/assets/music
                 C:/fnfbrbin/windows/bin/assets/images/onlinemod
