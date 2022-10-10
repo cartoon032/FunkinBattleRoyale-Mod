@@ -2,7 +2,7 @@
 <project>
 	<!-- _________________________ Application Settings _________________________ -->
 
-	<app title="Friday Night Funkin' Super Engine" file="FNF Battle Royale" packageName="com.ninjamuffin99.funkin" package="com.ninjamuffin99.funkin" main="Main" version="0.2.7.1" company="ninjamuffin99" />
+	<app title="FNF: Super Engine T Mod" file="FNF Super Engine-T" packageName="com.fnfsuperengine" package="com.fnfsuperengine" main="Main" version="0.2.7.1" company="superpowers04" />
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
 	<set name="APP_ID" value="0x0100f6c013bbc000" />
@@ -38,8 +38,6 @@
 	<set name="BUILD_DIR" value="export/32bit" if="32bit" unless="ghaction"/>
 	<set name="BUILD_DIR" value="c:/fnfbrbin/" if="ghaction"/>
 	<set name="BUILD_DIR" value="export/debug" if="debug" />
-
-
 
 	<classpath name="source" />
 
@@ -125,6 +123,10 @@
 	<haxelib name="flixel-ui" />
 	<!-- <haxelib name="newgrounds"/> -->
 	<haxelib name="faxe" if='switch'/>
+	<!-- <haxelib name="polymod"/> -->
+	<haxelib name="discord_rpc" if="windows"/>
+	<!-- <haxelib name="linc_luajit" if="windows"/> -->
+
 	<!-- <haxelib name="hxcpp-debug-server" if="desktop"/> -->
 
 	<!-- <haxelib name="markdown" /> -->
