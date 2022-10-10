@@ -100,6 +100,150 @@ function nh(ps,note){
 				case 4:
 					Pos[0] = 16; 
 			}
+		case 5:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+				case 4:
+					Pos[0] = -16; 
+				case 5:
+					Pos[1] = 16; 
+				case 6:
+					Pos[1] = -16; 
+				case 7:
+					Pos[0] = 16;
+			}
+		case 6:
+			switch(note.noteData){
+				case 0:
+					Pos[1] = -16;
+			}
+		case 7:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16;
+				case 1:
+					Pos[0] = 16;
+			}
+		case 8:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16;
+				case 1:
+					Pos[1] = -16;
+				case 2:
+					Pos[0] = 16;				
+			}
+		case 9:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+				case 4:
+					Pos[1] = 16; 
+				case 5:
+					Pos[1] = -16; 
+				case 6:
+					Pos[0] = -16; 
+				case 7:
+					Pos[1] = 16; 
+				case 8:
+					Pos[1] = -16; 
+				case 9:
+					Pos[0] = 16; 
+			}
+		case 10:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+				case 4:
+					Pos[1] = 16; 
+				case 5:
+					Pos[1] = -16; 
+				case 6:
+					Pos[1] = -16; 
+				case 7:
+					Pos[0] = -16; 
+				case 8:
+					Pos[1] = 16; 
+				case 9:
+					Pos[1] = -16; 
+				case 10:
+					Pos[0] = 16; 
+			}
+		case 11:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+				case 4:
+					Pos[0] = -16; 
+				case 5:
+					Pos[1] = 16; 
+				case 6:
+					Pos[1] = -16; 
+				case 7:
+					Pos[0] = 16; 
+				case 8:
+					Pos[0] = -16; 
+				case 9:
+					Pos[1] = 16; 
+				case 10:
+					Pos[1] = -16; 
+				case 11:
+					Pos[0] = 16; 
+			}
+		case 12:
+			switch(note.noteData){
+				case 0:
+					Pos[0] = -16; 
+				case 1:
+					Pos[1] = 16; 
+				case 2:
+					Pos[1] = -16; 
+				case 3:
+					Pos[0] = 16; 
+				case 4:
+					Pos[0] = -16; 
+				case 5:
+					Pos[1] = 16; 
+				case 6:
+					Pos[1] = -16; 
+				case 7:
+					Pos[1] = -16; 
+				case 8:
+					Pos[0] = 16; 
+				case 9:
+					Pos[0] = -16; 
+				case 10:
+					Pos[1] = 16; 
+				case 11:
+					Pos[1] = -16; 
+				case 12:
+					Pos[0] = 16; 
+			}
 	}
 	// if(ps.focusedCharacter == 0) Pos[0] = -Pos[0];
 	ps.additionCamPos = Pos;
