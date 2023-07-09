@@ -3,7 +3,7 @@ package;
 import openfl.Lib;
 
 import Controls.Control;
-import flixel.FlxG;
+import flixel.FlxG; 
 import flixel.FlxSprite;
 import flixel.FlxSubState;
 import flixel.addons.transition.FlxTransitionableState;
@@ -13,6 +13,7 @@ import flixel.system.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
+// import flixel.tweens.FlxTweenManager;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.ui.FlxBar;
@@ -21,10 +22,9 @@ class PauseSubState extends MusicBeatSubstate
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
 
-	var menuItems:Array<String> = ['Resume', 'Restart Song', 'Exit to menu'];
+	var menuItems:Array<String> = ['Resume', 'Restart Song', "Options Menu",'Exit to menu'];
 	var curSelected:Int = 0;
 
-	var pauseMusic:FlxSound;
 	var perSongOffset:FlxText;
 	var ready = true;
 	
@@ -38,17 +38,29 @@ class PauseSubState extends MusicBeatSubstate
 
 	var songPath = '';
 	var shouldveLeft = false;
+	var finishCallback:()->Void;
+	var time:Float = 0;
+	var volume:Float = 0;
+	var timers:Array<FlxTimer> = [];
+	var tweens:Array<FlxTween> = [];
 	public function new(x:Float, y:Float)
 	{
+		openfl.system.System.gc();
+		FlxTimer.globalManager.forEach(function(tmr:FlxTimer){
+			if(tmr.active){tmr.active = false;timers.push(tmr);}
+		});
+		FlxTween.globalManager.forEach(function(tmr:FlxTween){
+			if(tmr.active){tmr.active = false;tweens.push(tmr);}
+		});
 		super();
 		// PlayState.canPause = false; // Prevents the game from glitching somehow and trying to pause when already paused
 		PlayState.instance.callInterp("pauseCreate",[this]);
 
-		pauseMusic = new FlxSound().loadEmbedded(Paths.music('breakfast'), true, true);
-		pauseMusic.volume = 0;
-		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
+		finishCallback = FlxG.sound.music.onComplete;
 
-		FlxG.sound.list.add(pauseMusic);
+		time = FlxG.sound.music.time;
+		FlxG.sound.music.onComplete = null;
+		FlxG.sound.music.looped = true;
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0;
@@ -56,14 +68,14 @@ class PauseSubState extends MusicBeatSubstate
 		add(bg);
 
 		levelInfo = new FlxText(20, 15, 0, "", 32);
-		levelInfo.text += PlayState.SONG.song;
+		levelInfo.text = PlayState.SONG.song;
 		levelInfo.scrollFactor.set();
 		levelInfo.setFormat(CoolUtil.font, 32);
 		levelInfo.updateHitbox();
 		add(levelInfo);
 
 		levelDifficulty = new FlxText(20, 15 + 32, 0, "", 32);
-		levelDifficulty.text += CoolUtil.difficultyString();
+		levelDifficulty.text = CoolUtil.difficultyString();
 		levelDifficulty.scrollFactor.set();
 		levelDifficulty.setFormat(Paths.font('vcr.ttf'), 32);
 		levelDifficulty.updateHitbox();
@@ -81,20 +93,24 @@ class PauseSubState extends MusicBeatSubstate
 
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
-		perSongOffset = new FlxText(5, FlxG.height - 18, 0, "Additive Offset (Left, Right): " + PlayState.songOffset + " - Description - " + 'Adds value to global offset, per song.', 12);
-		perSongOffset.scrollFactor.set();
-		perSongOffset.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		// perSongOffset = new FlxText(5, FlxG.height - 18, 0, "Additive Offset (Left, Right): " + PlayState.songOffset + " - Description - " + 'Adds value to global offset, per song.', 12);
+		// perSongOffset.scrollFactor.set();
+		// perSongOffset.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		
-		#if cpp
-			add(perSongOffset);
-		#end
+		// #if cpp
+		// 	add(perSongOffset);
+		// #end
 
 		for (i in 0...menuItems.length)
 		{
-			var songText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i], true, false);
+			var songText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i], true, false,true,70,true);
 			songText.isMenuItem = true;
 			songText.targetY = i;
 			grpMenuShit.add(songText);
+			songText.screenCenter(X);
+			var sX = songText.x;
+			songText.x = 100 - songText.width * 0.5;
+			FlxTween.tween(songText,{x : sX},0.9,{ease:FlxEase.bounceOut});
 		}
 
 		changeSelection();
@@ -114,15 +130,38 @@ class PauseSubState extends MusicBeatSubstate
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 		PlayState.instance.callInterp("pause",[this]);
+		volume = FlxG.sound.music.volume;
+		FlxTween.tween(FlxG.sound.music,{volume:0.2},0.5);
+		FlxG.sound.music.looped = true;
 	}
 
 	override function update(elapsed:Float)
-	{if (ready){
-		if (pauseMusic.volume < 0.5)
-			pauseMusic.volume += 0.01 * elapsed;
+
+	{super.update(elapsed);
+		
+		if (quitHeldBar.visible && quitHeld <= 0){
+			quitHeldBar.visible = false;
+			quitHeldBG.visible = false;
+    		}
+		if (FlxG.keys.pressed.ESCAPE)
+		{
+			quitHeld += 5;
+			quitHeldBar.visible = true;
+			quitHeldBG.visible = true;
+			if (quitHeld > 1000) {quit();quitHeld = 0;} 
+			}else if (quitHeld > 0){
+			quitHeld -= 10;
+
+		}
+		if (ready){
+	
+		// if (FlxG.sound.music.volume < 0.5)
+		// 	FlxG.sound.music.volume += 0.01 * elapsed;
+		// if (FlxG.sound.music.volume > 0.25)
+		// 	FlxG.sound.music.volume -= 0.1 * elapsed;
 		PlayState.instance.callInterp("pauseUpdate",[this]);
 
-		super.update(elapsed);
+		
 
 		var upP = controls.UP_P;
 		var downP = controls.DOWN_P;
@@ -139,21 +178,6 @@ class PauseSubState extends MusicBeatSubstate
 		{
 			changeSelection(1);
 		}
-		
-		if (quitHeldBar.visible && quitHeld <= 0){
-			quitHeldBar.visible = false;
-			quitHeldBG.visible = false;
-    		}
-		if (FlxG.keys.pressed.ESCAPE)
-		{
-			quitHeld += 5;
-			quitHeldBar.visible = true;
-			quitHeldBG.visible = true;
-			if (quitHeld > 1000) {quit();quitHeld = 0;} 
-			}else if (quitHeld > 0){
-			quitHeld -= 10;
-
-		}
 
 		if (accepted)
 		{
@@ -162,27 +186,50 @@ class PauseSubState extends MusicBeatSubstate
 			switch (daSelected)
 			{
 				case "Resume":
-					countdown();
+					switch(FlxG.save.data.PauseMode){
+						case 0:resume();
+						case 1:countdown();
+						case 2:
+							if(time > Conductor.crochet * 4)time -= Conductor.crochet * 4;
+							resume();
+					}
 				case "Restart Song":
-					FlxG.resetState();
+					disappearMenu();
+					new FlxTimer().start(0.3,function(tmr:FlxTimer){FlxG.resetState();},1);
+				case "Options Menu":
+					disappearMenu();
+					new FlxTimer().start(0.3,function(tmr:FlxTimer){
+						SearchMenuState.doReset = false;
+						OptionsMenu.lastState = PlayState.stateType + 10;
+						FlxG.switchState(new OptionsMenu());
+					},1);
+
 				case "Exit to menu":
-					quit();
+					disappearMenu();
+					new FlxTimer().start(0.3,function(tmr:FlxTimer){
+						FlxTween.globalManager.clear();
+						quit();
+					},1);
 			}
 		}
 
-	}
-}
-	function quit(){
-		if(PlayState.loadRep)
+	}else{
+		if (controls.ACCEPT && menuItems[curSelected] == "Exit to menu")
 		{
-			FlxG.save.data.botplay = false;
-			FlxG.save.data.scrollSpeed = 1;
-			FlxG.save.data.downscroll = false;
+			quit();
 		}
-		PlayState.loadRep = false;
+	}}
+	function disappearMenu(?time:Float = 0.3){
+		for (_ => v in grpMenuShit.members)
+		{
+			ready = false;
+			FlxTween.tween(v,{x : -(100 + v.width),alpha : 0},time,{ease:FlxEase.cubeIn});
+		}
+	}
+	function quit(){
 
 		if (FlxG.save.data.fpsCap > 290) (cast (Lib.current.getChildAt(0), Main)).setFPSCap(290);
-
+		FlxG.sound.music.stop();
 		retMenu();
 
 		return;
@@ -203,20 +250,24 @@ class PauseSubState extends MusicBeatSubstate
 		shouldveLeft = true;
 		return;
 	}
+	var _tween:FlxTween;
 	function countdown(){try{
 		ready = false;
 		var swagCounter:Int = 1;
-		pauseMusic.stop();
-		pauseMusic.destroy();
-		grpMenuShit.destroy();
-		levelDifficulty.destroy();
-		levelInfo.destroy();
-		perSongOffset.destroy();
+		try{
+			_tween = FlxTween.tween(FlxG.sound.music,{volume:0},0.5);
+		}catch(e){}
+		for (i in [levelDifficulty,levelInfo,perSongOffset]) {
+			if(i != null){
+				i.destroy();
+			}
+		}
+		FlxG.sound.music.pause();
+		Conductor.songPosition = FlxG.sound.music.time = time;
+		disappearMenu(0.4);
 		PlayState.instance.callInterp("pauseResume",[this]);
 
-
-
-		startTimer = new FlxTimer().start(Conductor.crochet / 1000, function(tmr:FlxTimer)
+		startTimer = new FlxTimer().start(0.5, function(tmr:FlxTimer)
 		{
 
 			var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
@@ -276,19 +327,35 @@ class PauseSubState extends MusicBeatSubstate
 					});
 					FlxG.sound.play(Paths.sound('introGo' + altSuffix), 0.6);
 				case 4:
-
-					PlayState.instance.callInterp("pauseExit",[]);
-					close();
+					resume(true);
 			}
 
 			swagCounter += 1;
+			// generateSong('fresh');
 		}, 5);
-	}catch(e){MainMenuState.handleError('Something went wrong on countdown ${e.message}');}}
+	}catch(e){MainMenuState.handleError(e,'Something went wrong on countdown ${e.message}');}}
 	
+	function resume(dont:Bool = false){
+		if(!dont)PlayState.instance.callInterp("pauseResume",[this]);
+		PlayState.instance.callInterp("pauseExit",[]);
+		for (i in tweens){
+			i.active = true;
+		}
+		for (i in timers){
+			i.active = true;
+		}
+		if(_tween != null)_tween.cancel();
+		FlxG.sound.music.time = Conductor.songPosition = Conductor.rawPosition = time;
+		FlxG.sound.music.volume = volume;
+		if(FlxG.save.data.PauseMode != 2)FlxTween.tween(FlxG.sound.music,{volume:volume},0.01);
+		else FlxTween.tween(FlxG.sound.music,{volume:volume},Conductor.crochet * 0.003);
+		FlxG.sound.music.onComplete = finishCallback;
+		FlxG.sound.music.pause();
+		close();
+	}
+
 	override function destroy()
 	{
-		if (pauseMusic != null){pauseMusic.destroy();}
-
 		super.destroy();
 	}
 

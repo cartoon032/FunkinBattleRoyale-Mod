@@ -4,7 +4,7 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.addons.ui.FlxUIButton;
-import flixel.addons.ui.FlxInputText;
+import SEInputText as FlxInputText;
 import flixel.addons.ui.FlxUIList;
 import flixel.addons.ui.FlxUIState;
 import flixel.text.FlxText;
@@ -13,14 +13,13 @@ import flixel.util.FlxAxes;
 import flixel.util.FlxTimer;
 import flixel.tweens.FlxTween;
 import flixel.ui.FlxBar;
+import Song.MoreChar;
 
 import sys.FileSystem;
 import sys.io.File;
 import tjson.Json;
 using StringTools;
-#if windows
 import Discord.DiscordClient;
-#end
 
 class OnlineLobbyState extends MusicBeatState
 {
@@ -37,10 +36,14 @@ class OnlineLobbyState extends MusicBeatState
   public static var clients:Map<Int, String> = []; // Maps a player ID to the corresponding nickname
   public static var clientsOrder:Array<Int> = []; // This array holds ID values in order of join time (including ID -1 for self)
   public static var receivedPrevPlayers:Bool = false;
-  var quitHeld:Int = 0;
+  var quitHeld:Float = 0;
   var quitHeldBar:FlxBar;
   var quitHeldBG:FlxSprite;
+  var ChatBGBox:FlxSprite;
 
+  static var AutoOffset:Array<Float> = [250.0,-250.0];
+  public static var ExChar:Array<MoreChar> = [];
+  public static var CharID:Int = 0;
   static var Speed:Float = 1.0;
   static var SettingText:FlxText;
   static var Settingtwee:FlxTween;
@@ -82,12 +85,11 @@ class OnlineLobbyState extends MusicBeatState
 	var backButton:FlxUIButton;
   override function create()
   {
-	#if windows
 	new FlxTimer().start(0.1, function(tmr)
 	{
 		DiscordClient.changePresence('In Online Lobby with ${onlinemod.OnlineLobbyState.clientCount} player' + (onlinemod.OnlineLobbyState.clientCount > 1 ? 's' : ''),if(FlxG.save.data.ShowConnectedIP)'IP : ${FlxG.save.data.lastServer}:${FlxG.save.data.lastServerPort}' else null,false,null,(onlinemod.OnlineLobbyState.clientCount <= 1 ? 'empty-' : '') + "online-lobby");
 	});
-	#end
+	AutoOffset = [200.0,-200.0];
 	FlxG.sound.music.looped = true;
 	FlxG.sound.music.onComplete = null;
   	if(!FlxG.sound.music.playing) FlxG.sound.music.play();
@@ -101,11 +103,14 @@ class OnlineLobbyState extends MusicBeatState
 	topText.screenCenter(FlxAxes.X);
 	add(topText);
 
-	SettingText = new FlxText(0, 10, 0,(Speed != 1 ? "Song Speed : " + Speed + "x" : '')
-		+ (QuickOptionsSubState.getSetting("Force Mania") > -1 ? " Force Mania : " + QuickOptionsSubState.getSetting("Force Mania") : '')
-		+ (QuickOptionsSubState.getSetting("Random Notes") > 0 ? " Random Mode : " + QuickOptionsSubState.getSetting("Random Notes") : '')
-		+ (QuickOptionsSubState.getSetting("Play Both Side")? " Both Side : " + QuickOptionsSubState.getSetting("Play Both Side") : '')
-		+ (QuickOptionsSubState.getSetting("ADOFAI Chart")? " ADOFAI Chart : " + QuickOptionsSubState.getSetting("ADOFAI Chart") : '')
+	SettingText = new FlxText(0, 10, 0,(Speed != 1 ? "| Song Speed : " + Speed + "x" : '')
+		+ (PlayState.invertedChart ? " | Invert Chart : True" : '')
+		+ (QuickOptionsSubState.getSetting("Force Mania") > -1 ? "| Force Mania : " + QuickOptionsSubState.getSetting("Force Mania") : '')
+		+ (QuickOptionsSubState.getSetting("Random Notes") > 0 ? "| Random Mode : " + QuickOptionsSubState.getSetting("Random Notes") : '')
+		+ (QuickOptionsSubState.getSetting("Play Both Side") ? "| Both Side : " + QuickOptionsSubState.getSetting("Play Both Side") : '')
+		+ (QuickOptionsSubState.getSetting("ADOFAI Chart") ? "| ADOFAI Chart : " + QuickOptionsSubState.getSetting("ADOFAI Chart") : '')
+		+ (QuickOptionsSubState.getSetting("CO OP Mode") ? "| CO-OP Mode : " + QuickOptionsSubState.getSetting("CO OP Mode") : '')
+		+ (CharID != 0 ? "| CharID : " + CharID : '')
 		, 24);
 	SettingText.font = CoolUtil.font;
 	SettingText.setFormat(CoolUtil.font, 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -152,23 +157,21 @@ class OnlineLobbyState extends MusicBeatState
 		toggleLeaderboard();
 	}
 
-
 	createNamesUI();
 
-
-	Chat.createChat(this);
-
+	ChatBGBox = new FlxSprite().makeGraphic(FlxG.width, 175, 0x7F3F3F3F); // #3F3F3F
+	ChatBGBox.setPosition(0, FlxG.height - 290);
+	add(ChatBGBox);
+	Chat.createChat(this,true);
+	Chat.CreateHideButton(this);
 
 	if (!keepClients)
 	  Chat.PLAYER_JOIN(OnlineNickState.nickname);
 
-
 	OnlinePlayMenuState.AddXieneText(this);
-
 
 	FlxG.mouse.visible = true;
 	FlxG.autoPause = false;
-
 
 	OnlinePlayMenuState.receiver.HandleData = HandleData;
 	if (!keepClients)
@@ -225,10 +228,8 @@ class OnlineLobbyState extends MusicBeatState
 		addPlayerUI(id, nickname);
 		addPlayer(id, nickname);
 		if (receivedPrevPlayers)
-		  Chat.PLAYER_JOIN(nickname);
-		#if windows
+			Chat.PLAYER_JOIN(nickname);
 		DiscordClient.changePresence('In Online Lobby with ${onlinemod.OnlineLobbyState.clientCount} player' + (onlinemod.OnlineLobbyState.clientCount > 1 ? 's' : ''),if(FlxG.save.data.ShowConnectedIP)'IP : ${FlxG.save.data.lastServer}:${FlxG.save.data.lastServerPort}' else null,false,null,(onlinemod.OnlineLobbyState.clientCount <= 1 ? 'empty-' : '') + "online-lobby");
-		#end
 	  case Packets.END_PREV_PLAYERS:
 		receivedPrevPlayers = true;
 		addPlayerUI(-1, OnlineNickState.nickname, FlxColor.YELLOW);
@@ -240,24 +241,18 @@ class OnlineLobbyState extends MusicBeatState
 
 		removePlayer(id);
 		createNamesUI();
-		#if windows
 		DiscordClient.changePresence('In Online Lobby with ${onlinemod.OnlineLobbyState.clientCount} player' + (onlinemod.OnlineLobbyState.clientCount > 1 ? 's' : ''),if(FlxG.save.data.ShowConnectedIP)'IP : ${FlxG.save.data.lastServer}:${FlxG.save.data.lastServerPort}' else null,false,null,(onlinemod.OnlineLobbyState.clientCount <= 1 ? 'empty-' : '') + "online-lobby");
-		#end
 	  case Packets.GAME_START:
 		var jsonInput:String = data[0];
 		var folder:String = data[1];
-		// var count = 0;
-		// for (i in clients.keys())
-		// {
-		//   count++;
-		// }
 
 		StartGame(jsonInput, folder);
 
 	  case Packets.BROADCAST_CHAT_MESSAGE:
 		var id:Int = data[0];
 		var message:String = data[1];
-
+		if(StringTools.contains(message.toLowerCase(),OnlineNickState.nickname.toLowerCase()))
+			FlxG.sound.play(Paths.sound('confirmMenu'));
 		Chat.MESSAGE(OnlineLobbyState.clients[id], message);
 	  case Packets.REJECT_CHAT_MESSAGE:
 		Chat.SPEED_LIMIT();
@@ -276,19 +271,18 @@ class OnlineLobbyState extends MusicBeatState
 	}
   }
 
-  public static function handleServerCommand(command:String,?version = 0) // Not sure if I'll ever actually use the version variable for anything
-  {
+public static function handleServerCommand(command:String,?version = 0) // Not sure if I'll ever actually use the version variable for anything
+{
+	var args:Array<String> = command.split(' ');
 	try{ // All responses start with '32d5d168'
-
-	  var args:Array<String> = command.split(' ');
-	  switch (args[1]){
+	switch (args[1]){
 		case "set":{
-
 			if (args[3] == "true" || args[3] == "on" || args[3] == "false" || args[3] == "off"){ 
 				var bool = (args[3] == "true" || args[3] == "on");
 				switch(args[2]){
 					case "invertnotes":
 						PlayState.invertedChart = bool;
+						updatesetting();
 					case "invertchars":
 						QuickOptionsSubState.setSetting("Swap characters",bool);
 					case "inputsync":
@@ -302,8 +296,11 @@ class OnlineLobbyState extends MusicBeatState
 					case "bothside":
 						QuickOptionsSubState.setSetting("Play Both Side",bool);
 						updatesetting();
-					case "ADOFAI":
+					case "adofai":
 						QuickOptionsSubState.setSetting("ADOFAI Chart",bool);
+						updatesetting();
+					case "coop":
+						QuickOptionsSubState.setSetting("CO OP Mode",bool);
 						updatesetting();
 					default:
 						throw("Invalid option");
@@ -316,6 +313,11 @@ class OnlineLobbyState extends MusicBeatState
 						OnlinePlayState.useSongChar[1] = args[3];
 					case "gf":
 						OnlinePlayState.useSongChar[2] = args[3];
+					case "charid":
+						CharID = Std.parseInt(args[3]);
+						updatesetting();
+					case "scoremode":
+						FlxG.save.data.scoresystem = Std.parseInt(args[3]);
 					case "speed":
 						if(Std.parseFloat(args[3]) < 0.25)
 						{
@@ -324,29 +326,29 @@ class OnlineLobbyState extends MusicBeatState
 						}
 						else if(Std.parseFloat(args[3]) > 1.25)
 						{
-							Speed = 1;
+							Speed = 1.25;
 							sendResponse("Speed higher than 1.25 crash here");
 						}
 						else
 							Speed = Std.parseFloat(args[3]);
 						updatesetting();
 					case "forcemania":
-						if(Std.parseFloat(args[3]) < -1 && Std.parseFloat(args[3]) > 9)
+						if(Std.parseInt(args[3]) < -1 && Std.parseInt(args[3]) > 12)
 						{
 							QuickOptionsSubState.setSetting("Force Mania",-1);
-							sendResponse("force mania only have -1 - 9");
+							sendResponse("force mania only have -1 - 12");
 						}
 						else
-							QuickOptionsSubState.setSetting("Force Mania",Std.parseFloat(args[3]));
+							QuickOptionsSubState.setSetting("Force Mania",Std.parseInt(args[3]));
 						updatesetting();
 					case "randomnote":
-						if(Std.parseFloat(args[3]) < 0 && Std.parseFloat(args[3]) > 3)
+						if(Std.parseInt(args[3]) < 0 && Std.parseInt(args[3]) > 3)
 						{
 							QuickOptionsSubState.setSetting("Random Notes",0);
 							sendResponse("random note only have 0 - 3");
 						}
 						else
-							QuickOptionsSubState.setSetting("Random Notes",Std.parseFloat(args[3]));
+							QuickOptionsSubState.setSetting("Random Notes",Std.parseInt(args[3]));
 						updatesetting();
 					default:
 						throw("Invalid option");
@@ -354,6 +356,18 @@ class OnlineLobbyState extends MusicBeatState
 			}
 			Chat.SERVER_MESSAGE('Server \'${args[1]}\' \'${args[2]}\' to \'${args[3]}\'');
 		}
+		case "addchar":
+			var Char:MoreChar = {
+				char: args[2],
+				side: Std.parseInt(args[3]),
+				offset: if(args[4] == null) AutoOffset[Std.parseInt(args[3])] else Std.parseFloat(args[4])
+			};
+			switch(Std.parseInt(args[3])){case 0: AutoOffset[0] += 250; case 1: AutoOffset[1] -= 250;}
+			ExChar.push(Char);
+			Chat.SERVER_MESSAGE('Server Add \'${Char.char}\' on \'${Char.side}\' with offset \'${Char.offset}\'');
+		case "clearchar":
+			ExChar = [];
+			Chat.SERVER_MESSAGE('Server clear all Extra Character');
 		case "sendhscript":{ // Allows downloading of hscripts
 			QuickOptionsSubState.setSetting("Song hscripts",true);
 			if(!FlxG.save.data.allowServerScripts){
@@ -450,6 +464,7 @@ class OnlineLobbyState extends MusicBeatState
 				case "info":{
 					var clientInfo = {
 						version: MainMenuState.ver,
+						modVer: MainMenuState.modver,
 						versionSplit: MainMenuState.ver.split("."),
 						supported: ["inputsync","invertnotes","p2show","clientscript","setchar","sendscript","enablescript","removescript","tempscript"],
 					};
@@ -461,9 +476,12 @@ class OnlineLobbyState extends MusicBeatState
 				}
 			}
 		}
-	  }
-	  
-	}catch(e){Chat.SERVER_MESSAGE('Server sent an invalid command ${e.message}, ${command}');} // I don't expect servers to always handle this properly, always better to have error catching
+	}
+	 
+	}catch(e){
+		Chat.SERVER_MESSAGE('Server sent an invalid command ${e.message}, ${command}');
+		trace('Server sent an invalid command ${e.message}, ${command}, ${args}');
+	} // I don't expect servers to always handle this properly, always better to have error catching
   }
   public static function sendResponse(text:String,?sendToPlayer:Bool = false){
 	if(sendToPlayer)Chat.CLIENT_MESSAGE(text);
@@ -472,6 +490,8 @@ class OnlineLobbyState extends MusicBeatState
 
   public static function StartGame(jsonInput:String, folder:String)
   {
+	var offset = 250;
+	var number = 1;
 	PlayState.songspeed = Speed;
 	PlayState.isStoryMode = false;
 	FlxG.switchState(new OnlineLoadState(jsonInput, folder));
@@ -531,43 +551,44 @@ static function updatesetting(){
 	if(Settingtwee != null)Settingtwee.cancel();
 	SettingText.scale.set(1.2,1.2);
 	Settingtwee = FlxTween.tween(SettingText.scale,{x:1,y:1},(30 / Conductor.bpm));
-	SettingText.text = (Speed != 1 ? "Song Speed : " + Speed + "x" : '')
-	+ (QuickOptionsSubState.getSetting("Force Mania") > -1 ? " Force Mania : " + QuickOptionsSubState.getSetting("Force Mania") : '')
-	+ (QuickOptionsSubState.getSetting("Random Notes") > 0 ? " Random Mode : " + QuickOptionsSubState.getSetting("Random Notes") : '')
-	+ (QuickOptionsSubState.getSetting("Play Both Side")? " Both Side : " + QuickOptionsSubState.getSetting("Play Both Side") : '')
-	+ (QuickOptionsSubState.getSetting("ADOFAI Chart")? " ADOFAI Chart : " + QuickOptionsSubState.getSetting("ADOFAI Chart") : '')
+	SettingText.text = (Speed != 1 ? "| Song Speed : " + Speed + "x" : '')
+	+ (PlayState.invertedChart ? " | Invert Chart : True" : '')
+	+ (QuickOptionsSubState.getSetting("Force Mania") > -1 ? "| Force Mania : " + QuickOptionsSubState.getSetting("Force Mania") : '')
+	+ (QuickOptionsSubState.getSetting("Random Notes") > 0 ? "| Random Mode : " + QuickOptionsSubState.getSetting("Random Notes") : '')
+	+ (QuickOptionsSubState.getSetting("Play Both Side") ? "| Both Side : " + QuickOptionsSubState.getSetting("Play Both Side") : '')
+	+ (QuickOptionsSubState.getSetting("ADOFAI Chart") ? "| ADOFAI Chart : " + QuickOptionsSubState.getSetting("ADOFAI Chart") : '')
+	+ (QuickOptionsSubState.getSetting("CO OP Mode") ? "| CO-OP Mode : " + QuickOptionsSubState.getSetting("CO OP Mode") : '')
+	+ (CharID != 0 ? "| CharID : " + CharID : '')
 	;
 	SettingText.screenCenter(X);
 }
 
-  override function update(elapsed:Float)
-  {
-		@:privateAccess
-		{
-			if (FlxG.sound.music.playing)
-				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, Speed);
-		}
-	if (quitHeldBar.visible && quitHeld <= 0){
-	  quitHeldBar.visible = false;
-	  quitHeldBG.visible = false;
-	}
-	if (Chat.chatField.hasFocus)
+override function update(elapsed:Float)
+{
+	@:privateAccess
 	{
-		if (FlxG.keys.justPressed.ENTER)
-		{
-			Chat.SendChatMessage();
-		}
+		if (FlxG.sound.music.playing)
+			lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, Speed);
 	}
+	if (quitHeldBar.visible && quitHeld <= 0){
+		quitHeldBar.visible = false;
+		quitHeldBG.visible = false;
+	}
+	if (Chat.chatField.hasFocus && FlxG.keys.justPressed.ENTER)
+		Chat.SendChatMessage();
+	Chat.update(elapsed);
+	ChatBGBox.visible = Chat.hidechat;
+	if (FlxG.keys.justPressed.F12) trace(clientsOrder);
 	if (FlxG.keys.pressed.ESCAPE)
 	{
-	  quitHeld += 5;
-	  quitHeldBar.visible = true;
-	  quitHeldBG.visible = true;
-	  if (quitHeld > 1000) disconnect(); 
+		quitHeld += 10 * (elapsed * 100);
+		quitHeldBar.visible = true;
+		quitHeldBG.visible = true;
+		if (quitHeld > 1000) disconnect(); 
 	}else if (quitHeld > 0){
-	  quitHeld -= 10;
-	  
+	  quitHeld -= 20 * (elapsed * 100);
 	}
 	super.update(elapsed);
-  }
+	FlxG.mouse.visible = true;
+}
 }

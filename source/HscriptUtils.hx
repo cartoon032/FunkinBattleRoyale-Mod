@@ -1,7 +1,7 @@
 package;
 
 //More Modding Plus stuff
-
+import flixel.input.keyboard.FlxKey;
 import openfl.display.DisplayObject;
 import openfl.display.Stage;
 import flixel.input.gamepad.FlxGamepadManager;
@@ -12,8 +12,8 @@ import flixel.addons.effects.FlxTrail;
 import flixel.system.frontEnds.InputFrontEnd;
 import flixel.system.FlxAssets.FlxSoundAsset;
 import flixel.system.FlxSound;
-import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.system.FlxSoundGroup;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKeyboard;
 import flixel.math.FlxRect;
 import flixel.util.FlxColor;
@@ -23,10 +23,8 @@ import flixel.FlxGame;
 import flixel.FlxCamera;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
-import hscript.InterpEx;
-import hscript.Interp;
 import flixel.FlxG;
-import flash.media.Sound;
+import openfl.media.Sound;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.addons.effects.FlxTrail;
@@ -54,6 +52,16 @@ import tjson.Json;
 
 import haxe.iterators.StringIterator;
 import haxe.iterators.StringKeyValueIterator;
+import hscript.Interp;
+import hscript.InterpEx;
+import hscript.Parser;
+import hscript.ParserEx;
+import hscript.Expr;
+import hscriptfork.InterpSE;
+
+import flixel.util.FlxAxes;
+// import flxanimate.FlxAnimate;
+// import flxanimate.frames.FlxAnimateFrames;
 
 #if cpp
 using cpp.NativeString;
@@ -64,12 +72,12 @@ class HscriptUtils {
 	
 	public static var interp = new InterpEx();
 	public static var hscriptClasses:Array<String> = [];
+	public static var defines:Array<String> = [];
 	@:access(hscript.InterpEx)
 	public static function init() {
 		// var filelist = hscriptClasses = CoolUtil.coolTextFile("assets/scripts/plugin_classes/classes.txt");
 		interp = addVarsToInterp(interp);
 		HscriptGlobals.init();
-		trace(InterpEx._scriptClassDescriptors);
 	}
 	/**
 	 * Create a simple interp, that already added all the needed shit
@@ -78,13 +86,67 @@ class HscriptUtils {
 	 * @return Interp
 	 */
 	public static function createSimpleInterp():Interp {
-		var reterp = new Interp();
+		var reterp = new InterpSE();
 		reterp = addVarsToInterp(reterp);
 		return reterp;
 	}
-	 public static function addVarsToInterp<T:Interp>(interp:T):T {
+	public static function createSimpleParser():Parser {
+		var parser = new ParserEx();
+		parser.allowTypes = parser.allowJSON = parser.allowMetadata = true;
+		parser.preprocesorValues["version"] = MainMenuState.ver;
+		parser.preprocesorValues["debug"] = #if debug true #else false #end;
+		return parser;
+	}
+	public static function eval<T:Interp>(interp:T,?parser:hscript.Parser,str:String):Array<Dynamic>{ // [Errored, Error message if so, stack if present,stage]
+		if(str == null || str == ""){
+			return [true,'Eval string is empty',null,'str != null'];
+		}
+		if(interp == null){
+			return [true,'No interpeter!',null,'interp != null'];
+		}
+
+		var program;
+		var parser = (if(parser == null) createSimpleParser() else parser);
+		try{
+
+			// parser.parseModule(songScript);
+			program = parser.parseString(str);
+			if(program == null){throw('Parser is null?');}
+		}catch(e){return [true,'Line:${parser.line};\n Error:${e.message}',null,'Parsing'];}
+
+		try{
+			interp.execute(program);
+		}
+		catch(e){
+			return [true,e.message,e.stack,'Executing'];
+		}
+		return [false];
+	}
+	public static function genErrorMessage(e:hscript.Expr.Error,func:String,id:String,?line:String = ""):String {
+		var message = switch( #if hscriptPos e.e #else e #end ) {
+			case EInvalidChar(c): "Invalid character: '"+(StringTools.isEof(c) ? "EOF" : String.fromCharCode(c))+"' ("+c+")";
+			case EUnexpected(s): "Unexpected token: \""+s+"\"";
+			case EUnterminatedString: "Unterminated string";
+			case EUnterminatedComment: "Unterminated comment";
+			case EInvalidPreprocessor(str): "Invalid preprocessor (" + str + ")";
+			case EUnknownVariable(v): "Unknown variable: "+v;
+			case EInvalidIterator(v): "Invalid iterator: "+v;
+			case EInvalidOp(op): "Invalid operator: "+op;
+			case EInvalidAccess(f): "Invalid access to field " + f;
+			case ECustom(msg): msg;
+		};
+		#if hscriptPos
+			return	'Function "${func}" caused exception for "$id"\n'+
+					'${e.origin}:${e.line}$line\n$message';
+		#else
+			return message;
+		#end
+
+	}
+	public static function addVarsToInterp<T:Interp>(interp:T):T {
 		// // : )
 		// SE Specific
+
 		interp.variables.set("Character", Character);
 		interp.variables.set("PlayState", PlayState);
 		interp.variables.set("Note", Note);
@@ -100,6 +162,10 @@ class HscriptUtils {
 		interp.variables.set("Paths",Paths);
 		interp.variables.set("HSBrTools",HSBrTools);
 		interp.variables.set("SETools",SETools);
+		interp.variables.set("SELoader",SELoader);
+		interp.variables.set("FlxSprTrail",FlxSprTrail);
+		// eval.bind(Interp,_)
+		interp.variables.set("eval", function(){trace('This does not work yet!');}); // Eval code 
 		// interp.variables.set("SEKeys", SEKeys);
 
 
@@ -113,14 +179,16 @@ class HscriptUtils {
 		interp.variables.set("StringTools", SEStringTools); // This uses inlines, I hate my life
 		interp.variables.set("Json", SEJson);
 
-		interp.variables.set("Type", SEType);
-		interp.variables.set("getClass", SEType.getClass);
-		interp.variables.set("resolveClass", SEType.resolveClass);
+		interp.variables.set("Type", Type);
+		interp.variables.set("getClass", Type.getClass);
+		interp.variables.set("resolveClass", Type.resolveClass);
 		// SE modifications of other libraries
 		interp.variables.set("FlxTimer", BRTimer);
 
 		// Flixel Libaries
 
+
+		interp.variables.set("FlixelFlxG", FlxG); // 
 		interp.variables.set("FlxSprite", FlxSprite);
 		interp.variables.set("FlxGraphic", FlxGraphic);
 		interp.variables.set("FlxSound", FlxSound);
@@ -133,15 +201,22 @@ class HscriptUtils {
 		interp.variables.set("FlxAtlasFrames", FlxAtlasFrames);
 		interp.variables.set("FlxTrail", FlxTrail);
 		interp.variables.set("FlxTrailArea", FlxTrailArea);
-		interp.variables.set("FlxPoint", FlxPoint);
-		interp.variables.set("FlxTrail", FlxTrail);
+		interp.variables.set("FlxPoint", FlxBasePoint);
+		
 		interp.variables.set("FlxEase", FlxEase);
 		interp.variables.set("FlxCamera",FlxCamera);
 		interp.variables.set("FlxTween", FlxTween);
 		interp.variables.set("FlxText",FlxText);
 		interp.variables.set("FlxSort",FlxSort);
-		interp.variables.set("FlxAxes",flixel.util.FlxAxes);
+		#if FLXRUNTIMESHADER
+		interp.variables.set("FlxRuntimeShader",flixel.addons.display.FlxRuntimeShader);
+		#end
+		interp.variables.set("FlxShader",flixel.graphics.tile.FlxGraphicsShader);
+		interp.variables.set("FlxTextBorderStyle",FlxTextBorderStyle);
+		interp.variables.set("FlxAxes",SEAxes);
 
+		// interp.variables.set("FlxAnimate", FlxAnimate);
+		// interp.variables.set("FlxAnimateFrames", FlxAnimateFrames);
 
 		// Normal Haxe
 		interp.variables.set("Math", Math);
@@ -149,25 +224,68 @@ class HscriptUtils {
 		interp.variables.set("Std", Std);
 		interp.variables.set("Reflect", Reflect);
 
+		interp.variables.set("mobile",#if(mobile) true #else false #end );
+		if(defines == null){getDefines();}
+		interp.variables.set("defines",defines );
 
 
+		interp.variables.set("this", interp);
 
 		
-		#if debug
-		interp.variables.set("debug", true);
-		#else
-		interp.variables.set("debug", false);
-		#end
+		interp.variables.set("debug", #if(debug) true #else false #end );
 		
 		
 		return interp;
 	}
+	public static function getDefines(){
+		defines = ['haxe'
+		#if(windows)				,"windows" #end
+		#if(macos)					,"macos" #end
+		#if(linux)					,"linux" #end
+		#if(android)				,"android" #end
+		#if(web)					,"web" #end
+		#if(flash)					,"flash" #end
+		#if(sys)					,"sys" #end
+		#if(debug)					,"debug" #end
+		#if(target.sys)				,"target.sys" #end
+		#if(target.static)			,"target.static" #end
+		#if(target.threaded)		,"target.threaded" #end
+		#if(ghaction)				,"ghaction" #end
+		#if(HXCPP_M64)				,"hxcpp_m64" #end
+		#if(HXCPP_M32)				,"hxcpp_m32" #end
+		#if(HXCPP_CHECK_POINTER)	,"hxcpp_check_pointer" #end
+		#if(HXCPP_STACK_LINE)		,"hxcpp_stack_line" #end
+		#if(HXCPP_GC_GENERATIONAL)	,"hxcpp_gc_generational" #end
+		#if(dce)					,"dce" #end
+		#if(FLX_DEBUG)				,"flx_debug" #end
+		#if(FLX_NO_DEBUG)			,"flx_no_debug" #end
+		#if(FLX_NO_GAMEPAD)			,"flx_no_gamepad" #end
+		#if(FLX_NO_TOUCH)			,"flx_no_touch" #end
+		#if(FLX_NO_MOUSE)			,"flx_no_mouse" #end
+		#if(FLX_NO_KEYBOARD)		,"flx_no_keyboard" #end
+		#if(linc_luajit)			,"linc_luajit" #end
+		#if(hscript)				,"hscript" #end
+		#if(discord_rpc)			,"discord_rpc" #end
+		#if(FLXRUNTIMESHADER)			,"flxruntimeshader" #end
+		];
+	}
 }
-
+class SEAxes{
+	public static var X    = 0x01;
+	public static var Y    = 0x10;
+	public static var XY   = 0x11;
+	public static var NONE = 0x00;
+}
 class SETools{
 	public static var persistantVars:Map<String,Dynamic> = new Map<String,Dynamic>();
 	static public function areSameType(o:Dynamic,c:Dynamic):Bool{
 		return Type.typeof(o) == Type.typeof(c);
+	}
+	static public function keyFromString(key:String):FlxKey{
+		return FlxKey.fromStringMap[key];
+	}
+	static public function keyToString(key:FlxKey):String{
+		return FlxKey.toStringMap[key];
 	}
 	static public function loadSave(scope:String,save:String):SESave{
 		return new SESave(scope,save);
@@ -175,8 +293,11 @@ class SETools{
 	static public function getFromPersistant(obj:String):Dynamic{
 		return persistantVars.get(obj);
 	}
-	static public function addToPersistant(name,obj:Dynamic){
+	static public function addToPersistant(name:String,obj:Dynamic){
 		return persistantVars.set(name,obj);
+	}
+	static public function removeFromPersistant(name:String){
+		return persistantVars.set(name,null);
 	}
 
 
@@ -262,8 +383,8 @@ class SESave{
 	public function new(scope:String,save:String){
 		_path = 'mods/scriptOptions/saves/$scope/';
 		_fileName = '$save.json';
-		if(FileSystem.exists(_path + _fileName)){
-			_map = loadOptions(File.getContent(_path + _fileName));
+		if(SELoader.exists(_path + _fileName)){
+			_map = loadOptions(SELoader.loadText(_path + _fileName));
 			isNew = false;
 		}else{
 			_map = new Map<String,Dynamic>();
@@ -278,51 +399,55 @@ class SESave{
 		_map[id] = value;
 		return;
 	}
-}
-
-
-class SEType {
-
-	static public function typeof(o:Dynamic):Dynamic{
-		return Type.typeof(o);
-	}
-	static public function getSuperClass(o:Dynamic):Dynamic{
-		return Type.getSuperClass(o);
-	}
-	static public function getClass(o:Dynamic):Dynamic{
-		return Type.getClass(o);
-	}
-	static public function getClassFields(o:Class<Dynamic>):Array<String>{
-		return Type.getClassFields(o);
-	}
-	static public function getClassName(o:Class<Dynamic>):Dynamic{
-		return Type.getClassName(o);
-	}
-	static public function createInstance(cl:Class<Dynamic>, args:Array<Dynamic>):Dynamic{
-		return Type.createInstance(cl,args);
-	}
-	static public function createEmptyInstance(cl:Class<Dynamic>):Dynamic{
-		return Type.createEmptyInstance(cl);
-	}
-	static public function resolveClass(name:String):Dynamic{
-		switch (name) {
-			case "FileSystem" | "File":
-				return FReplica;
-			case "sys":
-				return Class; // trol
-			case "Type":
-				return SEType;
-		}
-
-		return Type.resolveClass(name);
-	}
-	static public function resolveEnum(name:String):Enum<Dynamic>{
-		return Type.resolveEnum(name);
-	}
-	static public function createEnum(name:String):Enum<Dynamic>{
-		return Type.resolveEnum(name);
+	public function toString(){
+		return '[ Super Engine Save. Contents: ' + _map.toString() + " ]";
 	}
 }
+
+// class SEType {
+// 	static public function allEnums<T>(e:Enum<T>):Array<T>{
+// 		return Type.allEnums(e);
+// 	}
+// 	static public function typeof(o:Dynamic):Dynamic{
+// 		return Type.typeof(o);
+// 	}
+// 	static public function getSuperClass(o:Dynamic):Dynamic{
+// 		return Type.getSuperClass(o);
+// 	}
+// 	static public function getClass(o:Dynamic):Dynamic{
+// 		return Type.getClass(o);
+// 	}
+// 	static public function getClassFields(o:Class<Dynamic>):Array<String>{
+// 		return Type.getClassFields(o);
+// 	}
+// 	static public function getClassName(o:Class<Dynamic>):Dynamic{
+// 		return Type.getClassName(o);
+// 	}
+// 	static public function createInstance<T>(cl:Class<Dynamic>, args:Array<Dynamic>):T{
+// 		return Type.createInstance(cl,args);
+// 	}
+// 	static public function createEmptyInstance<T>(cl:Class<Dynamic>):T{
+// 		return Type.createEmptyInstance(cl);
+// 	}
+// 	static public function resolveClass(name:String):Dynamic{
+// 		switch (name) {
+// 			case "FileSystem" | "File":
+// 				return FReplica;
+// 			case "sys":
+// 				return Class; // trol
+// 			case "Type":
+// 				return SEType;
+// 		}
+
+// 		return Type.resolveClass(name);
+// 	}
+// 	static public function resolveEnum(name:String):Enum<Dynamic>{
+// 		return Type.resolveEnum(name);
+// 	}
+// 	static public function createEnum<T>(e:Enum<T>, constr:String, ?params:Array<Dynamic>):T{
+// 		return Type.createEnum(e,constr,params);
+// 	}
+// }
 
 
 // class SEType extends Type{
@@ -342,28 +467,31 @@ class SEJson {
 
 class FReplica{
 	static public function stat(P:String){
-		return FileSystem.stat(P);
+		return FileSystem.stat(SELoader.getPath(P));
 	}
 	static public function isDirectory(P:String){
-		return FileSystem.isDirectory(P);
+		return SELoader.isDirectory(P);
 	}
 	static public function exists(P:String){
-		return FileSystem.exists(P);
+		return SELoader.exists(P);
 	}
 	static public function absolutePath(P:String){
-		return FileSystem.absolutePath(P);
+		return SELoader.absolutePath(P);
 	}
 	static public function fullPath(P:String){
-		return FileSystem.fullPath(P);
+		return SELoader.fullPath(P);
 	}
 	static public function readDirectory(P:String){
-		return FileSystem.readDirectory(P);
+		return SELoader.readDirectory(P);
 	}
 	static public function getContent(P:String){
-		return File.getContent(P);
+		return SELoader.getContent(P);
+	}
+	static public function saveContent(P:String,con:String){
+		return SELoader.saveContent(P,con);
 	}
 	static public function getBytes(P:String):haxe.io.Bytes{
-		return File.getBytes(P);
+		return SELoader.getBytes(P);
 	}
 }
 // class BRTween extends FlxTween{ // Make sure errors are caught whenever a timer is used
@@ -647,21 +775,22 @@ class HscriptGlobals {
 	public static var height(get, never):Int;
 	public static var initialHeight(get, never):Int;
 	public static var initialWidth(get, never):Int;
-	public static var initialZoom(get, never):Float;
 	public static var keys(get, never):FlxKeyboard;
 	// no log
 	public static var maxElapsed(get, set):Float;
 	public static var mouse(get,never):flixel.input.mouse.FlxMouse;
-	// no plugins
+	public static var plugins:flixel.system.frontEnds.PluginFrontEnd;
 	public static var random(default,never):SERandom = new SERandom();
 	public static var renderBlit(get, never):Bool;
 	public static var renderMethod(get, never):FlxRenderMethod;
 	public static var renderTile(get, never):Bool;
 	public static var stage(get, never):Stage;
 	public static var state(get, never):FlxState;
-	// no swipes because no mobile : )
+	public static var swipes(get,never):Array<flixel.input.FlxSwipe>;
+	public static var touches(get,never):flixel.input.touch.FlxTouchManager;
+
 	public static var timeScale(get, set):Float;
-	// no touch because no mobile : )
+
 	public static var updateFramerate(get,set):Int;
 	// no vcr : )
 	// no watch : )
@@ -671,6 +800,15 @@ class HscriptGlobals {
 
 	public static var sound(get,never):SoundFrontEnd;
 	public static function init() {
+	}
+	static function get_swipes(){
+		return FlxG.swipes;
+	}
+	static function get_touches(){
+		return FlxG.touches;
+	}
+	static function get_plugins(){
+		return FlxG.plugins;
 	}
 	static function get_sound(){
 		return FlxG.sound;
@@ -741,14 +879,17 @@ class HscriptGlobals {
 		return FlxG.game;
 	}
 	static function get_gamepads():FlxGamepadManager {
-		return FlxG.gamepads;
+
+		#if (FLX_NO_GAMEPAD)
+			return null;
+		#else
+			return FlxG.gamepads;
+		#end
 	}
 	static function get_initialWidth():Int {
 		return FlxG.initialWidth;
 	}
-	static function get_initialZoom():Float {
-		return FlxG.initialZoom;
-	}
+
 	static function get_inputs() {
 		return FlxG.inputs;
 	}

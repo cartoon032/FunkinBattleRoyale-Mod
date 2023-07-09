@@ -8,6 +8,7 @@ import flixel.FlxG;
 import openfl.display.FPS;
 import openfl.Lib;
 import tjson.Json;
+import Discord.DiscordClient;
 
 class OptionCategory
 {
@@ -66,13 +67,13 @@ class Option
 		return description;
 	}
 
-	public function getValue():String { return throw "stub!"; };
+	public function getValue():String { return throw "you forgot to replace getValue!"; };
 	
 	// Returns whether the label is to be updated.
-	public function press():Bool { return throw "stub!"; }
-	private function updateDisplay():String { return throw "stub!"; }
-	public function left():Bool { return throw "stub!"; }
-	public function right():Bool { return throw "stub!"; }
+	public function press():Bool { return throw "you forgot to replace press!"; }
+	private function updateDisplay():String { return throw "you forgot to replace updateDisplay!"; }
+	public function left():Bool { return throw "you forgot to replace left!"; }
+	public function right():Bool { return throw "you forgot to replace right!"; }
 }
 
 
@@ -105,7 +106,7 @@ class DFJKOption extends Option
 	}
 	private override function updateDisplay():String
 	{
-		return "Key Bindings for 4K";
+		return "Key Bindings for 4K >";
 	}
 }
 
@@ -126,13 +127,19 @@ class SixKeyMenu extends Option
 		OptionsMenu.instance.openSubState(new SixKeyBindMenu());
 		return false;
 	}
+	override function right():Bool {
+		return false;
+	}
+	override function left():Bool {
+		return false;
+	}
 	override function getValue():String {
 		return SixKeyBindMenu.getKeyBindsString();
 	}
 
 	private override function updateDisplay():String
 	{
-		return "Key Bindings for 6K";
+		return "Key Bindings for 6K >";
 	}
 }
 
@@ -153,13 +160,19 @@ class NineKeyMenu extends Option
 		OptionsMenu.instance.openSubState(new NineKeyBindMenu());
 		return false;
 	}
+	override function right():Bool {
+		return false;
+	}
+	override function left():Bool {
+		return false;
+	}
 	override function getValue():String {
 		return NineKeyBindMenu.getKeyBindsString();
 	}
 
 	private override function updateDisplay():String
 	{
-		return "Key Bindings for 9K";
+		return "Key Bindings for 9K >";
 	}
 }
 
@@ -180,13 +193,19 @@ class TwelveKeyMenu extends Option
 		OptionsMenu.instance.openSubState(new TwelveKeyBindMenu());
 		return false;
 	}
+	override function right():Bool {
+		return false;
+	}
+	override function left():Bool {
+		return false;
+	}
 	override function getValue():String {
 		return TwelveKeyBindMenu.getKeyBindsString();
 	}
 
 	private override function updateDisplay():String
 	{
-		return "Key Bindings for 12K";
+		return "Key Bindings for 12K >";
 	}
 }
 
@@ -373,7 +392,7 @@ class Judgement extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Safe Frames";
+		return "Safe Frames: " + FlxG.save.data.frames;
 	}
 
 	override function left():Bool {
@@ -389,8 +408,8 @@ class Judgement extends Option
 	}
 
 	override function getValue():String {
-		return "Safe Frames: " + Conductor.safeFrames +
-		" | SICK: " + HelperFunctions.truncateFloat(45 * Conductor.timeScale, 0) +
+		return "MARVELOUS: " + HelperFunctions.truncateFloat(22.5 * Conductor.timeScale, 0) +
+		"ms, SICK: " + HelperFunctions.truncateFloat(45 * Conductor.timeScale, 0) +
 		"ms, GOOD: " + HelperFunctions.truncateFloat(90 * Conductor.timeScale, 0) +
 		"ms, BAD: " + HelperFunctions.truncateFloat(125 * Conductor.timeScale, 0) + 
 		"ms, SHIT: " + HelperFunctions.truncateFloat(156 * Conductor.timeScale, 0) +
@@ -502,14 +521,11 @@ class ScrollSpeedOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Scroll Speed";
+		return "Scroll Speed: " + HelperFunctions.truncateFloat(FlxG.save.data.scrollSpeed,1);
 	}
 
 	override function right():Bool {
 		FlxG.save.data.scrollSpeed += 0.1;
-
-		if (FlxG.save.data.scrollSpeed < 1)
-			FlxG.save.data.scrollSpeed = 1;
 
 		if (FlxG.save.data.scrollSpeed > 4)
 			FlxG.save.data.scrollSpeed = 4;
@@ -525,10 +541,6 @@ class ScrollSpeedOption extends Option
 
 		if (FlxG.save.data.scrollSpeed < 1)
 			FlxG.save.data.scrollSpeed = 1;
-
-		if (FlxG.save.data.scrollSpeed > 4)
-			FlxG.save.data.scrollSpeed = 4;
-
 		return true;
 	}
 }
@@ -700,7 +712,7 @@ class BotPlay extends Option
 	
 	public override function press():Bool
 	{
-		FlxG.save.data.botplay = false;
+		FlxG.save.data.botplay = !FlxG.save.data.botplay;
 		trace('BotPlay : ' + FlxG.save.data.botplay);
 		display = updateDisplay();
 		return true;
@@ -736,7 +748,7 @@ class PlayerOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Player Character";
+		return "Player Character >";
 	}
 
 	override function getValue():String {
@@ -768,7 +780,7 @@ class GFOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "GF Character";
+		return "GF Character >";
 	}
 
 	override function getValue():String {
@@ -799,7 +811,7 @@ class OpponentOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Opponent Character";
+		return "Opponent Character >";
 	}
 
 	override function getValue():String {
@@ -827,6 +839,27 @@ class CharAutoOption extends Option
 		return "Force selected opponent " + (!FlxG.save.data.charAuto ? "on" : "off");
 	}
 }
+class CharAutoBFOption extends Option
+{
+
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.charAutoBF = !FlxG.save.data.charAutoBF;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Force selected player " + (!FlxG.save.data.charAutoBF ? "on" : "off");
+	}
+}
 class AnimDebugOption extends Option
 {
 	public function new(desc:String)
@@ -844,7 +877,32 @@ class AnimDebugOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Anim Debug " + (!FlxG.save.data.animDebug ? "off" : "on");
+		return "Content Creation Mode " + (!FlxG.save.data.animDebug ? "off" : "on");
+	}
+}
+class AccurateNoteHoldOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		if(FlxG.save.data.inputHandler == 1){
+
+			FlxG.save.data.accurateNoteSustain = !FlxG.save.data.accurateNoteSustain;
+			display = updateDisplay();
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private override function updateDisplay():String
+	{
+		return (FlxG.save.data.inputHandler == 0 ? "Kade Note Sustain" : "Accurate Note Sustain " + (FlxG.save.data.accurateNoteSustain ? "on" : "off"));
 	}
 }
 class NoteSplashOption extends Option
@@ -966,7 +1024,7 @@ class SelStageOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Selected Stage";
+		return "Selected Stage >";
 	}
 
 	override function getValue():String {
@@ -1007,8 +1065,8 @@ class ReloadCharlist extends Option
 }
 class InputHandlerOption extends Option
 {
-	var ies:Array<String> = ["Kade","Super Engine"];
-	var iesDesc:Array<String> = ["Kade 1.5/1.4 Input","A custom input engine based off of Kade 1.4/1.5"];
+	var ies:Array<String> = ["Super Engine","Super Engine Evo"];
+	var iesDesc:Array<String> = ["A custom input engine based off of Kade 1.4/1.5","A new input engine that is based off of key events; Usually faster"];
 	public function new(desc:String)
 	{
 		super();
@@ -1043,8 +1101,8 @@ class InputHandlerOption extends Option
 }
 class ScoreSystem extends Option
 {
-	var ies:Array<String> = ["FNF","OSU!","OSU!Mania","Balance Score","Stupid"];
-	var iesDesc:Array<String> = ["Good old FNF score","More Combo = More Score, Miss = BIG L","The Max score for every song is about 1M, The reason it not exactly 1M cuz rounding issue","You will get a Score Multiplier if your side have less note than opponent","Fuck it, Score * Combo * songspeed everything count at combo even miss"];
+	var ies:Array<String> = ["FNF","OSU!","OSU!Mania","Balance Score","Invert Balance Score","Stupid"];
+	var iesDesc:Array<String> = ["Good old FNF score","More Combo = More Score","The Max score for every song is 1M","You will get a Score Multiplier if your side have less note than opponent","You will get a Score Divider if your side have more note than opponent","Fuck it, Score * Combo * songspeed everything count at combo even miss"];
 	public function new(desc:String)
 	{
 		super();
@@ -1079,8 +1137,8 @@ class ScoreSystem extends Option
 }
 class AltScoreSystem extends Option
 {
-	var ies:Array<String> = ["Disable","FNF","OSU!","OSU!Mania","Balance Score","Stupid"];
-	var iesDesc:Array<String> = [":Peace:","Good old FNF score","More Combo = More Score","score cap at 1M i think","less note more score definitely","so i saw a FNF mod that give you alot of score base on RNG and i was also kinda bored so i add one but with no RNG"];
+	var ies:Array<String> = ["Disable","FNF","OSU!","OSU!Mania","Balance Score","Invert Balance Score","Stupid"];
+	var iesDesc:Array<String> = [":Peace:","Good old FNF score","More Combo = More Score","score cap at 1M","less note more score definitely","Why do i get less score, Whose idea is it Said the guy both think and code it in","so i saw a FNF mod that give you alot of score base on RNG and i was also kinda bored so i add one but with no RNG"];
 	public function new(desc:String)
 	{
 		super();
@@ -1137,7 +1195,7 @@ class NoteSelOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Note Style Selection";
+		return "Note Style Selection >";
 	}
 
 	override function getValue():String {
@@ -1185,6 +1243,27 @@ class HitSoundOption extends Option
 	private override function updateDisplay():String
 	{
 		return "Note Hit Sound " + (!FlxG.save.data.hitSound ? "off" : "on");
+	}
+}
+
+class DadHitSoundOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.DadhitSound = !FlxG.save.data.DadhitSound;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Opponent Note Hit Sound " + (!FlxG.save.data.DadhitSound ? "off" : "on");
 	}
 }
 
@@ -1495,7 +1574,7 @@ class SelScriptOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Toggle scripts";
+		return "Toggle scripts >";
 	}
 
 	override function getValue():String {
@@ -1822,14 +1901,11 @@ class FastSongScrollSpeedOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Fast Song Scroll Speed";
+		return "Fast Song Scroll Speed: " + HelperFunctions.truncateFloat(FlxG.save.data.FastSongScrollSpeed,1);
 	}
 
 	override function right():Bool {
 		FlxG.save.data.FastSongScrollSpeed += 0.1;
-
-		if (FlxG.save.data.FastSongScrollSpeed < 1)
-			FlxG.save.data.FastSongScrollSpeed = 1;
 
 		if (FlxG.save.data.FastSongScrollSpeed > 4)
 			FlxG.save.data.FastSongScrollSpeed = 4;
@@ -1845,10 +1921,6 @@ class FastSongScrollSpeedOption extends Option
 
 		if (FlxG.save.data.FastSongScrollSpeed < 1)
 			FlxG.save.data.FastSongScrollSpeed = 1;
-
-		if (FlxG.save.data.FastSongScrollSpeed > 4)
-			FlxG.save.data.FastSongScrollSpeed = 4;
-
 		return true;
 	}
 }
@@ -1862,7 +1934,6 @@ class AllowServerScriptsOption extends Option
 
 	public override function press():Bool
 	{
-
 		FlxG.save.data.allowServerScripts = !FlxG.save.data.allowServerScripts;
 		display = updateDisplay();
 		return true;
@@ -1873,43 +1944,7 @@ class AllowServerScriptsOption extends Option
 		return ("Allow Server Scripts: " + (FlxG.save.data.allowServerScripts ? "on" : "off"));
 	}
 }
-class NoteFadeOption extends Option
-{
-	var ies:Array<String> = ["Off","Default","Faster","Even Faster"];
-	var iesDesc:Array<String> = ["No Note Fade","Slowly fade in note one as a time","Fade in note one as a time but faster","Need to go even further beyond"];
-	public function new(desc:String)
-	{
-		super();
-		if (FlxG.save.data.notefade >= ies.length) FlxG.save.data.notefade = 0;
-		description = desc;
-
-		acceptValues = true;
-	}
-
-	override function getValue():String {
-		return iesDesc[FlxG.save.data.notefade];
-	}
-
-	override function right():Bool {
-		FlxG.save.data.notefade += 1;
-		if (FlxG.save.data.notefade >= ies.length) FlxG.save.data.notefade = 0;
-		display = updateDisplay();
-		return true;
-	}
-	override function left():Bool {
-		FlxG.save.data.notefade -= 1;
-		if (FlxG.save.data.notefade < 0) FlxG.save.data.notefade = ies.length - 1;
-		display = updateDisplay();
-		return true;
-	}
-	public override function press():Bool{return right();}
-
-	private override function updateDisplay():String
-	{
-		return 'Note Fade Mode: ${ies[FlxG.save.data.notefade]}';
-	}
-}
-class AltSingMultiKeyOption extends Option
+class SwapUpDownOption extends Option
 {
 	public function new(desc:String)
 	{
@@ -1920,14 +1955,14 @@ class AltSingMultiKeyOption extends Option
 	public override function press():Bool
 	{
 
-		FlxG.save.data.altsingformultikey = !FlxG.save.data.altsingformultikey;
+		FlxG.save.data.swapUpDown = !FlxG.save.data.swapUpDown;
 		display = updateDisplay();
 		return true;
 	}
 
 	private override function updateDisplay():String
 	{
-		return ("Multi Key use Sing2: " + (FlxG.save.data.altsingformultikey ? "on" : "off"));
+		return ("Swap Up&Down on 6K&7K: " + (FlxG.save.data.swapUpDown ? "on" : "off"));
 	}
 }
 class ShowConnectedIPOption extends Option
@@ -1940,7 +1975,6 @@ class ShowConnectedIPOption extends Option
 
 	public override function press():Bool
 	{
-
 		FlxG.save.data.ShowConnectedIP = !FlxG.save.data.ShowConnectedIP;
 		display = updateDisplay();
 		return true;
@@ -1949,6 +1983,28 @@ class ShowConnectedIPOption extends Option
 	private override function updateDisplay():String
 	{
 		return ("Show Connected Server IP: " + (FlxG.save.data.ShowConnectedIP ? "on" : "off"));
+	}
+}
+class DiscordRPCOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.DiscordRPC = !FlxG.save.data.DiscordRPC;
+		if(FlxG.save.data.DiscordRPC) DiscordClient.initialize();
+		else DiscordClient.shutdown();
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return ("DiscordRPC: " + (FlxG.save.data.DiscordRPC ? "on" : "off"));
 	}
 }
 class VolumeOption extends Option
@@ -2116,6 +2172,199 @@ class ExportOption extends Option
 
 	override function right():Bool {
 		
+		return false;
+	}
+
+
+	override function left():Bool {
+		return false;
+	}
+}
+
+class JudgementCounterOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.JudgementCounter = !FlxG.save.data.JudgementCounter;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Judgement Counter " + (!FlxG.save.data.JudgementCounter ? "off" : "on");
+	}
+}
+class ExtraIconOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.ExtraIcon = !FlxG.save.data.ExtraIcon;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Load More Icon " + (!FlxG.save.data.ExtraIcon ? "off" : "on");
+	}
+}
+class HCBoolOption extends Option{
+	var id:String;
+	var name:String;
+
+	public function new(desc:String,name:String,id:String)
+	{
+		// acceptValues = true;
+		this.name = name;
+		this.id = id;
+		// display = name;
+		super();
+		description = desc;
+
+	}
+	override function getValue():String {
+		return '${Reflect.getProperty(FlxG.save.data,id)}';
+	}
+	public override function press():Bool{
+		Reflect.setProperty(FlxG.save.data,id,!Reflect.getProperty(FlxG.save.data,id));
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return name + ": " + getValue();
+	}
+}
+class PauseMode extends Option
+{
+	var ies:Array<String> = ["FNF","SE","Guitar Hero"];
+	var iesDesc:Array<String> = ["Immediately go back to gaming","Do a countdown before resume","Go back 4 Beat in the song"];
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.PauseMode >= ies.length) FlxG.save.data.PauseMode = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.PauseMode];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.PauseMode += 1;
+		if (FlxG.save.data.PauseMode >= ies.length) FlxG.save.data.PauseMode = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.PauseMode -= 1;
+		if (FlxG.save.data.PauseMode < 0) FlxG.save.data.PauseMode = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Pause Mode : ${ies[FlxG.save.data.PauseMode]}';
+	}
+}
+
+class ReplaceDadwithGFOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.ReplaceDadWithGF = !FlxG.save.data.ReplaceDadWithGF;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Replace Dad With GF: " + (!FlxG.save.data.ReplaceDadWithGF ? "off" : "on");
+	}
+}
+class OnlineEXCharLimitOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return "";
+	}
+
+	override function right():Bool
+	{
+		FlxG.save.data.OnlineEXCharLimit++;
+		if (FlxG.save.data.OnlineEXCharLimit > 100) FlxG.save.data.OnlineEXCharLimit = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool
+	{
+		FlxG.save.data.OnlineEXCharLimit--;
+		if (FlxG.save.data.OnlineEXCharLimit > 100) FlxG.save.data.OnlineEXCharLimit = 10;
+		if (FlxG.save.data.OnlineEXCharLimit < 0) FlxG.save.data.OnlineEXCharLimit = 128;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'EXChar Limit : ' + (FlxG.save.data.OnlineEXCharLimit > 100 ? "Basically Unlimited" : FlxG.save.data.OnlineEXCharLimit);
+	}
+}
+
+class DeleteChartAutoSaveOption extends Option
+{
+	var opt = "";
+	public function new(desc:String,option:String = "")
+	{
+		opt = option;
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.autosave = "";
+		OptionsMenu.instance.showTempmessage('Auto Save have been deleted',FlxColor.GREEN,10);
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Delete Chart editor AutoSave";
+	}
+
+	override function right():Bool {
 		return false;
 	}
 

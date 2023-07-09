@@ -15,9 +15,7 @@ import sys.FileSystem;
 import flixel.util.FlxColor;
 import flixel.system.FlxSound;
 
-#if windows
 import Discord.DiscordClient;
-#end
 typedef MusicTime ={
 	var file:String;
 	var begin:Int;
@@ -157,9 +155,7 @@ class SickMenuState extends MusicBeatState
 			SearchMenuState.background.destroyOnNoUse = SearchMenuState.backgroundOver.destroyOnNoUse = false;
 		}
 
-
 		if(bg == null){
-			
 			bg = new FlxSprite().loadGraphic(SearchMenuState.background); 
 			bg.color = 0xFFFF6E6E;
 		}
@@ -170,8 +166,6 @@ class SickMenuState extends MusicBeatState
 		bgOver.scrollFactor.set(0.01,0.01);
 		add(bgOver);
 		musicHandle(isMainMenu,bg);
-
-
 
 		generateList(true);
 
@@ -186,10 +180,8 @@ class SickMenuState extends MusicBeatState
 
 		add(descriptionText);
 
-
 		FlxG.mouse.visible = false;
 		FlxG.autoPause = true;
-
 
 		super.create();
 	}

@@ -11,6 +11,7 @@ import flixel.util.FlxStringUtil;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxInputText;
 import flixel.tweens.FlxTween;
+import flixel.tweens.FlxEase;
 
 import sys.io.File;
 import sys.FileSystem;
@@ -31,13 +32,19 @@ class SearchMenuState extends MusicBeatState
 	var muteKeys = FlxG.sound.muteKeys;
 	var volumeUpKeys = FlxG.sound.volumeUpKeys;
 	var volumeDownKeys = FlxG.sound.volumeDownKeys;
-	var searchList:Array<String> = ["this should be replaced"];
+	public var searchList:Array<String> = ["this should be replaced"];
 	var retAfter:Bool = true;
 	var bg:FlxSprite;
 	var titleText:FlxText;
 	var infotext:FlxText;
 	var overLay:FlxGroup = new FlxTypedGroup();
 	var infoTextBoxSize:Int = 2;
+	public var supportMouse(get,default):Bool = true;
+	public function get_supportMouse():Bool{
+		return supportMouse && !Overlay.Console.showConsole;
+	}
+	public var allowInput:Bool = true;
+
 	public static var background:FlxGraphic;
 	public static var backgroundOver:FlxGraphic;
 	var toggleables:Map<String,Bool> = [
@@ -53,6 +60,9 @@ class SearchMenuState extends MusicBeatState
 	function addTitleText(str:String = ""){
 		if (titleText != null) titleText.destroy();
 		if (str == "") return;
+		#if android
+			str = str + " - Tap here to go back";
+		#end
 		titleText = new FlxText(FlxG.width * 0.5, 20, 0, str, 12);
 		titleText.scrollFactor.set();
 		titleText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -80,14 +90,36 @@ class SearchMenuState extends MusicBeatState
 		}
 	}
 	// var bgColor:FlxColor = 0xFFFF6E6E;
-	static public inline function resetVars(){
+	static public function resetVars(){
+		LoadingScreen.loadingText = "Resetting Variables";
 		if (ChartingState.charting) ChartingState.charting = false;
 		if (FlxG.save.data.songUnload && PlayState.SONG != null) {PlayState.SONG = null;} // I'm not even sure if this is needed but whatever
-		PlayState.songScript = "";PlayState.hsBrTools = null;onlinemod.OfflinePlayState.instFile = onlinemod.OfflinePlayState.voicesFile = "";
+		PlayState.nameSpace = "";/* PlayState.scripts = []; */PlayState.hsBrTools = null;onlinemod.OfflinePlayState.instFile = onlinemod.OfflinePlayState.voicesFile = "";
+		HSBrTools.shared = [];
 		SickMenuState.chgTime = true;
+		// if(Note.noteNames[0] == null){Note.noteNames = ["purple","blue","green",'red'];}
+		// if(Note.noteAnims[0] == null){Note.noteAnims = ["singLEFT","singDOWN","singUP",'singRIGHT'];}
+		// if(Note.noteDirections[0] == null){Note.noteDirections = ["LEFT","DOWN","UP",'RIGHT','NONE'];}
+		Conductor.offset = 0;
 		onlinemod.OfflinePlayState.nameSpace = "";
+		if(FlxG.save.data.persistBF == null && PlayState.boyfriend != null){
+			try{for(man in PlayState.boyfriendArray){man.destroy();}}catch(e){}
+			PlayState.boyfriend = null;
+			PlayState.boyfriendArray = [];
+		} 
+		if(/*FlxG.save.data.persistOpp == null &&*/ PlayState.dad != null){
+			try{for(man in PlayState.dadArray){man.destroy();}}catch(e){}
+			PlayState.dad = null;
+			PlayState.dadArray = [];
+		} 
+		if(FlxG.save.data.persistGF == null && PlayState.gf != null){
+			try{PlayState.gf.destroy();}catch(e){}
+			PlayState.gf = null;
+		} 
 	}
 	public static var doReset:Bool = true;
+	public var blackBorder:FlxSprite;
+	public var infoTextBorder:FlxSprite;
 	override function create()
 	{try{
 		if(doReset)resetVars();
@@ -103,19 +135,21 @@ class SearchMenuState extends MusicBeatState
 			bg.color = bgColor;
 		}
 		bg.scrollFactor.set(0.01,0.01);
-		SickMenuState.musicHandle();
+		if(doReset) SickMenuState.musicHandle(bg);
+
 		add(bg);
 		var bgOver = new FlxSprite().loadGraphic(SearchMenuState.backgroundOver);
 		bgOver.scrollFactor.set(0.01,0.01);
 		add(bgOver);
 		grpSongs = new FlxTypedGroup<Alphabet>();
+		LoadingScreen.loadingText = "Loading list";
 		reloadList();
 		add(grpSongs);
+		FlxG.mouse.visible = true;
 		if (toggleables['search']){
-				var blackBorder = new FlxSprite(-30,0).makeGraphic((Std.int(FlxG.width + 40)),140,FlxColor.BLACK);
+				blackBorder = new FlxSprite(-30,0).makeGraphic((Std.int(FlxG.width + 40)),140,FlxColor.BLACK);
 				blackBorder.alpha = 0.5;
 				add(blackBorder);
-				FlxG.mouse.visible = true;
 				//Searching
 				searchField = new FlxInputText(10, 100, 1152, 20);
 				searchField.maxLength = 81;
@@ -127,14 +161,13 @@ class SearchMenuState extends MusicBeatState
 				add(searchButton);
 			}
 
-		var infotexttxt:String = "Hold shift to scroll faster";
-		infotext = new FlxText(5, FlxG.height - (20 * infoTextBoxSize ), FlxG.width - 5, infotexttxt, 16);
+		infotext = new FlxText(5, FlxG.height - (20 * infoTextBoxSize ), FlxG.width - 5, "Hold shift to scroll faster", 16);
 		infotext.wordWrap = true;
 		infotext.scrollFactor.set();
-		infotext.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		var blackBorder = new FlxSprite(-30,FlxG.height - (20 * infoTextBoxSize )).makeGraphic((Std.int(FlxG.width + 40)),(20 * infoTextBoxSize),FlxColor.BLACK);
-		blackBorder.alpha = 0.5;
-		overLay.add(blackBorder);
+		infotext.setFormat(CoolUtil.font, 18, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		infoTextBorder = new FlxSprite(-30,FlxG.height - (20 * infoTextBoxSize )).makeGraphic((Std.int(FlxG.width + 40)),(20 * infoTextBoxSize),FlxColor.BLACK);
+		infoTextBorder.alpha = 0.5;
+		overLay.add(infoTextBorder);
 		overLay.add(infotext);
 		// add(overLay);
 		FlxG.autoPause = true;
@@ -142,17 +175,21 @@ class SearchMenuState extends MusicBeatState
 
 		super.create();
 		openfl.system.System.gc();
+		try{
+			FlxG.sound.music.onComplete = null;
+
+		}catch(e){}
 		
-	}catch(e) MainMenuState.handleError('Error with searchmenu "create" ${e.message}');}
+	}catch(e) MainMenuState.handleError(e,'Error with searchmenu "create" ${e.message}');}
 
 	function addToList(char:String,i:Int = 0){
-				songs.push(char);
-				var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, char, true, false,false,useAlphabet);
-				controlLabel.isMenuItem = true;
-				controlLabel.targetY = i;
-				if (i != 0)
-					controlLabel.alpha = 0.6;
-				grpSongs.add(controlLabel);
+		songs.push(char);
+		var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, char, true, false,false,useAlphabet);
+		controlLabel.isMenuItem = true;
+		controlLabel.targetY = i;
+		if (i != 0)
+			controlLabel.alpha = 0.6;
+		grpSongs.add(controlLabel);
 	}
 	override function draw(){
 		super.draw();
@@ -161,7 +198,7 @@ class SearchMenuState extends MusicBeatState
 
 	function reloadList(?reload = false,?search=""){try{
 		curSelected = 0;
-		if(reload){grpSongs.clear();}
+		if(reload){CoolUtil.clearFlxGroup(grpSongs);}
 		songs = [];
 
 		var i:Int = 0;
@@ -182,24 +219,64 @@ class SearchMenuState extends MusicBeatState
 			SetVolumeControls(true);
 			handleInput();
 		}
+
 	}catch(e) MainMenuState.handleError('Error with searchmenu "update" ${e.message}');}
 	function select(sel:Int = 0){
 		trace("You forgot to replace the select function!");
 	}
+	var hoverColor = 0xffffff;
 	function handleInput(){
 			if (controls.BACK || FlxG.keys.justPressed.ESCAPE)
 			{
 				ret();
 			}
-			if (controls.UP_P && FlxG.keys.pressed.SHIFT){changeSelection(-5);} 
-			else if (controls.UP_P || (controls.UP && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(-1);}
-			if (controls.DOWN_P && FlxG.keys.pressed.SHIFT){changeSelection(5);} 
-			else if (controls.DOWN_P || (controls.DOWN && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(1);}
+			if(songs.length <= 0 || !allowInput) return;
+			if(songs.length > 1){
+				if (controls.UP_P && FlxG.keys.pressed.SHIFT){changeSelection(-5);} 
+				else if (controls.UP_P || (controls.UP && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(-1);}
+				if (controls.DOWN_P && FlxG.keys.pressed.SHIFT){changeSelection(5);} 
+				else if (controls.DOWN_P || (controls.DOWN  && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(1);}
+			}
 			extraKeys();
-			if (controls.ACCEPT && songs.length > 0)
+
+			if (controls.ACCEPT)
 			{
 				select(curSelected);
 				if(retAfter) ret();
+			}
+			if(supportMouse){/* 
+				if(FlxG.mouse.justReleased){
+					if(titleText != null && FlxG.mouse.overlaps(titleText)){
+						ret();
+					}
+					if(!FlxG.mouse.overlaps(blackBorder) ){
+						var curSel= grpSongs.members[curSelected];
+						for (i in -2 ... 2) {
+							var member = grpSongs.members[curSelected + i];
+							if(member != null && FlxG.mouse.overlaps(member)){
+								if(member == curSel){
+									select(curSelected);
+									if(retAfter) ret();
+								}else{
+									changeSelection(i);
+								}
+							}
+						}
+					}
+				} */
+				#if android
+					if(FlxG.swipes[0] != null){
+						var swipe = FlxG.swipes[0];
+						var distance = (swipe.startPosition.y - swipe.endPosition.y) / 100;
+						// var speed = Math.max(swipe.duration - 1,0.1);
+						trace(distance);
+						changeSelection(Std.int(distance));
+					}
+				#end
+				if(FlxG.mouse.wheel != 0){
+					var move = -FlxG.mouse.wheel;
+					changeSelection(Std.int(move));
+				}
 			}
 	}
 	function extraKeys(){
@@ -208,28 +285,29 @@ class SearchMenuState extends MusicBeatState
 	var curTween:FlxTween;
 	override function beatHit(){
 		super.beatHit();
-		if(grpSongs != null && grpSongs.members[curSelected] != null && grpSongs.members[curSelected].useAlphabet){
+		if(FlxG.save.data.beatBouncing && grpSongs != null && grpSongs.members[curSelected] != null && grpSongs.members[curSelected].useAlphabet){
 			
-			grpSongs.members[curSelected].scale.set(1.2,1.2);
+			grpSongs.members[curSelected].scale.set(1.1,1.1);
 			if(curTween != null)curTween.cancel();
-			curTween = FlxTween.tween(grpSongs.members[curSelected].scale,{x:1,y:1},(60 / Conductor.bpm));
+			curTween = FlxTween.tween(grpSongs.members[curSelected],{"scale.x":1,"scale.y":1},Conductor.stepCrochet * 0.003,{ease:FlxEase.circOut});
 		}
 	}
 	function ret(){
 		FlxG.mouse.visible = false;
+		FlxG.sound.play(Paths.sound('cancelMenu'));
 		if (onlinemod.OnlinePlayMenuState.socket != null){FlxG.switchState(new onlinemod.OnlineOptionsMenu());}else{FlxG.switchState(new OptionsMenu());}
 	}
 	function changeSelection(change:Int = 0)
 	{try{
 		if (change != 0) FlxG.sound.play(Paths.sound("scrollMenu"), 0.4);
-		if (grpSongs.length < 2){
-			return;
-		}
+		// if (grpSongs.length < 2){
+		// 	return;
+		// }
 		curSelected += change;
 
 		if (curSelected < 0)
-			curSelected = grpSongs.length - 1;
-		if (curSelected >= grpSongs.length)
+			curSelected = grpSongs.members.length - 1;
+		if (curSelected >= grpSongs.members.length)
 			curSelected = 0;
 
 		var bullShit:Int = 0;
@@ -245,14 +323,17 @@ class SearchMenuState extends MusicBeatState
 					}
 					item.targetY = bullShit - curSelected;
 
-					if(!useAlphabet) item.color = 0xbbbbbb;
-					item.alpha = 0.8;
-					if (item.targetY == 0)
-					{
-						item.alpha = 1;
+					if(item.adjustAlpha){
+						item.alpha = 0.8;
 
-						if(!useAlphabet) item.color = 0xffffff;
-					}
+						if(!useAlphabet) item.color = 0xbbbbbb;
+						if (item.targetY == 0)
+						{
+							item.alpha = 1;
+
+							if(!useAlphabet) item.color = 0xffffff;
+						}
+					} 
 				}else{item.kill();} // Else, try to kill it to lower the amount of sprites loaded
 				bullShit++;
 			}

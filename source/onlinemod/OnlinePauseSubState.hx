@@ -50,6 +50,14 @@ class OnlinePauseSubState extends MusicBeatSubstate
 		levelDifficulty.updateHitbox();
 		add(levelDifficulty);
 
+		var notPaused:FlxText = new FlxText(20, 15 + 32, 0, "", 48);
+		notPaused.text = "GAME IS NOT PAUSED";
+		notPaused.scrollFactor.set();
+		notPaused.setFormat(Paths.font('vcr.ttf'), 32);
+		notPaused.screenCenter(X);
+		notPaused.updateHitbox();
+		add(notPaused);
+
 		levelDifficulty.alpha = 0;
 		levelInfo.alpha = 0;
 
@@ -102,11 +110,9 @@ class OnlinePauseSubState extends MusicBeatSubstate
 			switch (daSelected)
 			{
 				case "Resume":
+					FlxG.sound.music.volume = FlxG.save.data.instVol;
 					close();
-				case "Restart":
-					FlxG.resetState();
 				case "Exit to lobby":
-					PlayState.loadRep = false;
 					if (TitleState.supported){
 						Sender.SendPacket(Packets.SEND_CURRENT_INFO, [PlayState.songScore,PlayState.misses,Std.int(PlayState.accuracy)], OnlinePlayMenuState.socket);
 					}else{Sender.SendPacket(Packets.SEND_SCORE, [PlayState.songScore], OnlinePlayMenuState.socket);}
@@ -115,7 +121,6 @@ class OnlinePauseSubState extends MusicBeatSubstate
 					
 					FlxG.switchState(new OnlineLobbyState(true,false));
 				case "Exit to menu":
-					PlayState.loadRep = false;
 					OnlinePlayMenuState.socket.close();
 					FlxG.switchState(new OnlinePlayMenuState("Disconnected"));
 			}

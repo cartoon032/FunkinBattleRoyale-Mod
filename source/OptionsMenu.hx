@@ -17,13 +17,14 @@ import flixel.util.FlxColor;
 import lime.utils.Assets;
 import flixel.addons.ui.FlxUIState;
 import flixel.util.FlxTimer;
+
+import tjson.Json;
 import sys.FileSystem;
 import sys.io.File;
 import OptionsFileDef;
 import Reflect;
-#if windows
 import Discord.DiscordClient;
-#end
+using StringTools;
 
 class OptionsMenu extends MusicBeatState
 {
@@ -43,28 +44,34 @@ class OptionsMenu extends MusicBeatState
 			new OpponentOption("Change the opponent character"),
 			new PlayerOption("Change the player character"),
 			new GFOption("Change the GF used"),
-			// new NoteSelOption("Change the note assets used, pulled from mods/noteassets"),
+			new NoteSelOption("Change the note assets used, pulled from mods/noteassets"),
 			new SelStageOption("Select the stage to use, Default will use song default"),
 			new SelScriptOption("Enable/Disable scripts that run withsongs"),
 			new CharAutoOption("Force the opponent you've selected or allow the song to choose the opponent if you have them installed"),
-			new ReloadCharlist("Refreshes the character and stage list, used for if you added characters or stages"),
-			new AllowServerScriptsOption("Allow servers to run scripts. THIS IS DANGEROUS, ONLY ENABLE IF YOU TRUST THE SERVERS")
+			new CharAutoBFOption("Force the player you've selected or allow the song to choose the player if you have them installed"),
+			new ReloadCharlist("Refreshes the character and stage list, used for if you added characters or stages")
+		]),
+		new OptionCategory("Online", [
+			new AllowServerScriptsOption("Allow servers to run scripts. THIS IS DANGEROUS, ONLY ENABLE IF YOU TRUST THE SERVERS"),
+			new OnlineEXCharLimitOption("How many people will get add(not include yourself and opponent) while playing")
 		]),
 		new OptionCategory("Gameplay", [
-			new DFJKOption(controls),
-			new SixKeyMenu(controls),
-			new NineKeyMenu(controls),
-			new TwelveKeyMenu(controls),
 			new DownscrollOption("Change the layout of the strumline."),
 			new MiddlescrollOption("Move the strumline to the middle of the screen"),
 
 			new AccuracyDOption("Change how accuracy is calculated. (Accurate = Simple, Complex = Milisecond Based)"),
 			new OffsetMenu("Get a note offset based off of your inputs!"),
 			new InputHandlerOption("Change the input engine used"),
-			// new PopupScoreLocationOption("Where you want your score Popup to be"),
-			// new PopupScoreOffset("Offset to Center of screen. more = center"),
+			new PauseMode("Change what happen after unpause in single"),
+			new AccurateNoteHoldOption("Whether note sustains/holds are more accurate. If off then they act like vanilla/early kade"),
 			new ScoreSystem("Change how score is calculate"),
 			new AltScoreSystem("The another score show on the result screen")
+		]),
+		new OptionCategory("KeyBind",[
+			new DFJKOption(controls),
+			new SixKeyMenu(controls),
+			new NineKeyMenu(controls),
+			new TwelveKeyMenu(controls),
 		]),
 		new OptionCategory("Modifiers", [
 			new PracticeModeOption("Disables the ability to get a gameover."),
@@ -82,23 +89,28 @@ class OptionsMenu extends MusicBeatState
 			new AccuracyOption("Display accuracy information."),
 			new SongPositionOption("Show the songs current position (as a bar)"),
 			new CpuStrums("CPU's strumline lights up when a note hits it."),
-			new NoteFadeOption("help make some chart with note immediately spawn playable"),
+			new ReplaceDadwithGFOption("When chart doesn't want Dad do you want to replace it GF or just disable Dad"),
 			new SongInfoOption("Change how your performance is displayed"),
+			new JudgementCounterOption("Show Judgement Counter Mid Song"),
 		]),
 		new OptionCategory("Misc", [
 			// new CheckForUpdatesOption("Toggle check for updates when booting the game, useful if you're in the Discord with pings on"),
 			new FPSOption("Toggle the FPS Counter"),
 			new ResetButtonOption("Toggle pressing R to gameover."),
 			new FlashingLightsOption("Toggle flashing lights that can cause epileptic seizures and strain."),
-			new AnimDebugOption("Access animation debug in a offline session, 1=BF,2=Dad,3=GF. Also shows extra information"),
-			new AltSingMultiKeyOption("Using thing like singLEFT2 for the extra note (Spacebar always use singSpace)"),
-			new ShowConnectedIPOption("Showing what server you are currently connect to"),
+			new AnimDebugOption("Enables the Character/chart editor, F10 console, displays some extra info in the FPS Counter, and some other debug stuff"),
+			new SwapUpDownOption("Using Left Down Right Left Up Right like in shaggy and basicly every other engine. Weirdo"),
+			new DiscordRPCOption("Do you want the world to know what you playing on Discord"),
+			new ShowConnectedIPOption("Showing what server you are currently connect to on Discord RPC"),
+			new LogGameplayOption("Logs your game to a text file"),
+			new DeleteChartAutoSaveOption("Delete The Autosave from chart editor"),
 			new EraseOption("Backs up your options to SEOPTIONS-BACKUP.json and then resets them"),
 			new ImportOption("Import your options from SEOPTIONS.json"),
 			new ExportOption("Export your options to SEOPTIONS.json to backup or to share with a bug report"),
 		]),
 		new OptionCategory("Performance", [
 			new FPSCapOption("Cap your FPS"),
+			new ExtraIconOption("Whether to load Extra Icon for Extra Character call by the chart. Can Block your screen if too many"),
 			new UseBadArrowsOption("Use custom arrow texture instead of coloring normal notes black"),
 			new ShitQualityOption("Disables elements not essential to gameplay like the stage"),
 			new NoteRatingOption("Toggles the rating that appears when you press a note"),
@@ -114,6 +126,7 @@ class OptionsMenu extends MusicBeatState
 			new ShowP2Option("Show Opponent"),
 			new ShowGFOption("Show Girlfriend"),
 			new ShowP1Option("Show Player 1"),
+			new HCBoolOption("Makes the loading screen use threads and show loading progress but is buggy","Threaded loading screen","doCoolLoading"),
 			//new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu")
 		]),
 		new OptionCategory("Auditory", [
@@ -124,7 +137,8 @@ class OptionsMenu extends MusicBeatState
 			new VolumeOption("Adjust the volume of miss sounds","miss"),       
 			new VolumeOption("Adjust the volume of other sounds and the default script sound volume","other"),  
 			new MissSoundsOption("Play a sound when you miss"),
-			new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg"),
+			new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg and mods/holdsound.ogg"),
+			new DadHitSoundOption("Play a click when Opponent hit a note. Uses osu!'s sounds or your mods/hitsound.ogg and mods/holdsound.ogg"),
 			new PlayVoicesOption("Plays the voices a character has when you press a note."),
 		])
 	];
@@ -133,8 +147,6 @@ class OptionsMenu extends MusicBeatState
 
 	private var currentDescription:String = "";
 	private var grpControls:FlxTypedGroup<Alphabet>;
-	private var grpControls_:FlxTypedGroup<Alphabet>;
-	private var catControls:FlxTypedGroup<Alphabet>;
 	public static var versionShit:FlxText;
 	var timer:FlxTimer;
 
@@ -150,16 +162,15 @@ class OptionsMenu extends MusicBeatState
 	}
 	override function create()
 	{
-
-		#if windows
 		DiscordClient.changePresence("In Option Menu",null);
-		#end
+		loading = false;
 		instance = this;
+		FlxG.save.data.masterVol = FlxG.sound.volume;
 		if(onlinemod.OnlinePlayMenuState.socket == null){
 			initOptions();
 		}
 
-		var menuBG:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
+		var menuBG:FlxSprite = new FlxSprite().loadGraphic(Paths.image("menuDesat"));
 
 		menuBG.color = 0x793397;
 		menuBG.setGraphicSize(Std.int(menuBG.width * 1.1));
@@ -173,7 +184,7 @@ class OptionsMenu extends MusicBeatState
 
 		for (i in 0...options.length)
 		{
-			var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, options[i].getName(), true, false, true);
+			var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, options[i].getName(), true, false, false);
 			controlLabel.isMenuItem = true;
 			controlLabel.targetY = i;
 			grpControls.add(controlLabel);
@@ -197,19 +208,25 @@ class OptionsMenu extends MusicBeatState
 		FlxTween.tween(blackBorder,{y: FlxG.height - 18},2, {ease: FlxEase.elasticInOut});
 
 		super.create();
-		updateCat();
 	}
 
 	var isCat:Bool = false;
-	
+	public static var lastClass:Class<Dynamic>;
 	function goBack(){
 		if (lastState != 0){
 			var ls = lastState;
 			lastState = 0;
+			SearchMenuState.doReset = true;
+			LoadingScreen.show();
 			switch(ls){
 				case 3:FlxG.switchState(new onlinemod.OfflineMenuState());
 				case 4:FlxG.switchState(new multi.MultiMenuState());
 				case 5:FlxG.switchState(new osu.OsuMenuState());
+				// case 6:FlxG.switchState(new PlayListState());
+				case 12:FlxG.switchState(new onlinemod.OfflinePlayState());
+				case 14:FlxG.switchState(new multi.MultiPlayState());
+				case 15:FlxG.switchState(new osu.OsuPlayState());
+				default:FlxG.switchState((if(ls > 10) new PlayState() else new MainMenuState()));
 			}
 		}else
 			FlxG.switchState(new MainMenuState());
@@ -225,20 +242,11 @@ class OptionsMenu extends MusicBeatState
 				saveChanges(); // Save when exiting, not every fucking frame
 				goBack();
 			}
-				
 			else if (controls.BACK)
 			{
 				isCat = false;
-				if (catControls != null){
-					catControls.clear();
-					grpControls.forEach(function(item){
-						catControls.add(item);
-						item.xOffset = FlxG.width * 0.60;
-						item.alpha = 0.3;
-						item.color = 0xdddddd;
-					});
-				}
-				grpControls.clear();
+
+				CoolUtil.clearFlxGroup(grpControls);
 				for (i in 0...options.length)
 					{
 						var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, options[i].getName(), true, false);
@@ -249,34 +257,27 @@ class OptionsMenu extends MusicBeatState
 						// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
 					}
 				curSelected = selCat;
-				changeSelection(0,false);
+				changeSelection(0);
 				addTitleText();
 				updateOffsetText();
 			}
-			if (controls.UP_P)
-				changeSelection(-1);
-			if (controls.DOWN_P)
-				changeSelection(1);
+			if (controls.UP_P || FlxG.keys.justPressed.UP) changeSelection(-1);
+			if (controls.DOWN_P || FlxG.keys.justPressed.DOWN) changeSelection(1);
 			
 			if (isCat)
 			{
 				
 				if (currentSelectedCat.getOptions()[curSelected].getAccept())
 				{
-					if (FlxG.keys.pressed.SHIFT)
-						{
-							if (FlxG.keys.pressed.RIGHT)
-								currentSelectedCat.getOptions()[curSelected].right();
-							if (FlxG.keys.pressed.LEFT)
-								currentSelectedCat.getOptions()[curSelected].left();
-						}
-					else
-					{
-						if (FlxG.keys.justPressed.RIGHT)
-							currentSelectedCat.getOptions()[curSelected].right();
-						if (FlxG.keys.justPressed.LEFT)
-							currentSelectedCat.getOptions()[curSelected].left();
+
+					if (FlxG.keys.pressed.SHIFT && FlxG.keys.pressed.RIGHT || FlxG.keys.justPressed.RIGHT ){
+						if(currentSelectedCat.getOptions()[curSelected].right()) updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].getDisplay());
+
 					}
+					if (FlxG.keys.pressed.SHIFT && FlxG.keys.pressed.LEFT || FlxG.keys.justPressed.LEFT ){
+						if(currentSelectedCat.getOptions()[curSelected].left()) updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].getDisplay());
+					}
+
 				}
 				updateOffsetText();
 			}
@@ -300,12 +301,8 @@ class OptionsMenu extends MusicBeatState
 			{
 				if (isCat)
 				{
-					if (currentSelectedCat.getOptions()[curSelected].press()) {
-						var ctrl:Alphabet = new Alphabet(0, (70 * curSelected) + 30, currentSelectedCat.getOptions()[curSelected].getDisplay(), true, false);
-						ctrl.isMenuItem = true;
-						// grpControls.add(ctrl);
-						grpControls.replace(grpControls.members[curSelected],ctrl);
-					}
+					if (currentSelectedCat.getOptions()[curSelected].press())
+					updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].getDisplay());
 				}
 				else
 				{
@@ -314,115 +311,72 @@ class OptionsMenu extends MusicBeatState
 					isCat = true;
 					var start = 0;
 					var iy = FlxG.height * 0.50;
-					if ( grpControls_ == null) {grpControls_ = new FlxTypedGroup<Alphabet>();add(grpControls_);}
-					grpControls_.clear();
-					grpControls.forEach(function(item){
-						item.xOffset = -1500;
-						grpControls_.add(item);
-					});
-					grpControls.clear();
-					if (timer != null)timer.cancel();
-					timer=new FlxTimer().start(0.4, function(tmr:FlxTimer){grpControls_.clear();},1);
-					
-
-					if (catControls != null){
-						start = 4;
-						iy=FlxG.height;
-						catControls.forEach(function(item){
-							grpControls.add(item);
-							item.xOffset = 70;
-							item.alpha = 1;
-							item.color = 0xFFFFFFFF;
-						});
-						catControls.clear();
-						curSelected = 0;
-						changeSelection(0);
-					}
-					// for (i in start...currentSelectedCat.getOptions().length)
-					// 	{
-					// 		var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, currentSelectedCat.getOptions()[i].getDisplay(), true, false);
-					// 		controlLabel.isMenuItem = true;
-					// 		controlLabel.targetY = i;
-					// 		controlLabel.x = FlxG.width * 0.60;
-					// 		controlLabel.y = iy;
-					// 		grpControls.add(controlLabel);
-					// 		// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-					// 	}
+					CoolUtil.clearFlxGroup(grpControls);
+					for (i in start...currentSelectedCat.getOptions().length)
+						{
+							var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, currentSelectedCat.getOptions()[i].getDisplay(), true, false);
+							controlLabel.isMenuItem = true;
+							controlLabel.targetY = i;
+							// controlLabel.y = iy;
+							updateAlphabet(controlLabel);
+							controlLabel.y+=360;
+							controlLabel.x=1280;
+							grpControls.add(controlLabel);
+							// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
+						}
 					
 					curSelected = 0;
-					addTitleText(options[selCat].getName());
+					addTitleText('Options > ' + options[selCat].getName());
 					updateOffsetText();
 				}
-
-				updateCat();
 			}
 		}
 		
+	}
+	function updateAlphabet(obj:Alphabet,str:String = ""){
+
+		if(str != "") obj.text = str;
+		var txt = obj.text.toLowerCase();
+		if(txt.endsWith(" true") || txt.endsWith(" on")){
+			obj.color = 0x55FF55;
+		}else if(txt.endsWith(" false") || txt.endsWith(" off")){
+			obj.color = 0xFF5555;
+		}
+		obj.bounce();
 	}
 
 	var isSettingControl:Bool = false;
 
 	function updateOffsetText(){
-		// versionShit.color = FlxColor.WHITE;
 		if (isCat)
 		{
 			if (currentSelectedCat.getOptions()[curSelected].getAccept())
 				versionShit.text =  currentSelectedCat.getOptions()[curSelected].getValue() + " - Description - " + currentDescription;
 			else
-				// if(currentDescription.substr(0,2) == "**" ){
-				// 	versionShit.color = FlxColor.RED;
-
-				// }
 				versionShit.text = "Description - " + currentDescription;
 		}
 		else
 			versionShit.text = "Offset (Left, Right, Shift for slow): " + HelperFunctions.truncateFloat(FlxG.save.data.offset,2) + " - Description - " + currentDescription;
 	}
 
-	function updateCat(){
-		if (catControls != null){catControls.clear();} else{catControls = new FlxTypedGroup<Alphabet>();add(catControls);}
-		
-		if (isCat) return;
-		// catControls = new FlxTypedGroup<Alphabet>();
-		// add(catControls);
-		var ia = 0;
-		if (options[curSelected].modded) ia = 1;
-		for (i in 0...options[curSelected].getOptions().length)
-		{
-			// if(i >= 4) break; // No reason to add more than 4 // Actually, probably not a good idea, slower machines don't load the rest for some reason
-			
-			var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, options[curSelected].getOptions()[i].getDisplay(), true, false, true,FlxG.width * 0.60);
-			controlLabel.isMenuItem = true;
-			controlLabel.targetY = i + ia;
-			controlLabel.alpha = 0.3;
-			controlLabel.color = 0xdddddd;
-			controlLabel.x = 80;
-			controlLabel.y = FlxG.height * 0.50;
-			// if(options[curSelected].getOptions()[i].getDisplay().length > 24) controlLabel.scale.set(0.6);
-			catControls.add(controlLabel);
-		}
-	}
-
-	function changeSelection(change:Int = 0,?upCat = true)
+	function changeSelection(change:Int = 0)
 	{
 
 		if (change != 0 )FlxG.sound.play(Paths.sound("scrollMenu"), 0.4);
-		if(transitioning) return;
 
 		curSelected += change;
 
 		if (curSelected < 0)
-			curSelected = grpControls.length - 1;
-		if (curSelected >= grpControls.length)
+			curSelected = grpControls.members.length - 1;
+		if (curSelected >= grpControls.members.length)
 			curSelected = 0;
 
 		if (isCat)
 			currentDescription = currentSelectedCat.getOptions()[curSelected].getDescription();
 		else
-			currentDescription = "Please select a category";
+			currentDescription = "Select a category";
+
 		updateOffsetText();
-		if (upCat) updateCat();
-		// selector.y = (70 * curSelected) + 30;
 
 		var bullShit:Int = 0;
 
@@ -432,13 +386,9 @@ class OptionsMenu extends MusicBeatState
 			bullShit++;
 
 			item.alpha = 0.6;
-			// item.setGraphicSize(Std.int(item.width * 0.8));
 
 			if (item.targetY == 0)
-			{
 				item.alpha = 1;
-				// item.setGraphicSize(Std.int(item.width));
-			}
 		}
 	}
 	function initOptions(){
@@ -448,17 +398,14 @@ class OptionsMenu extends MusicBeatState
 		for (si in 0 ... FlxG.save.data.scripts.length) {
 			var script = FlxG.save.data.scripts[si];
 			if(!FileSystem.exists('mods/scripts/$script/options.json')) {
-				trace('$script has no options');
 				continue;
 			}
-			trace('$script has valid options file');
 			try{
-				var sOptions:OptionsFileDef = haxe.Json.parse(CoolUtil.cleanJSON(File.getContent('mods/scripts/$script/options.json')));
+				var sOptions:OptionsFileDef = Json.parse(CoolUtil.cleanJSON(File.getContent('mods/scripts/$script/options.json')));
 				// var curOptions:Map<String,Dynamic> = new Map<String,Dynamic>();
 				modOptions[script] = new Map<String,Dynamic>();
 				if(FileSystem.exists('mods/scriptOptions/$script.json')){
 					var scriptJson:Map<String,Dynamic> = loadScriptOptions('mods/scriptOptions/$script.json');
-					trace('scriptJson: $scriptJson'); 
 					if(scriptJson != null) {
 						// modOptions[script] = scriptJson;
 						modOptions[script] = scriptJson;
@@ -471,10 +418,9 @@ class OptionsMenu extends MusicBeatState
 				if(sOptions.options == null){'$script has no options defined in it\'s options.json!';continue;}
 				var saveOptions:Bool = false;
 				var category:Array<Option> = [];
-				trace('$script: Setting up user settings');
 				for (v in sOptions.options) {
 					var i = v.name;
-					trace('$script,$i: Registering. Info: ${v.type},${v.description},${v.def}');
+					// trace('$script,$i: Registering. Info: ${v.type},${v.description},${v.def}');
 					try{
 
 						if(modOptions[script][i] == null) {
@@ -515,7 +461,6 @@ class OptionsMenu extends MusicBeatState
 				ScriptOptions[script] = sOptions;
 				// trace('$script: Saving options');
 				if (saveOptions) saveScriptOptions('mods/scriptOptions/$script.json',modOptions[script]);
-				trace('$script registered successfully');
 			}catch(e){
 				trace('Error for $script options: ${e.message}');
 				MainMenuState.errorMessage += '\nError for $script options: ${e.message}';
@@ -529,12 +474,12 @@ class OptionsMenu extends MusicBeatState
 		for (i => v in obj) {
 			_obj.push({name:i,value:v});
 		}
-		File.saveContent(path,haxe.Json.stringify(_obj));
+		File.saveContent(path,Json.stringify(_obj));
 	}
 	public static function loadScriptOptions(path:String):Null<Map<String,Dynamic>>{ // Holy shit this is terrible but whatever
 		
 		var ret:Map<String,Dynamic> = new Map<String,Dynamic>();
-		var obj:Array<OptionF> = haxe.Json.parse(CoolUtil.cleanJSON(File.getContent(path)));
+		var obj:Array<OptionF> = Json.parse(CoolUtil.cleanJSON(File.getContent(path)));
 		if(obj == null) return null;
 		for (i in obj) {
 			ret[i.name] = i.value;
@@ -543,11 +488,13 @@ class OptionsMenu extends MusicBeatState
 	}
 
 	function saveChanges(){
-		FlxG.save.flush();
-		// File.saveContent('SEOPTIONS.json',haxe.Json.stringify(FlxG.save.data));
+		try{
+			FlxG.save.flush();
+		}catch(e){MainMenuState.errorMessage += '\nUnable to save options! ${e.message}';}
+		// File.saveContent('SEOPTIONS.json',Json.stringify(FlxG.save.data));
 		for (i => v in modOptions) {
 			try{
-				// File.saveContent('mods/scriptOptions/$i.json',haxe.Json.stringify({options:v}));
+				// File.saveContent('mods/scriptOptions/$i.json',Json.stringify({options:v}));
 				saveScriptOptions('mods/scriptOptions/$i.json',v);
 				// trace('Saved mods/scriptOptions/$i.json');
 			}catch(e){
@@ -557,4 +504,41 @@ class OptionsMenu extends MusicBeatState
 		}
 		modOptions = new Map<String,Map<String,Dynamic>>();
 	}
+/* 
+	public function parseHScript(?script:String = "",?brTools:HSBrTools = null,?id:String = "song",option:ScriptableOption){
+		if ((!QuickOptionsSubState.getSetting("Song hscripts") || onlinemod.OnlinePlayMenuState.socket != null) && !isStoryMode) {resetInterps();return;}
+		var songScript = songScript;
+		// var hsBrTools = hsBrTools;
+		if (script != "") songScript = script;
+		if (brTools == null && hsBrTools != null) brTools = hsBrTools;
+		if (songScript == "") {return;}
+		var interp = HscriptUtils.createSimpleInterp();
+		var parser = new hscript.Parser();
+		try{
+			parser.allowTypes = parser.allowJSON = parser.allowMetadata = true;
+
+			var program;
+			// parser.parseModule(songScript);
+			program = parser.parseString(songScript);
+
+			if (brTools != null) {
+				trace('Using hsBrTools');
+				interp.variables.set("BRtools",brTools); 
+				brTools.reset();
+			}else {
+				trace('Using assets folder');
+				interp.variables.set("BRtools",new HSBrTools("assets/"));
+			}
+			interp.variables.set("charGet",charGet); 
+			interp.execute(program);
+			interps[id] = interp;
+			if(brTools != null)brTools.reset();
+			callInterp("initScript",[],id);
+			interpCount++;
+		}catch(e){
+			handleError('Error parsing ${id} hscript, Line:${parser.line};\n Error:${e.message}');
+			// interp = null;
+		}
+		trace('Loaded ${id} script!');
+	} */
 }

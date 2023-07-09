@@ -30,10 +30,6 @@ import hscript.Interp;
 import hscript.InterpEx;
 import hscript.ParserEx;
 
-
-
-
-
 using StringTools;
 
 class CharAnimController extends FlxAnimationController{
@@ -98,22 +94,27 @@ class Character extends FlxSprite
 		"singDOWN-alt" => 10,
 		"singUP-alt" => 10,
 		"singRIGHT-alt" => 10,
+		"singSPACE-alt" => 10,
 		"singLEFT" => 10,
 		"singDOWN" => 10,
 		"singUP" => 10,
 		"singRIGHT" => 10,
+		"singSPACE" => 10,
 		"singLEFTmiss" => 10,
 		"singDOWNmiss" => 10,
 		"singUPmiss" => 10,
 		"singRIGHTmiss" => 10,
+		"singSPACEmiss" => 10,
 		"singLEFT2" => 10,
 		"singDOWN2" => 10,
 		"singUP2" => 10,
 		"singRIGHT2" => 10,
+		"singSPACE2" => 10,
 		"singLEFT2miss" => 10,
 		"singDOWN2miss" => 10,
 		"singUP2miss" => 10,
 		"singRIGHT2miss" => 10,
+		"singSPACE2miss" => 10,
 		// Copy of the above but lower case because it's funny and I'm dumb
 		"singleft-alt" => 10,
 		"singdown-alt" => 10,
@@ -129,20 +130,30 @@ class Character extends FlxSprite
 		"singrightmiss" => 10,
 
 		"idle" => 0,
+		"idle-alt" => 0,
 		"Idle" => 0,// Can never remember if it's idle or Idle
 		"danceRight" => 0,
 		"danceLeft" => 0,
 		"danceright" => 0,
 		"danceleft" => 0,
-		"hey" => 5,
-		"cheer" => 5,
-		"scared" => 5,
+		"hey" => 13,
+		"cheer" => 13,
+		"scared" => 13,
+		"sad" => 13,
 		"win" => 100,
 		"lose" => 100,
-		"hurt" => 10,
-		"hit" => 10,
-		"attack" => 10,
-		"shoot" => 10,
+		"hurt" => 20,
+		"hit" => 20,
+		"attack" => 20,
+		"shoot" => 20,
+		"attackLeft" => 20,
+		"shootLeft" => 20,
+		"attackRight" => 20,
+		"shootRight" => 20,
+		"attackUp" => 20,
+		"shootUp" => 20,
+		"attackDown" => 20,
+		"shootDown" => 20,
 		"dodge" => 10,
 		"dodgeLeft" => 10,
 		"dodgeRight" => 10,
@@ -164,13 +175,15 @@ class Character extends FlxSprite
 	public var charXml:String;
 	public var definingColor:FlxColor;
 	public var animationList:Array<CharJsonAnimation> = [];
+	public var isPressingNote:Bool = false; // Only used for the player. True if the player is currently pressing any notes keys
+	public var isStunned:Bool = false;
 	public var hscriptGen:Bool = false;
 	public var useHscript:Bool = true;
 	var customColor = false;
 	var flipNotes:Bool = true;
 	var needsInverted:Int= 1;
 	var danced:Bool = false;
-	var lonely:Bool = false;
+	public var lonely:Bool = false;
 	var altAnims:Array<String> = []; 
 	var animHasFinished:Bool = false;
 	public var skipNextAnim:Bool = false;
@@ -200,74 +213,35 @@ class Character extends FlxSprite
 			Reflect.callMethod(interp,method,args);
 			}catch(e){handleError('Something went wrong with ${func_name} for ${curCharacter}, ${e.message}'); return;}
 		}
-	function parseHScript(scriptContents:String){
-		if (amPreview || !useHscript || QuickOptionsSubState.getSetting("Song hscripts") != true){
-			interp = null;
-			trace("Skipping HScript for " + curCharacter);
-			return; // Don't load in editor
-		} 
-		var interp = HscriptUtils.createSimpleInterp();
-		var parser = new hscript.Parser();
-		var program:Expr;
-		try{
-			parser.allowTypes = parser.allowJSON = true;
-			program = parser.parseString(scriptContents);
-			
-			interp.variables.set("hscriptPath", '${charLoc}/$curCharacter');
-			interp.variables.set("charName", curCharacter);
-			interp.variables.set("charProperties", charProperties);
-			interp.variables.set("PlayState", PlayState );
-			interp.variables.set("BRtools",new HSBrTools('${charLoc}/$curCharacter/'));
-			interp.execute(program);
-			this.interp = interp;
-			callInterp("initScript",[],true);
-		}catch(e){
-			handleError('Error parsing char ${curCharacter} hscript, Line:${parser.line}; Error:${e.message}');
-			
+
+		function parseHScript(scriptContents:String){
+			if (amPreview || !useHscript){
+				interp = null;
+				trace("Skipping HScript for " + curCharacter);
+				return; // Don't load in editor
+			} 
+			var interp = HscriptUtils.createSimpleInterp();
+			var parser = new hscript.Parser();
+			var program:Expr;
+			try{
+				parser.allowTypes = parser.allowJSON = true;
+				program = parser.parseString(scriptContents);
+				
+				interp.variables.set("hscriptPath", '${charLoc}/$curCharacter');
+				interp.variables.set("charName", curCharacter);
+				interp.variables.set("charProperties", charProperties);
+				interp.variables.set("PlayState", PlayState );
+				interp.variables.set("state", cast FlxG.state );
+				interp.variables.set("game", cast FlxG.state );
+				interp.variables.set("animation", animation );
+				interp.variables.set("BRtools",new HSBrTools('${charLoc}/$curCharacter/'));
+				interp.execute(program);
+				this.interp = interp;
+			}catch(e){
+				handleError('Error parsing char ${curCharacter} hscript, Line:${parser.line}; Error:${e.message}');
+				
+			}
 		}
-	}
-
-	// function addOffsets(?character:String = "") // Handles offsets for characters with support for clones
-	// {
-	// 	if(character == null || character == "" ) return;
-	// 	if (Reflect.field(TitleState.defCharJson.characters,curCharacter) == null){
-
-	// 		switch(character){
-	// 			case 'bf','bf-christmas','bf-car':
-	// 				charY+=330;
-	// 				needsInverted = 0;
-	// 				if (isPlayer){
-	// 					addOffset('idle', 0);
-	// 					addOffset("singUP", -34, 27);
-	// 					addOffset("singRIGHT", -48, -7);
-	// 					addOffset("singLEFT", 22, -6);
-	// 					addOffset("singDOWN", -10, -50);
-	// 					addOffset("singUPmiss", -29, 27);
-	// 					addOffset("singRIGHTmiss", -30, 21);
-	// 					addOffset("singLEFTmiss", 12, 24);
-	// 					addOffset("singDOWNmiss", -11, -19);
-	// 					addOffset("hey", 7, 4);
-	// 					addOffset('scared', -4);
-	// 				}else{
-	// 					addOffset("singUP", 5, 30);
-	// 					addOffset("singRIGHT", -30, -5);
-	// 					addOffset("singLEFT", 38, -5);
-	// 					addOffset("singDOWN", -15, -50);
-	// 					addOffset("singUPmiss", 1, 30);
-	// 					addOffset("singRIGHTmiss", -31, 21);
-	// 					addOffset("singLEFTmiss", 2, 23);
-	// 					addOffset("singDOWNmiss", -15, -20);
-	// 					addOffset("hey", 7, 4);
-	// 					addOffset('scared', -4);
-	// 				}
-	// 		}
-	// 	}else{
-	// 		var e:Dynamic = Reflect.field(TitleState.defCharJson.characters,curCharacter);
-	// 		loadOffsetsFromJSON(e);
-	// 		getDefColor(e);
-
-	// 	}
-	// }
 
 	function loadOffsetsFromJSON(?charProperties:CharacterJson){
 		if (charProperties == null) return;
@@ -322,52 +296,10 @@ class Character extends FlxSprite
 		if (charProperties.char_pos != null){addOffset('all',charProperties.char_pos[0],charProperties.char_pos[1]);}
 		if (charProperties.cam_pos != null){camX+=charProperties.cam_pos[0];camY+=charProperties.cam_pos[1];}
 	}
-	function isValidInt(num:Null<Int>,?def:Int = 0) {return if (num == null) def else num;}
-	function getDefColor(e:CharacterJson){
-		if(!customColor && e.color != null){
-			// switch(Type.typeof(e.color)){
-				if(Std.isOfType(e.color,String)){
-
-					definingColor = FlxColor.fromString(e.color);
-					customColor = true;
-				}else if (Std.isOfType(e.color,Int)){
-					definingColor = FlxColor.fromInt(e.color);
-					customColor = true;
-				}else{
-					if(e.color[0] != null){
-						definingColor = FlxColor.fromRGB(isValidInt(e.color[0]),isValidInt(e.color[1]),isValidInt(e.color[2],255));
-						customColor = true;
-					}
-					else
-						customColor = false;
-				}
-			// }
-		}/*else if(charType != 3){
-
-			var hi = new HealthIcon(curCharacter, false,clonedChar);
-			var colors:Map<Int,Int> = [];
-			var max:Int = 0;
-			var maxColor:Int = 0;
-			for(X in 0 ...hi.pixels.width){
-				for(Y in 0...hi.pixels.height){
-					var curColor:Int = hi.pixels.getPixel(X,Y);
-					if(curColor == 0) continue;
-					colors[curColor] = (colors.exists(curColor) ? 0 : colors[curColor] + 1);
-					if(colors[curColor] > max){maxColor = curColor;max=colors[curColor];}
-				}
-			}
-			trace(maxColor);
-			definingColor = maxColor;
-			hi.destroy();
-		}*/
-	}
+	public static function isValidInt(num:Null<Int>,?def:Int = 0) {return if (num == null) def else num;}
 	function loadJSONChar(charProperties:CharacterJson){
 		
 		// Check if the XML has BF's animations, if so, add them
-
-
-
-
 		// healthIcon = charProperties.healthicon;
 		dadVar = charProperties.sing_duration; // As the varname implies
 		flipX=charProperties.flip_x; // Flip for BF clones
@@ -412,12 +344,10 @@ class Character extends FlxSprite
 				}else{addAnimation(anima.anim, anima.name, anima.fps, anima.loop);}
 
 				}catch(e){handleError('${curCharacter} had an animation error ${e.message}');break;}
-				if(anima.priority != null || 0 > anima.priority){
+				if(anima.priority != null && -1 < anima.priority )
 					animationPriorities[anima.name] = anima.priority;
-				}else if(animationPriorities[anima.name] == null){
+				if(animationPriorities[anima.name] == null)
 					animationPriorities[anima.name] = 1;
-
-				}
 				animCount++;
 			}
 		}
@@ -512,7 +442,7 @@ class Character extends FlxSprite
 		if(!amPreview){
 			curCharacter = TitleState.retChar(curCharacter); // Make sure you're grabbing the right character
 		}
-		trace('Loading a custom character "$curCharacter"! ');				
+		// trace('Loading a custom character "$curCharacter"! ');
 		if(charLoc == "mods/characters"){
 
 			if(TitleState.weekChars[curCharacter] != null && TitleState.weekChars[curCharacter].contains(onlinemod.OfflinePlayState.nameSpace) && TitleState.characterPaths[onlinemod.OfflinePlayState.nameSpace + "|" + curCharacter] != null){
@@ -755,7 +685,9 @@ class Character extends FlxSprite
 		try{
 		#end
 		super(x, y);
+		if(lonely || character == "lonely" || character == "nothing" || character == "hidden" || character == "blank") return;
 		trace('Loading ${character}');
+		// if(FlxG.save.data.doCoolLoading) LoadingScreen.loadingText += ' "${character}"';
 		animOffsets = ["all" => [0,0] ];
 		// animOffsets['all'] = [0.0, 0.0];
 		if (character == ""){
@@ -795,30 +727,24 @@ class Character extends FlxSprite
 			clonedChar = curCharacter;
 		}
 		for (i in ['RIGHT','UP','LEFT','DOWN']) { // Add main animations over miss and extra note animation if they are not present
-			if (animation.getByName('sing${i}2') == null){
-				cloneAnimation('sing${i}2', animation.getByName('sing$i'));				
-			}
 			if (animation.getByName('sing${i}miss') == null){
 				cloneAnimation('sing${i}miss', animation.getByName('sing$i'));
 				tintedAnims.push('sing${i}miss');
 			}
-			if (animation.getByName('sing${i}2miss') == null){
-				if(animation.getByName('sing${i}miss') != null) cloneAnimation('sing${i}2miss', animation.getByName('sing${i}miss'));
-				else{
-					cloneAnimation('sing${i}2miss', animation.getByName('sing$i'));
-					tintedAnims.push('sing${i}2miss');
-				}
+		}
+		if (animation.getByName('singSPACE') == null)
+			cloneAnimation('singSPACE', animation.getByName('singUP'));
+		if (animation.getByName('singSPACE-alt') == null && animation.getByName('singUP-alt') != null)
+			cloneAnimation('singSPACE-alt', animation.getByName('singUP-alt'));
+		if (animation.getByName('singSPACE2') == null && animation.getByName('singUP2') != null)
+			cloneAnimation('singSPACE2', animation.getByName('singUP2'));
+
+		if (animation.getByName('singSPACEmiss') == null){
+			if(animation.getByName('singUPmiss') != null) cloneAnimation('singSPACEmiss', animation.getByName('singUPmiss'));
+			else{
+				cloneAnimation('singSPACEmiss', animation.getByName('singSPACE'));
+				tintedAnims.push('singSPACEmiss');
 			}
-		}
-		if (animation.getByName('singSPACE') == null){
-				cloneAnimation('singSPACE', animation.getByName('singUP'));
-		}
-			if (animation.getByName('singSPACEmiss') == null){
-				if(animation.getByName('singUPmiss') != null) cloneAnimation('singSPACEmiss', animation.getByName('singUPmiss'));
-				else{
-					cloneAnimation('singSPACEmiss', animation.getByName('singSPACE'));
-					tintedAnims.push('singSPACEmiss');
-				}
 		}
 
 		if (charType == 2 && !curCharacter.startsWith("gf")){ // Checks if GF is not girlfriend
@@ -838,7 +764,7 @@ class Character extends FlxSprite
 		{
 			flipX = !flipX;
 
-				// var animArray
+			// var animArray
 			var oldRight = animation.getByName('singRIGHT').frames;
 			animation.getByName('singRIGHT').frames = animation.getByName('singLEFT').frames;
 			animation.getByName('singLEFT').frames = oldRight;
@@ -863,13 +789,18 @@ class Character extends FlxSprite
 				var oldMiss = animation.getByName('singRIGHTmiss').frames;
 				animation.getByName('singRIGHTmiss').frames = animation.getByName('singLEFTmiss').frames;
 				animation.getByName('singLEFTmiss').frames = oldMiss;
-
-				if (animation.getByName('singRIGHT2miss') != null)
-					{
-						var oldMiss2 = animation.getByName('singRIGHT2miss').frames;
-						animation.getByName('singRIGHT2miss').frames = animation.getByName('singLEFT2miss').frames;
-						animation.getByName('singLEFT2miss').frames = oldMiss2;
-					}
+			}
+			if (animation.getByName('singRIGHT2miss') != null)
+			{
+				var oldMiss2 = animation.getByName('singRIGHT2miss').frames;
+				animation.getByName('singRIGHT2miss').frames = animation.getByName('singLEFT2miss').frames;
+				animation.getByName('singLEFT2miss').frames = oldMiss2;
+			}
+			if (animation.getByName('singRIGHT-altmiss') != null)
+			{
+				var oldMiss2 = animation.getByName('singRIGHT-altmiss').frames;
+				animation.getByName('singRIGHT-altmiss').frames = animation.getByName('singLEFT-altmiss').frames;
+				animation.getByName('singLEFT-altmiss').frames = oldMiss2;
 			}
 		}
 		dance();
@@ -884,9 +815,7 @@ class Character extends FlxSprite
 			callInterp("animFrame",[animation.curAnim,frameNumber,frameIndex]);
 		};
 		if(animation.curAnim == null && !lonely && !amPreview){MainMenuState.handleError('$curCharacter is missing an idle/dance animation!');}
-		if(animation.getByName('songStart') != null && !lonely && !amPreview){
-			playAnim('songStart',true);
-		}
+		if(animation.getByName('songStart') != null && !lonely && !amPreview) playAnim('songStart',true);
 		#if !debug
 		}catch(e){
 
@@ -936,29 +865,13 @@ class Character extends FlxSprite
 	/**
 	 * FOR GF DANCING SHIT
 	 */
-	public function dance(?ignoreDebug:Bool = false)
+	public function dance(beatDouble:Bool = false)
 	{
-		if (amPreview){
-			if (dance_idle || charType == 2 || curCharacter == "spooky"){
-				playAnim('danceRight');
-			}else{playAnim('idle');}
-		}
-		else if ((!debugMode || ignoreDebug) && !amPreview)
-		{
-
-			if(dance_idle || charType == 2 || curCharacter == "spooky"){
-				if (animation.curAnim == null || (!animation.curAnim.name.startsWith('hair') && animHasFinished))
-				{
-					// danced = !danced;
-
-					if (danced)
-						playAnim('danceRight');
-					else
-						playAnim('danceLeft');
-				}
-			}else{
-				playAnim('idle');
-			}
+		if(dance_idle){
+			if (animation.curAnim == null || animation.curAnim.name.startsWith("dance") || animHasFinished)
+				playAnim('dance${if(beatDouble)'Right' else 'Left'}',true);
+		}else{
+			playAnim('idle');
 		}
 	}
 	// Added for Animation debug
@@ -1011,7 +924,7 @@ class Character extends FlxSprite
 		callInterp("draw",[]);
 		super.draw();
 	} 
-	var currentAnimationPriority:Int = -100;
+	public var currentAnimationPriority:Int = -100;
 	public dynamic function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0,?offsetX:Float = 0,?offsetY:Float = 0)
 	{
 		var lastAnim = "";
@@ -1060,10 +973,10 @@ class Character extends FlxSprite
 		}
 		skipNextAnim = false;
 	}
-	public function playAnimAvailable(animList:Array<String>){
+	public function playAnimAvailable(animList:Array<String>,forced:Bool = false){
 		for (i in animList) {
 			if(animation.getByName(i) != null){
-				playAnim(i);
+				playAnim(i,forced);
 				return;
 			}
 		}
@@ -1111,6 +1024,64 @@ class Character extends FlxSprite
 		}else{
 			animation.addByPrefix(anim, prefix, fps, false);
 		}
+	}
+	@:keep inline public function isDonePlayingAnim(){return animation.finished || animation.curAnim.finished || animHasFinished || animation.curAnim.curFrame >= numFrames;}
+	function getDefColor(e:CharacterJson,?apply:Bool = false):FlxColor{
+		if(!customColor && e.color != null){
+			// switch(Type.typeof(e.color)){
+				if(Std.isOfType(e.color,String)){
+					if(apply) return FlxColor.fromString(e.color);
+					definingColor = FlxColor.fromString(e.color);
+					customColor = true;
+				}else if (Std.isOfType(e.color,Int)){
+					if(apply) return FlxColor.fromInt(e.color);
+					definingColor = FlxColor.fromInt(e.color);
+					customColor = true;
+				}else{
+					if(e.color[0] != null){
+						if(apply) return FlxColor.fromRGB(isValidInt(e.color[0]),isValidInt(e.color[1]),isValidInt(e.color[2],255));
+						definingColor = FlxColor.fromRGB(isValidInt(e.color[0]),isValidInt(e.color[1]),isValidInt(e.color[2],255));
+						customColor = true;
+					}
+					else
+						if(apply) return 0x000000;
+						customColor = false;
+				}
+			// }
+		}/*else if(charType != 3){
+
+			var hi = new HealthIcon(curCharacter, false,clonedChar);
+			var colors:Map<Int,Int> = [];
+			var max:Int = 0;
+			var maxColor:Int = 0;
+			for(X in 0 ...hi.pixels.width){
+				for(Y in 0...hi.pixels.height){
+					var curColor:Int = hi.pixels.getPixel(X,Y);
+					if(curColor == 0) continue;
+					colors[curColor] = (colors.exists(curColor) ? 0 : colors[curColor] + 1);
+					if(colors[curColor] > max){maxColor = curColor;max=colors[curColor];}
+				}
+			}
+			trace(maxColor);
+			definingColor = maxColor;
+			hi.destroy();
+		}*/
+		return 0x000000;
+	}
+	public static function getDefColorFromJson(e:CharacterJson):FlxColor{
+		if(e.color != null){
+			if(Std.isOfType(e.color,String)){
+				return FlxColor.fromString(e.color);
+			}else if (Std.isOfType(e.color,Int)){
+				return FlxColor.fromInt(e.color);
+			}else{
+				if(e.color[0] != null){
+					return FlxColor.fromRGB(isValidInt(e.color[0]),isValidInt(e.color[1]),isValidInt(e.color[2],255));
+				}
+				return 0x00000000;
+			}
+		}
+		return 0x00000000;
 	}
 
 
@@ -1177,14 +1148,14 @@ class Character extends FlxSprite
 					"indices": []
 				},
 				{
-					"anim": "singLEFTmiss",
+					"anim": "singRIGHTmiss",
 					"name": "BF NOTE LEFT MISS0",
 					"fps": 24,
 					"loop": false,
 					"indices": []
 				},
 				{
-					"anim": "singRIGHTmiss",
+					"anim": "singLEFTmiss",
 					"name": "BF NOTE RIGHT MISS0",
 					"fps": 24,
 					"loop": false,

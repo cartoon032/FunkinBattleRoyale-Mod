@@ -23,8 +23,6 @@ class LoadingState extends MusicBeatState
 	var stopMusic = false;
 	var callbacks:MultiCallback;
 	
-	var logo:FlxSprite;
-	var gfDance:FlxSprite;
 	var danceLeft = false;
 	
 	function new(target:FlxState, stopMusic:Bool)
@@ -37,25 +35,7 @@ class LoadingState extends MusicBeatState
 	
 	override function create()
 	{
-
-		// logo = new FlxSprite(-150, -100);
-		// logo.frames = Paths.getSparrowAtlas('logoBumpin');
-		// logo.antialiasing = true;
-		// logo.animation.addByPrefix('bump', 'logo bumpin', 24);
-		// logo.animation.play('bump');
-		// logo.updateHitbox();
-		// add(logo);
-		// // logoBl.screenCenter();
-		// // logoBl.color = FlxColor.BLACK;
-
-		// gfDance = new FlxSprite(FlxG.width * 0.4, FlxG.height * 0.07);
-		// gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
-		// gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
-		// gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
-		// gfDance.antialiasing = true;
-		// add(gfDance);
-		
-		
+		LoadingScreen.loadingText = "Loading libraries";
 		initSongsManifest().onComplete
 		(
 			function (lib)
@@ -66,10 +46,6 @@ class LoadingState extends MusicBeatState
 				if (PlayState.SONG.needsVoices)
 					checkLoadSong(getVocalPath());
 				checkLibrary("shared");
-				if (PlayState.storyWeek > 0)
-					checkLibrary("week" + PlayState.storyWeek);
-				else
-					checkLibrary("tutorial");
 				
 				var fadeTime = 0.5;
 				FlxG.camera.fade(FlxG.camera.bgColor, fadeTime, true);
@@ -93,7 +69,7 @@ class LoadingState extends MusicBeatState
 		}
 	}
 	
-	function checkLibrary(library:String)
+	public function checkLibrary(library:String)
 	{
 		trace(Assets.hasLibrary(library));
 		if (Assets.getLibrary(library) == null)
@@ -103,6 +79,7 @@ class LoadingState extends MusicBeatState
 				throw "Missing library: " + library;
 			
 			var callback = callbacks.add("library:" + library);
+			LoadingScreen.loadingText = 'Loading libraries($library)';
 			Assets.loadLibrary(library).onComplete(function (_) { callback(); });
 		}
 	}
@@ -110,16 +87,7 @@ class LoadingState extends MusicBeatState
 	override function beatHit()
 	{
 		super.beatHit();
-		
-		logo.animation.play('bump');
-		danceLeft = !danceLeft;
-		
-		if (danceLeft)
-			gfDance.animation.play('danceRight');
-		else
-			gfDance.animation.play('danceLeft');
-	}
-	
+	}	 
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -149,6 +117,7 @@ class LoadingState extends MusicBeatState
 	
 	inline static public function loadAndSwitchState(target:FlxState, stopMusic = false)
 	{
+		LoadingScreen.show();
 		FlxG.switchState(getNextState(target, stopMusic));
 	}
 	

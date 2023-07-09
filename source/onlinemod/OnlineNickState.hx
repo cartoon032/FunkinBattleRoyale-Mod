@@ -8,9 +8,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxAxes;
 
-#if windows
 import Discord.DiscordClient;
-#end
 class OnlineNickState extends MusicBeatState
 {
   var errorText:FlxText;
@@ -20,9 +18,7 @@ class OnlineNickState extends MusicBeatState
 
   override function create()
   {
-    #if windows
     DiscordClient.changePresence(null,"Is thinking about their nickname");
-    #end
     var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
     bg.color = 0xFFFF6E6E;
 		add(bg);
@@ -32,17 +28,17 @@ class OnlineNickState extends MusicBeatState
     topText.setFormat(CoolUtil.font, 64, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     topText.screenCenter(FlxAxes.X);
     add(topText);
-
-
+  
+  
     errorText = new FlxText(0, FlxG.height * 0.375, FlxG.width, "");
     errorText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, CENTER);
     add(errorText);
-
-
+  
+  
     var nickText:FlxText = new FlxText(FlxG.width/2 - 250, FlxG.height * 0.5 - 40, "Nickname:");
     nickText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(nickText);
-
+  
     nickField = new FlxInputText(0, FlxG.height * 0.5, 500, 32);
     nickField.setFormat(32, FlxColor.BLACK, CENTER);
     nickField.screenCenter(FlxAxes.X);
@@ -50,80 +46,81 @@ class OnlineNickState extends MusicBeatState
     nickField.maxLength = 13;
     nickField.hasFocus = true;
     add(nickField);
-
-
+  
+  
     var confirmButton = new FlxUIButton(0, FlxG.height * 0.65, "Confirm", () -> {
-      nickname = nickField.text;
-      FlxG.save.data.nickname = nickField.text;
-      Sender.SendPacket(Packets.SEND_NICKNAME, [nickname], OnlinePlayMenuState.socket);
+      sendNick();
     });
     confirmButton.setLabelFormat(32, FlxColor.BLACK, CENTER);
     confirmButton.resize(300, FlxG.height * 0.1);
     confirmButton.screenCenter(FlxAxes.X);
     add(confirmButton);
-
-
+  
+  
     OnlinePlayMenuState.AddXieneText(this);
-
-
+  
+  
     FlxG.mouse.visible = true;
-
-
+  
+  
     OnlinePlayMenuState.receiver.HandleData = HandleData;
-
+  
     nickField.text = FlxG.save.data.nickname;
     super.create();
-  }
-
-  function HandleData(packetId:Int, data:Array<Dynamic>)
-  {
+    }
+  
+    function HandleData(packetId:Int, data:Array<Dynamic>)
+    {
     switch (packetId)
     {
       case Packets.NICKNAME_CONFIRM:
-        switch (data[0])
-        {
-          case 0:
-            SetErrorText("Nickname accepted", FlxColor.LIME);
-            FlxG.switchState(new OnlineLobbyState());
-          case 1:
-            SetErrorText("Nickname already claimed");
-          case 2:
-            SetErrorText("Game already in progress");
-          case 3:
-            SetErrorText("Invalid nickname");
-          case 4:
-            FlxG.switchState(new OnlinePlayMenuState("Game is already full"));
-        }
-    }
-  }
-
-  override function update(elapsed:Float)
-  {
-    if (!nickField.hasFocus)
-    {
-      OnlinePlayMenuState.SetVolumeControls(true);
-      if (controls.BACK)
+      switch (data[0])
       {
-        FlxG.switchState(new OnlinePlayMenuState());
-
-        if (OnlinePlayMenuState.socket.connected)
-        {
-          OnlinePlayMenuState.socket.close();
-        }
+        case 0:
+        SetErrorText("Nickname accepted", FlxColor.LIME);
+        FlxG.switchState(new OnlineLobbyState());
+        case 1:
+        SetErrorText("Nickname already claimed");
+        case 2:
+        SetErrorText("Game already in progress");
+        case 3:
+        SetErrorText("Invalid nickname");
+        case 4:
+        FlxG.switchState(new OnlinePlayMenuState("Game is already full"));
       }
     }
-    else
-    {
-      OnlinePlayMenuState.SetVolumeControls(false);
     }
-
-    super.update(elapsed);
+  
+    function sendNick(){
+      if (OnlinePlayMenuState.socket != null && OnlinePlayMenuState.socket.connected){
+        nickname = nickField.text;
+        FlxG.save.data.nickname = nickField.text;
+        Sender.SendPacket(Packets.SEND_NICKNAME, [nickname], OnlinePlayMenuState.socket);
+      }else{
+        FlxG.switchState(new OnlinePlayMenuState('Socket closed unexpectedly?'));
+      }
+    }
+  
+    override function update(elapsed:Float)
+    {
+      if (!nickField.hasFocus)
+      {
+        if (controls.BACK){
+          FlxG.switchState(new OnlinePlayMenuState());
+          if (OnlinePlayMenuState.socket.connected)
+            OnlinePlayMenuState.socket.close();
+        }
+      }
+      if (FlxG.keys.justPressed.ENTER)
+        sendNick();
+      super.update(elapsed);
+    }
+  
+    function SetErrorText(text:String, color:FlxColor=FlxColor.RED)
+    {
+      errorText.text = text;
+      errorText.setFormat(32, color);
+      errorText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    }
   }
-
-  function SetErrorText(text:String, color:FlxColor=FlxColor.RED)
-  {
-    errorText.text = text;
-    errorText.setFormat(32, color);
-    errorText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-  }
-}
+  

@@ -16,17 +16,13 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 
-#if windows
 import Discord.DiscordClient;
-#end
 class OnlineOptionsMenu extends OptionsMenu
 {
 	public static var instance:OnlineOptionsMenu;
 	override function create()
 	{
-    #if windows
     DiscordClient.changePresence("In Online Option Menu",null);
-    #end
 		OnlinePlayMenuState.receiver.HandleData = HandleData;
     var options:Array<OptionCategory> = [
       new OptionCategory("Modifications", [
@@ -48,7 +44,7 @@ class OnlineOptionsMenu extends OptionsMenu
         new MiddlescrollOption("Move the strumline to the middle of the screen"),
   
         new AccuracyDOption("Change how accuracy is calculated. (Accurate = Simple, Complex = Milisecond Based)"),
-        new OffsetMenu("Get a note offset based off of your inputs!"),
+        // new OffsetMenu("Get a note offset based off of your inputs!"),
         new InputHandlerOption("Change the input engine used"),
         new PopupScoreLocationOption("Where you want your score Popup to be"),
         new PopupScoreOffset("Offset to Center of screen. more = center"),
@@ -71,7 +67,7 @@ class OnlineOptionsMenu extends OptionsMenu
         new AccuracyOption("Display accuracy information."),
         new SongPositionOption("Show the songs current position (as a bar)"),
         new CpuStrums("CPU's strumline lights up when a note hits it."),
-        new NoteFadeOption("help make some chart with note immediately spawn playable"),
+        new ReplaceDadwithGFOption("When chart doesn't want Dad do you want to replace it GF or just disable Dad"),
         new SongInfoOption("Change how your performance is displayed"),
       ]),
       new OptionCategory("Misc", [
@@ -83,7 +79,7 @@ class OnlineOptionsMenu extends OptionsMenu
         new FlashingLightsOption("Toggle flashing lights that can cause epileptic seizures and strain."),
         new AnimDebugOption("Access animation debug in a offline session, 1=BF,2=Dad,3=GF. Also shows extra information"),
         new PlayVoicesOption("Plays your character's voices when you press a note."),
-        new AltSingMultiKeyOption("Using thing like singLEFT2 for the extra note (Spacebar always use singSpace)"),
+        new SwapUpDownOption("Using Left Down Right Left Up Right like in shaggy and basicly every other engine. Weirdo"),
         new ShowConnectedIPOption("Showing what server you are currently connect to")
       ]),
       new OptionCategory("Performance", [

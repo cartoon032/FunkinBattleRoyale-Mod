@@ -1,19 +1,24 @@
 # Super Engine - T Mod
-Originally this mod only for Pull request to main but at some point i add too much crap and the original author not a multi key player herself
-so she ask me to maintain the mod myself
+Originally this mod was only for Pull requests to main but at some point, I add too much crap and the original author was not a multi-key player herself
+so she asks me to maintain the mod myself
 some notable feature
-- Multi Key from 1k-13k
-- Song Speed *slow down is broke ._.''*
-- Discord RPC
-- and alot more
-<br>[Discord server](https://discord.gg/28GPGTRuuR) *this the same invite link to SE discord*
+- Multi Key from 1K-18K + 21K
+- (hopefully) a smoother Mid Song Mania Change.
+- support for Leather Engine multiple Characters with a bit of edit in the chart file.<br>
+    this doesn't mean multiple characters character it just allows the chart to load more character
+- with my custom server code a better online
+- a probably better Chart Editor
+- More customization Discord RPC
+- Song Speed
+- and a lot more
+<br>[Discord server](https://discord.gg/28GPGTRuuR) *This the same invite link to SE discord*
 
-<br><br>Note that due to how i am,most of the time i release update to my friend and forgot to commit the said update
-<br><br>So if you want an update or have a suggestion DM me on Discord NayToon#9001 I'm up most of the time
-<br><br>also i commit in a one mega commit that got everything in it so it might look like i don't do much but i did alot
+<br><br> Usually I don't really commit anything here while still updating the code from time to time *look at me not posting anything for the past half year*
+<br><br>So if you want an update or have a suggestion DM me on Discord naytoon I'm up most of the time
+<br><br> Also I commit in one mega commit that got everything in it so it might look like I don't do much but I did a lot
 
 ## Compiling
-- Follow the guide on the Funkin github page [here](https://github.com/ninjamuffin99/Funkin#build-instructions), this should be completely compatible with that guide
+- Follow the guide on the Funkin GitHub page [here](https://github.com/ninjamuffin99/Funkin#build-instructions), this should be completely compatible with that guide
 
 # Read mods/readme.txt for info about custom characters, charts, stages and more. Custom characters and charts beyond vanilla charts, bf and gf SHOULD NOT be hardcoded into this engine
 
@@ -26,7 +31,7 @@ Links: **[itch.io page](https://ninja-muffin24.itch.io/funkin) ⋅ [Newgrounds](
 > Uh oh! Your tryin to kiss ur hot girlfriend, but her MEAN and EVIL dad is trying to KILL you! He's an ex-rockstar, the only way to get to his heart? The power of music... 
 
 ## Kade Engine
-**Kade Engine** is a mod for Friday Night Funkin', including a full engine rework, replays, and more.
+**Kade Engine** is a mod for Friday Night Funkin', including a complete engine rework, replays, and more.
 
 Links: **[GameBanana mod page](https://gamebanana.com/gamefiles/16761) ⋅ [play in browser](https://funkin.puyo.xyz) ⋅ [latest stable release](https://github.com/KadeDev/Kade-Engine/releases/latest)
 
@@ -37,18 +42,19 @@ Links: **[GameBanana mod page](https://gamebanana.com/gamefiles/14264) ⋅ [late
 
 
 
-# Credits for every mod included/used
+# Credits for everything
+<small>I think I got everyone, lemmie know if I missed anyone</small>
 ## Friday Night Funkin'
-- [ninjamuffin99](https://twitter.com/ninja_muffin99) - Programming
-- [PhantomArcade3K](https://twitter.com/phantomarcade3k) and
-- [Evilsk8r](https://twitter.com/evilsk8r) - Art
-- [Kawai Sprite](https://twitter.com/kawaisprite) - Music
+ - [ninjamuffin99](https://twitter.com/ninja_muffin99) - Programming
+ - [PhantomArcade3K](https://twitter.com/phantomarcade3k) and [Evilsk8r](https://twitter.com/evilsk8r) - Art
+ - [Kawai Sprite](https://twitter.com/kawaisprite) - Music
 
 This game was made with love to Newgrounds and its community. Extra love to Tom Fulp.
+
 ## Super Engine
-- [Superpowers04](https://github.com/superpowers04) - Pretty much everything
+- [Superpowers04](https://github.com/superpowers04) - Pretty much everything specific to Super Engine/Lead Developer
 - [NayToon](https://github.com/cartoon032) - Some help and providing early Windows builds
-- [XieneDev](https://github.com/XieneDev/) - Responsible for the base mod
+- [XieneDev](https://github.com/XieneDev/) - Made Battle Royale. This engine actually wouldn't exist if it weren't for this pog FNF mod
 ## Kade Engine (The base engine)
 - [KadeDeveloper](https://twitter.com/KadeDeveloper) - Maintainer and lead programmer
 - [The contributors](https://github.com/KadeDev/Kade-Engine/graphs/contributors)
@@ -66,11 +72,15 @@ This game was made with love to Newgrounds and its community. Extra love to Tom 
 ## FPS Plus (Some improvements)
 - [Rozebud](https://twitter.com/helpme_thebigt) - *Everything*
 
-## Shoutouts
-- [GWebDev](https://twitter.com/GFlipaclip) - Haxeflixel Video
-- [Ethab Taxi](https://twitter.com/EthabTaxi) - He's just sorta chillin'.<br>
-- [V.S. Ex Tabi](https://gamebanana.com/mods/286388) - The arrow examples are from here
-- [Smoke 'Em Out Struggle](https://gamebanana.com/mods/166531) - Used Garcello's character for testing custom characters/custom animations
+## Embedded Libraries
+- [TJSON](https://github.com/JWambaugh/TJSON) - The JSON decoder/encoder SE uses. It's fast and less error-prone than haxe.Json
+
 ### Special Thanks
 - [JWambaugh](https://github.com/JWambaugh) - The epic tjson library that I copied and modified for Super Engine
 - [NoLime](https://gamebanana.com/members/1762727) - Giving permission to have [BF Girlfriend mode](https://gamebanana.com/mods/185105) as a built-in character
+
+## Shoutouts
+- [GWebDev](https://twitter.com/GFlipaclip) - Haxeflixel Video
+- [Ethab Taxi](https://twitter.com/EthabTaxi) - He's just sorta chillin'.<br>
+- [Anthonyjrvill](https://twitter.com/AnthonyVilltwo) - He makes Note Skins specially for SE-T. What a mad lad.<br>
+    *it only got upto 13K cuz I add more keys after he make it but nobody sane playing higher than that anyway*

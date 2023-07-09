@@ -22,8 +22,6 @@ class SmallNote // basically Note.hx but small as fuck
 class NoteStuffExtra
 {
 	public static var scale = 3 * 1.8;
-	public static var lastDiffHandOne:Array<Float> = [];
-	public static var lastDiffHandTwo:Array<Float> = [];
 	public static var bfNotes:Array<SmallNote> = [];
 	public static var dadNotes:Array<SmallNote> = [];
 	public static function CalculateNoteAmount(song:SwagSong)
@@ -44,14 +42,14 @@ class NoteStuffExtra
 			{
 				var gottaHitNote:Bool = i.mustHitSection;
 
-				if (ii[1] >= PlayState.keyAmmo[PlayState.mania] && !gottaHitNote && ii[1] != -1)
+				if (ii[1] >= PlayState.keyAmmo[PlayState.mania] && !gottaHitNote && ii[1] != -1 && ii[1] < PlayState.keyAmmo[PlayState.mania] * 2)
 					bfNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
 				if (ii[1] <= PlayState.keyAmmo[PlayState.mania] - 1 && gottaHitNote && ii[1] != -1)
 					bfNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
 
-				if (ii[1] >= PlayState.keyAmmo[PlayState.mania] && gottaHitNote && ii[1] != -1)
+				if (ii[1] >= PlayState.keyAmmo[PlayState.mania] && gottaHitNote && ii[1] != -1 && ii[1] < PlayState.keyAmmo[PlayState.mania] * 2)
 					dadNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
-				if (ii[1] <= PlayState.keyAmmo[PlayState.mania] - 1 && !gottaHitNote && ii[1] != -1)
+				if (ii[1] <= PlayState.keyAmmo[PlayState.mania] - 1 && !gottaHitNote && ii[1] != -1 && ii[1] < PlayState.keyAmmo[PlayState.mania] * 2)
 					dadNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
 			}
 		}
@@ -64,7 +62,8 @@ class NoteStuffExtra
 			var handTwo:Array<SmallNote> = [];
 			var Notedata:Array<SmallNote> = [];
 			if(NoteSet == 0) Notedata = bfNotes; else Notedata = dadNotes;
-			if(Notedata.length != 0){
+			if(Notedata.length != 0)
+		{
 			Notedata.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 
 			var firstNoteTime = Notedata[0].strumTime;
@@ -77,47 +76,27 @@ class NoteStuffExtra
 
 			for (i in Notedata)
 			{
-				switch (i.noteData)
-				{
-					case 0:
-						handOne.push(i);
-					case 1:
-						handOne.push(i);
-					case 2:
-						handTwo.push(i);
-					case 3:
-						handTwo.push(i);
-					case 4:
-						handOne.push(i);
-					case 5:
-						handOne.push(i);
-					case 6:
-						handTwo.push(i);
-					case 7:
-						handTwo.push(i);
-				}
+				if (i.noteData % PlayState.keyAmmo[PlayState.mania] < PlayState.keyAmmo[PlayState.mania] / 2)
+					handOne.push(i);
+				else
+					handTwo.push(i);
 			}
 			// collect all of the notes in each col
-			var leftHandCol:Array<Float> = [];
-			var leftMHandCol:Array<Float> = [];
-			var rightMHandCol:Array<Float> = [];
-			var rightHandCol:Array<Float> = [];
-
+			var leftHandCol:Array<Array<Float>> = [];
+			var rightHandCol:Array<Array<Float>> = [];
+			for (i in 0...PlayState.keyAmmo[PlayState.mania] * 2)
+			{
+				leftHandCol.push([]);
+				rightHandCol.push([]);
+			}
 			for (i in 0...handOne.length)
 			{
-				if (handOne[i].noteData == 0 || handOne[i].noteData == 4)
-					leftHandCol.push(handOne[i].strumTime);
-				else
-					leftMHandCol.push(handOne[i].strumTime);
+				leftHandCol[handOne[i].noteData].push(handOne[i].strumTime);
 			}
 			for (i in 0...handTwo.length)
 			{
-				if (handTwo[i].noteData == 3 || handTwo[i].noteData == 6)
-					rightHandCol.push(handTwo[i].strumTime);
-				else
-					rightMHandCol.push(handTwo[i].strumTime);
+				rightHandCol[handTwo[i].noteData].push(handTwo[i].strumTime);
 			}
-
 			// length in segments of the song
 			var length = ((Notedata[Notedata.length - 1].strumTime / 1000) / 0.5);
 	
@@ -178,65 +157,55 @@ class NoteStuffExtra
 				var ve = segmentsOne[i];
 				if (ve == null)
 					continue;
-				var fuckYouOne:Array<SmallNote> = [];
-				var fuckYouTwo:Array<SmallNote> = [];
+				var fuckYou:Array<Array<SmallNote>> = [];
+				for (i in 0...PlayState.keyAmmo[PlayState.mania] * 2)
+				{
+					fuckYou.push([]);
+				}
 				for (note in ve)
 				{
-					switch (note.noteData)
-					{
-						case 0: // fingie 1
-							fuckYouOne.push(note);
-						case 1: // fingie 2
-							fuckYouTwo.push(note);
-						case 4: // fingie 1
-							fuckYouOne.push(note);
-						case 5: // fingie 2
-							fuckYouTwo.push(note);
-					}
+					fuckYou[note.noteData].push(note);
 				}
 	
-				var one = fingieCalc(fuckYouOne, leftHandCol);
-				var two = fingieCalc(fuckYouTwo, leftMHandCol);
+				var bignumber:Float = 0;
+				for (i in 0...fuckYou.length){
+					var number = fingieCalc(fuckYou[i], leftHandCol[i]);
+					bignumber = Math.max(bignumber, number);
+				}
 	
-				var bigFuck = ((((one > two ? one : two) * 8) + (hand_npsOne[i] / scale) * 5) / 13) * scale;
+				var bigFuck = (((bignumber * 8) + (hand_npsOne[i] / scale) * 5) / 13) * scale;
 	
 				// trace(bigFuck + " - hand one [" + i + "]");
 	
 				hand_diffOne.push(bigFuck);
 			}
-	
 			for (i in 0...segmentsTwo.length)
 			{
 				var ve = segmentsTwo[i];
 				if (ve == null)
 					continue;
-				var fuckYouOne:Array<SmallNote> = [];
-				var fuckYouTwo:Array<SmallNote> = [];
+				var fuckYou:Array<Array<SmallNote>> = [];
+				for (i in 0...PlayState.keyAmmo[PlayState.mania] * 2)
+				{
+					fuckYou.push([]);
+				}
 				for (note in ve)
 				{
-					switch (note.noteData)
-					{
-						case 2: // fingie 1
-							fuckYouOne.push(note);
-						case 3: // fingie 2
-							fuckYouTwo.push(note);
-						case 6: // fingie 1
-							fuckYouOne.push(note);
-						case 7: // fingie 2
-							fuckYouTwo.push(note);
-					}
+					fuckYou[note.noteData].push(note);
 				}
 	
-				var one = fingieCalc(fuckYouOne, rightMHandCol);
-				var two = fingieCalc(fuckYouTwo, rightHandCol);
+				var bignumber:Float = 0;
+				for (i in 0...fuckYou.length){
+					var number = fingieCalc(fuckYou[i], rightHandCol[i]);
+					bignumber = Math.max(bignumber, number);
+				}
 	
-				var bigFuck = ((((one > two ? one : two) * 8) + (hand_npsTwo[i] / scale) * 5) / 13) * scale;
+				var bigFuck = (((bignumber * 8) + (hand_npsTwo[i] / scale) * 5) / 13) * scale;
 	
 				hand_diffTwo.push(bigFuck);
 	
 				// trace(bigFuck + " - hand two [" + i + "]");
 			}
-	
 			for (i in 0...4)
 			{
 				smoothBrain(hand_npsOne, 0);
@@ -278,9 +247,6 @@ class NoteStuffExtra
 			if (accuracy > .965)
 				accuracy = .965;
 	
-			lastDiffHandOne = hand_diffOne;
-			lastDiffHandTwo = hand_diffTwo;
-	
 			return HelperFunctions.truncateFloat(chisel(accuracy, hand_diffOne, hand_diffTwo, point_npsOne, point_npsTwo, maxPoints), 2);
 		}else return 0.0;
 	}
@@ -288,7 +254,7 @@ class NoteStuffExtra
 	public static function chisel(scoreGoal:Float, diffOne:Array<Float>, diffTwo:Array<Float>, pointsOne:Array<Float>, pointsTwo:Array<Float>, maxPoints:Float)
 	{
 		var lowerBound:Float = 0;
-		var upperBound:Float = 100;
+		var upperBound:Float = 1000;
 
 		while (upperBound - lowerBound > 0.01)
 		{

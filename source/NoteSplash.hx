@@ -41,6 +41,11 @@ class NoteSplash extends FlxSprite
 			animation.addByPrefix("cyan", "NoteSplashCyan", 24, false);
 			animation.addByPrefix("magenta", "NoteSplashMagenta", 24, false);
 			animation.addByPrefix("tango", "NoteSplashTango", 24, false);
+			animation.addByPrefix("wintergreen", "NoteSplashWintergreen", 24, false);
+			animation.addByPrefix("canary", "NoteSplashCanary", 24, false);
+			animation.addByPrefix("scarlet", "NoteSplashScarlet", 24, false);
+			animation.addByPrefix("violet", "NoteSplashViolet", 24, false);
+			animation.addByPrefix("erin", "NoteSplashErin", 24, false);
 			if(PlayState.instance != null){
 				PlayState.instance.callInterp("newNoteSplashAfter",[this]);
 			}
@@ -57,31 +62,43 @@ class NoteSplash extends FlxSprite
 			if(PlayState.instance != null){
 				PlayState.instance.callInterp("setupNoteSplash",[this]);
 			}
-			if(obj != null){
-				scrollFactor.set(obj.scrollFactor.x,obj.scrollFactor.y);
-				x=(obj.x);
-				y=(obj.y);
-			}
 			alpha = 0.6;
 			animation.play(Note.noteNames[note], true);
 			animation.finishCallback = finished;
 			animation.curAnim.frameRate = 24;
 			data = note;
 			updateHitbox();
-			switch (NoteAssets.splashType) {
+			centerOffsets();
+			centerOrigin();
+
+			if(obj != null){
+				@:privateAccess
+				{
+					cameras = obj.cameras;
+				}
+				scrollFactor.set(obj.scrollFactor.x,obj.scrollFactor.y);
+				x=(obj.x);
+				y=(obj.y);
+			}
+			// animation.play(anim, true);
+			switch (NoteAssets.splashType.toLowerCase()) {
 				case "psych":
-					setPosition(x - Note.swagWidth[PlayState.mania] * 0.95, y - Note.swagWidth[PlayState.mania]);
+					setPosition(x - Note.swagWidth[0] * 0.95, y - Note.swagWidth[0]);
 					offset.set(10, 10);
 				case "vanilla": // From DotEngine
 					offset.set(width * 0.3, height * 0.3);
 				case "custom":
 					// Do nothing
 				default:
-					setPosition(x - Note.swagWidth[PlayState.mania] * 0.95, y - Note.swagWidth[PlayState.mania]);
+					setPosition(x - Note.swagWidth[0] * 0.95, y - Note.swagWidth[0]);
 					offset.set(-40, -40);
 			}
+
+			if(PlayState.instance != null){
+				PlayState.instance.callInterp("setupNoteSplashAfter",[this]);
+			}
 		}catch(e){
-			MainMenuState.handleError('Error while setting up a NoteSplash ${e.message}\n ${e.stack}');
+			// MainMenuState.handleError(e,'Error while setting up a NoteSplash ${e.message}');// i rather have it not doing anything if error
 		}
 		// offset.set(-0.5 * -width, 0.5 * -height);
 	}

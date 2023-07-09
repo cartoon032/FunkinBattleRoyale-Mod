@@ -58,8 +58,8 @@ class CharSelection extends SearchMenuState
 	uiIcon.x = FlxG.width * 0.8;
 	uiIcon.y = FlxG.height * 0.2;
 	add(uiIcon);
-	FlxTween.angle(uiIcon, -40, 40, 1.12, {ease: FlxEase.quadInOut, type: FlxTween.PINGPONG});
-	FlxTween.tween(uiIcon, {"scale.x": 1.25,"scale.y": 1.25}, 1.50, {ease: FlxEase.quadInOut, type: FlxTween.PINGPONG});  
+	FlxTween.angle(uiIcon, -40, 40, 1.12, {ease: FlxEase.quadInOut, type: FlxTweenType.PINGPONG});
+	FlxTween.tween(uiIcon, {"scale.x": 1.25,"scale.y": 1.25}, 1.50, {ease: FlxEase.quadInOut, type: FlxTweenType.PINGPONG});  
 	// changeSelection();
 	{
 		var curChar = "";

@@ -52,7 +52,7 @@ class EmptyCharacter extends Character
 		return;
 	}
 
-	override public function dance(?ignoreDebug:Bool = false)
+	override public function dance(beatDouble:Bool = false)
 	{
 		animation.play("idle",true,false,0);
 		return;

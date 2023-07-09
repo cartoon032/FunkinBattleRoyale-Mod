@@ -33,9 +33,7 @@ import SickMenuState;
 import flash.media.Sound;
 import flixel.FlxCamera;
 
-#if windows
 import Discord.DiscordClient;
-#end
 
 using StringTools;
 
@@ -44,10 +42,28 @@ typedef Scorekillme = {
 	var songs:Array<String>;
 	var funniNumber:Float;
 }
+@:structInit class StageInfo{
+	public var id:String = "";
+	public var path(get,default):String = null;
+	public function get_path(){
+		if(path == "" || path == null) return "mods/stages/";
+		return path;
+	}
+	public var folderName:String = "";
+	public var nameSpace:String = null;
+	public var nameSpaceType:Int = 0; // 0: mods/stages, 1: mods/weeks, 2: mods/packs 
+
+	public function toString(){
+		return 'Stage $nameSpace/$id, Raw folder name:$folderName, path:$path';
+	}
+	public function getNamespacedName(){
+		return (if (nameSpace != null) '$nameSpace|$id' else id);
+	}
+}
 
 class TitleState extends MusicBeatState
 {
-	static var initialized:Bool = false;
+	public static var initialized:Bool = false;
 
 	var blackScreen:FlxSprite;
 	var credGroup:FlxGroup;
@@ -56,8 +72,9 @@ class TitleState extends MusicBeatState
 	var ngSpr:FlxSprite;
 	public static var p2canplay = true;
 	public static var choosableCharacters:Array<String> = [];
-	public static var choosableStages:Array<String> = ["default","stage",'halloween',"philly","limo",'mall','mallevil','school','schoolevil'];
-	public static var choosableStagesLower:Map<String,String> = [];
+	// public static var choosableStages:Array<String> = ["default","stage"];
+	// public static var choosableStagesLower:Map<String,String> = [];
+	public static var stages:Array<StageInfo> = [];
 	public static var choosableCharactersLower:Map<String,String> = [];
 	public static var weekChars:Map<String,Array<String>> = [];
 	public static var characterDescriptions:Map<String,String> = [];
@@ -78,12 +95,10 @@ class TitleState extends MusicBeatState
 
 	var curWacky:Array<String> = [];
 
-	var wackyImage:FlxSprite;
 	public static function loadNoteAssets(?forced:Bool = false){
 		if (NoteAssets == null || NoteAssets.name != FlxG.save.data.noteAsset || forced){
-			if (!FileSystem.exists('mods/noteassets/${FlxG.save.data.noteAsset}.png') || !FileSystem.exists('mods/noteassets/${FlxG.save.data.noteAsset}.xml')){
+			if (!SELoader.exists('mods/noteassets/${FlxG.save.data.noteAsset}.png') || !SELoader.exists('mods/noteassets/${FlxG.save.data.noteAsset}.xml')){
 				FlxG.save.data.noteAsset = "default";
-
 			} // Hey, requiring an entire reset of the game's settings when noteasset goes missing is not a good idea
 			new NoteAssets(FlxG.save.data.noteAsset);
 		}
@@ -105,17 +120,10 @@ class TitleState extends MusicBeatState
 			return "mods/characters";
 		}
 	}
-	public static function retStage(char:String):String{
-		if (choosableStagesLower[char.toLowerCase()] != null){
-			return choosableStagesLower[char.toLowerCase()];
-		}else{
-			return "";
-		}
-	}
 	public static function checkCharacters(){
-		choosableCharacters = ["bf","gf"];
-		choosableCharactersLower = ["bf" => "bf","gf" => "gf"];
-		characterDescriptions = ["automatic" => "Automatically uses character from song json", "bf" => "Boyfriend, the main protagonist. Provided by the base game.","gf" => "Girlfriend, boyfriend's partner. Provided by the base game."];
+		choosableCharacters = ["bf","gf","lonely","hidden","nothing","blank"];
+		choosableCharactersLower = ["bf" => "bf","gf" => "gf","lonely" => "lonely","hidden" => "hidden","nothing" => "nothing","blank" => "blank"];
+		characterDescriptions = ["automatic" => "Automatically uses character from song json", "bf" => "Boyfriend, the main protagonist. Provided by the base game.","gf" => "Girlfriend, boyfriend's partner. Provided by the base game.","lonely" => "pick for nothing","hidden" => "pick for nothing","nothing" => "pick for nothing","blank" => "pick for nothing"];
 		characterPaths = [];
 		weekChars = [];
 		invalidCharacters = [];
@@ -264,34 +272,141 @@ class TitleState extends MusicBeatState
 			}
 		}
 	}
+	public static function retStage(char:String):String{
+		return findStageByNamespace(char,true).getNamespacedName();
+	}
+
+	public static function findStage(char:String,?retStage:Bool = true,?ignoreNSCheck:Bool = false):Null<StageInfo>{
+		if(char == ""){
+			trace('Empty stage search, returning Stage');
+			if(retStage) return stages[1];
+			return null;
+		}
+		if(char.startsWith('NULL|')) char = char.replace('NULL|','');
+		if(char.contains('|') && !ignoreNSCheck){
+			return inline findStageByNamespace(char,retStage);
+		}
+		if(char == ""){
+			trace('Tried to get a blank stage!');
+			if(retStage) return stages[1];
+			return null;
+		}
+		if(Std.parseInt(char) != null && !Math.isNaN(Std.parseInt(char))){
+			var e = Std.parseInt(char);
+			if(stages[e] != null){
+
+				// trace('Found char with ID of $e');
+				return stages[e];
+			}else{
+				trace('Invalid ID $e, out of range 0-${stages.length}');
+				if(retStage) return stages[1];
+				return null;
+			}
+		}
+		char = char.replace(' ',"-").replace('_',"-").toLowerCase();
+		for (i in stages){
+			if(i.id == char.toLowerCase()){
+				return i;
+			}
+		}
+		trace('Unable to find $char!');
+		if(retStage) return stages[1];
+		return null;
+	}
+	// This prioritises stages from a specific namespace, if it finds one outside of the namespace and the namespace doesn't have one, then they'll be used instead
+	public static function findStageByNamespace(stage:String = "",?namespace:String = "",?nameSpaceType:Int = -1,?retStage:Bool = true):Null<StageInfo>{ 
+		if(stage == ""){
+			trace('Empty stage search, returning stage');
+			if(retStage) return stages[1];
+			return null;
+		}
+		if(stage.contains('|')){
+			var _e = stage.split('|');
+			namespace = _e[0];
+			stage = _e[1];
+		}
+		if(namespace == "") return findStage(stage,retStage,true);
+		if(stage == ""){
+			trace('Tried to get a blank stageacter!');
+			if(retStage) return stages[1];
+			return null;
+		}
+		var currentstage:StageInfo = null;
+		stage = stage.replace(' ',"-").replace('_',"-");
+		for (i in stages){
+			if(i.id == stage.toLowerCase()){
+				if(i.nameSpace == namespace && (nameSpaceType == -1 || i.nameSpaceType == nameSpaceType)){
+					return i;
+				}
+				currentstage = i;
+			}
+		}
+		if(currentstage == null){
+			trace('Unable to find $stage!');
+			if(retStage) return stages[1];
+			return null;
+		}
+		return currentstage;
+
+	}
 	public static function checkStages(){
-		choosableStages = ["default","stage",'halloween',"philly","limo",'mall','mallevil','school','schoolevil'];
-		choosableStagesLower = ["default" => "default","stage" => "stage",'halloween' => 'halloween',"philly" => "philly","limo" => "limo",'mall' => 'mall','mallevil' => 'mallevil','school' => 'school','schoolevil' => 'schoolevil'];
+
+		LoadingScreen.loadingText = 'Updating stage list';
+		stages = [
+			{id:"nothing",folderName:"nothing",path:"assets/",},
+			{id:"stage",folderName:"stage",path:"assets/",},
+		];
 		#if sys
 		// Loading like this is probably not a good idea
 		var dataDir:String = "mods/stages/";
-		var customStages:Array<String> = [];
-		if (FileSystem.exists(dataDir))
-		{
-		  for (directory in FileSystem.readDirectory(dataDir))
-		  {
-			if (FileSystem.exists(Sys.getCwd() + "mods/stages/"+directory+"/config.json") || FileSystem.exists(Sys.getCwd() + "mods/stages/"+directory+"/script.hscript"))
-			{
-				customStages.push(directory);
 
+		if (SELoader.exists(dataDir))
+		{
+		  for (directory in SELoader.readDirectory(dataDir))
+		  {
+			if (!SELoader.isDirectory(dataDir+"/"+directory)){continue;}
+			if (SELoader.exists(dataDir+"/"+directory+"/"))
+			{
+				stages.push({
+					id:directory.replace(' ','-').replace('_','-').toLowerCase(),
+					folderName:directory,
+				});
 			}
 		  }
 		}
-		haxe.ds.ArraySort.sort(customStages, function(a, b) {
-		   if(a < b) return -1;
-		   else if(b > a) return 1;
-		   else return 0;
-		});
-		for (char in customStages){
-			choosableStages.push(char);
-			choosableStagesLower[char.toLowerCase()] = char;
+
+		
+
+		for (ID => dataDir in ['mods/weeks/','mods/packs/']) {
+			
+			if (SELoader.exists(dataDir))
+			{
+			  for (_dir in SELoader.readDirectory(dataDir))
+			  {
+				if (!SELoader.isDirectory(dataDir + _dir)){continue;}
+				// trace(_dir);
+				if (SELoader.exists(dataDir + _dir + "/stages/"))
+				{
+					var dir = dataDir + _dir + "/stages/";
+					// trace('Checking ${dir} for characters');
+					for (char in SELoader.readDirectory(dir))
+					{
+						if (!SELoader.isDirectory(dir+"/"+char)){continue;}
+						stages.push({
+							id:char.replace(' ',"-").replace('_',"-").toLowerCase(),
+							folderName:char,
+							path:dir,
+							nameSpaceType:ID,
+							nameSpace:_dir
+						});
+					}
+				}		
+			  }
+			}
 		}
+		trace('Found ${stages.length} stages');
 		#end
+
 	}
 	public static function findosuBeatmaps(){
 		var loc = "";
@@ -305,124 +420,6 @@ class TitleState extends MusicBeatState
 
 		osuBeatmapLoc = loc;
 	}
-	// static inline function GETSCOREPATH():String{
-	// 	#if windows 
-	// 		if (Sys.getEnv("LOCALAPPDATA") != null) return '${Sys.getEnv("LOCALAPPDATA")}/hahafunnisuperengine/'; // Windows path
-	// 	#else
-	// 		if (Sys.getEnv("HOME") != null ) return '${Sys.getEnv("HOME")}/.local/share/hahfunnysuperengine/'; // Unix path
-	// 	#end
-	// 	else return "./hahfunnysuperengine/"; // If this gets returned, fucking run
-	// }
-	// static function getfunninumber(?scores:Scorekillme = null){ // Really simple, but if you're gonna get past this one, then you'll probably just get past any smarter checksums I'd make
-	// 	if(scores == null){
-	// 		scores = songScores;
-	// 	}
-	// 	var funniNumber:Float = 0; // Would make this an int but I don't trust rounding
-	// 	for (i => v in scores.scores) {
-	// 		funniNumber += v;
-	// 	}
-	// 	// funniNumber += scores.scores.length * funniNumber; // If this doesn't return the same then cheat :<
-	// 	return funniNumber;
-	// }
-	// public static function getScore(type:Int = -1):Float{
-	// 	var stag = 0;
-	// 	try{
-
-	// 		if(type == -1) type = PlayState.stateType;
-	// 		stag++;
-	// 		var songName = "";
-	// 		stag++;
-	// 		switch(type){
-	// 			case 4:songName = multi.MultiMenuState.lastSong;
-	// 			default:return 0.0;
-	// 		}
-	// 		stag++;
-	// 		return if(songName != null && songScores.songs.contains(songName)) songScores.scores[songScores.songs.indexOf(songName)] else 0.0;
-	// 		stag++;
-	// 	}catch(e){
-	// 		trace("Fucking haxe:" + stag +" " + e.message);
-	// 		return 0.0;
-	// 	}
-	// }
-	// public static function saveScore(accuracy:Float,?type:Int = -1){
-	// 	try{
-	// 		var songName = "";
-	// 		if(type == -1) type = PlayState.stateType;
-	// 		switch(type){
-	// 			case 4:songName = multi.MultiMenuState.lastSong;
-	// 			default:return;
-	// 		}
-	// 		if(songScores.songs.contains(songName) && songScores.scores[songScores.songs.indexOf(songName)] > accuracy){return;} // Don't overwrite a better score!
-	// 		if(!songScores.songs.contains(songName)) songScores.songs.push(songName);
-	// 		songScores.scores[songScores.songs.indexOf(songName)] = accuracy;
-	// 		songScores.funniNumber = getfunninumber();
-	// 		File.saveContent(GETSCOREPATH() + "songs.json",Json.stringify(songScores));
-	// 	}catch(e){
-	// 		trace("Error saving:"  + e.message);
-	// 		MusicBeatState.instance.showTempmessage('Unable to save score! ${e.message}');
-	// 	}
-	// }
-	// static function handlError(err:String){
-	// 	if(!MainMenuState.firstStart){
-	// 		MainMenuState.handleError(err);
-	// 	}else{
-	// 		MusicBeatState.instance.showTempmessage(err);
-	// 	}
-	// }
-	// static function loadScores(){
-	// 	var path = GETSCOREPATH();
-	// 	if (!FileSystem.exists(path)) {
-	// 		FileSystem.createDirectory(path);
-	// 	}
-	// 	if (!FileSystem.exists(path + "songs.json")) {
-	// 		songScores = {
-	// 			scores : [0],
-	// 			songs : ["bopeebo"],
-	// 			funniNumber : 1
-	// 		};
-	// 		File.saveContent(path + "songs.json",Json.stringify(songScores));
-	// 	}else{
-	// 		try{
-	// 			var e:Scorekillme = cast Json.parse(File.getContent(path+"songs.json"));
-	// 			// File.saveContent(path + "_songs.json",Json.stringify(e));
-	// 			// File.saveContent(path + "_songs.json",Json.stringify(e));
-	// 			// songScores = cast e.scores;
-	// 			if(e == null){throw("songs.json is invalid!");}
-	// 			trace(e);
-	// 			// trace("e");
-	// 			if(getfunninumber(e) != e.funniNumber){
-	// 				handlError("Something isn't adding up with your scores, you get bopeebo'd");
-	// 				trace("bopeebo'd lmao");
-	// 				songScores = {
-	// 					scores : [0],
-	// 					songs : ["bopeebo"],
-	// 					funniNumber : 1
-	// 				};
-	// 			}
-	// 			songScores = e;
-	// 		}catch(err){
-	// 			handlError("Something went wrong when loading song scores, RESETTING! " + err.message);
-	// 			trace("Something went wrong when loading song scores, RESETTING! " + err.message);
-	// 			try{File.saveContent(path + "songs.json-bak",File.getContent(path+"songs.json"));}catch(err){trace("rip scores, file is bein cring");}
-
-	// 			songScores = {
-	// 				scores : [0],
-	// 				songs : ["bopeebo"],
-	// 				funniNumber : 1
-	// 			};
-	// 			File.saveContent(path + "songs.json",Json.stringify(songScores));
-	// 		}
-	// 	}
-	// 	if(songScores == null){
-	// 		trace("What the fuck, why are you null?!?!!?");
-	// 		songScores = {
-	// 				scores : [0],
-	// 				songs : ["bopeebo"],
-	// 				funniNumber : 1
-	// 			};
-
-	// 	}
-	// }
 	override public function create():Void
 	{
 		Assets.loadLibrary("shared");
@@ -433,15 +430,11 @@ class TitleState extends MusicBeatState
 		
 		PlayerSettings.init();
 
-
-		#if windows
 		DiscordClient.initialize();
 
 		Application.current.onExit.add (function (exitCode) {
 			DiscordClient.shutdown();
-		});
-		
-		#end
+		 });
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
@@ -473,16 +466,10 @@ class TitleState extends MusicBeatState
 		// loadScores();
 		pauseMenuMusic = Sound.fromFile((if (FileSystem.exists('mods/pauseMenu.ogg')) 'mods/pauseMenu.ogg' else if (FileSystem.exists('assets/music/breakfast.ogg')) 'assets/music/breakfast.ogg' else "assets/shared/music/breakfast.ogg"));
 
-		#if FREEPLAY
-		FlxG.switchState(new FreeplayState());
-		#elseif CHARTING
-		FlxG.switchState(new ChartingState());
-		#else
-		new FlxTimer().start(0.5, function(tmr:FlxTimer)
+		new FlxTimer().start(0.25, function(tmr:FlxTimer)
 		{
 			startIntro();
 		});
-		#end
 	}
 
 	var logoBl:FlxSprite;
@@ -543,9 +530,6 @@ class TitleState extends MusicBeatState
 
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
-		// bg.antialiasing = true;
-		// bg.setGraphicSize(Std.int(bg.width * 0.6));
-		// bg.updateHitbox();
 		add(bg);
 
 		logoBl = new FlxSprite(-150, -100);
@@ -554,8 +538,6 @@ class TitleState extends MusicBeatState
 		logoBl.animation.addByPrefix('bump', 'logo bumpin', 24);
 		logoBl.animation.play('bump');
 		logoBl.updateHitbox();
-		// logoBl.screenCenter();
-		// logoBl.color = FlxColor.BLACK;
 
 		gfDance = new FlxSprite(FlxG.width, FlxG.height * 0.07);
 		gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
@@ -578,10 +560,6 @@ class TitleState extends MusicBeatState
 		var logo:FlxSprite = new FlxSprite().loadGraphic(Paths.image('logo'));
 		logo.screenCenter();
 		logo.antialiasing = true;
-		// add(logo);
-
-		// FlxTween.tween(logoBl, {y: logoBl.y + 50}, 0.6, {ease: FlxEase.quadInOut, type: PINGPONG});
-		// FlxTween.tween(logo, {y: logoBl.y + 50}, 0.6, {ease: FlxEase.quadInOut, type: PINGPONG, startDelay: 0.1});
 
 		credGroup = new FlxGroup();
 		add(credGroup);
@@ -590,7 +568,7 @@ class TitleState extends MusicBeatState
 		blackScreen = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		credGroup.add(blackScreen);
 
-		credTextShit = new Alphabet(0, 0, "ninjamuffin99\nPhantomArcade\nkawaisprite\nevilsk8er", true);
+		credTextShit = new Alphabet(0, 0, "ninjamuffin99\nPhantomArcade\nkawaisprite\nevilsk8er", true, false, false, 70, true);
 		credTextShit.screenCenter();
 
 		// credTextShit.alignment = CENTER;
@@ -614,7 +592,6 @@ class TitleState extends MusicBeatState
 		shiftSkip.y = FlxG.height - shiftSkip.height - 12;
 		shiftSkip.x = 6;
 		add(shiftSkip);
-
 		if (initialized)
 			skipIntro();
 		else{
@@ -652,11 +629,6 @@ class TitleState extends MusicBeatState
 			Conductor.songPosition = FlxG.sound.music.time;
 		// FlxG.watch.addQuick('amp', FlxG.sound.music.amplitude);
 
-		if (FlxG.keys.justPressed.F11)
-		{
-			FlxG.fullscreen = !FlxG.fullscreen;
-		}
-
 		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || skipBoth;
 
 		#if mobile
@@ -669,27 +641,12 @@ class TitleState extends MusicBeatState
 		}
 		#end
 
-		var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
-
-		if (gamepad != null)
-		{
-			if (gamepad.justPressed.START)
-				pressedEnter = true;
-
-			#if switch
-			if (gamepad.justPressed.B)
-				pressedEnter = true;
-			#end
-		}
 		if(shiftSkip != null && isShift != FlxG.keys.pressed.SHIFT){
 			isShift = FlxG.keys.pressed.SHIFT;
 			shiftSkip.color = (if(FlxG.keys.pressed.SHIFT) 0x00aa00 else 0xFFFFFF);
 		}
 		if (pressedEnter && !transitioning && skippedIntro)
 		{
-
-
-
 			if (FlxG.save.data.flashing)
 				titleText.animation.play('press');
 
@@ -698,7 +655,6 @@ class TitleState extends MusicBeatState
 
 			transitioning = true;
 			// FlxG.sound.music.stop();
-			if(MainMenuState.nightly != "") MainMenuState.ver += "-" + MainMenuState.nightly;
 			
 			#if !debug
 			if (FlxG.keys.pressed.SHIFT || FileSystem.exists(Sys.getCwd() + "/noUpdates") || checkedUpdate || !FlxG.save.data.updateCheck)
@@ -706,13 +662,13 @@ class TitleState extends MusicBeatState
 			else
 			{
 
-				showTempmessage("Checking for updates..",FlxColor.WHITE);
+				showTempmessage("Not Checking for updates..",FlxColor.WHITE);
 				tempMessage.screenCenter(X);
 				new FlxTimer().start(2, function(tmr:FlxTimer)
 				{
 					// Get current version of FNFBR, Uses kade's update checker 
 	
-					var http = new haxe.Http("https://raw.githubusercontent.com/superpowers04/Super-Engine/" + (if(MainMenuState.nightly == "") "master" else "nightly") + "/version.downloadMe"); // It's recommended to change this if forking
+					var http = new haxe.Http("https://raw.githubusercontent.com/cartoon032/Super-Engine-T-Mod/" + (if(MainMenuState.nightly == "") "master" else "nightly") + "/version.downloadMe"); // It's recommended to change this if forking
 					var returnedData:Array<String> = [];
 					
 					http.onData = function (data:String)
@@ -723,12 +679,12 @@ class TitleState extends MusicBeatState
 						updatedVer = returnedData[0];
 						OutdatedSubState.needVer = updatedVer;
 						OutdatedSubState.currChanges = returnedData[1];
-						if (!MainMenuState.ver.contains(updatedVer.trim()) || (MainMenuState.nightly != ""))
-						{
-							// trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
-							outdated = true;
+						// if (!MainMenuState.ver.contains(updatedVer.trim()) || (MainMenuState.nightly != "")) // nah
+						// {
+						// 	// trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
+						// 	outdated = true;
 							
-						}
+						// }
 						FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 					}
 					http.onError = function (error) {
@@ -767,7 +723,7 @@ class TitleState extends MusicBeatState
 
 	function addMoreText(text:String)
 	{
-		var coolText:Alphabet = new Alphabet(0, 0, text, true, false);
+		var coolText:Alphabet = new Alphabet(0, 0, text, true, false, false , 70, true);
 		coolText.screenCenter(X);
 		coolText.y += (textGroup.length * 60) + 200;
 		credGroup.add(coolText);
@@ -782,6 +738,7 @@ class TitleState extends MusicBeatState
 			textGroup.remove(textGroup.members[0], true);
 		}
 	}
+	var cachingText:Alphabet;
 	override function beatHit()
 	{
 		super.beatHit();
@@ -913,7 +870,15 @@ class TitleState extends MusicBeatState
 		_sprite = new Sprite();
 		FlxG.stage.addChild(_sprite);
 		_gfx = _sprite.graphics;
+		_sprite.filters = [new flash.filters.GlowFilter(0xFFFFFF,1,6,6,1,1)];
 
+		// This is shit, but it caches unloaded sprites for FlxText
+		var coolText:Alphabet = new Alphabet(0, 0, "_", true, false);
+		coolText.screenCenter(X);
+		coolText.forceFlxText = true;
+		coolText.text = 'PRECACHING TEXT: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890~#$%&()*+:;<=>@[|]^.,\'!?/';
+		coolText.bounce();
+		add(cachingText = coolText);
 
 		_sprite.x = (FlxG.width / 2);
 		_sprite.y = (FlxG.height * 0.60) - 20 * FlxG.game.scaleY;
@@ -932,7 +897,6 @@ class TitleState extends MusicBeatState
 			_sound.pause();
 			_sound.destroy();
 		} 
-		// remove(_sprite);
 		flixel.util.FlxTimer.globalManager.clear();
 		FlxG.stage.removeChild(_sprite);
 		_sprite = null;
@@ -940,19 +904,35 @@ class TitleState extends MusicBeatState
 		_times = null;
 		_colors = null;
 		_functions = null;
+
 	}
 	function _timerCallback(Timer:FlxTimer):Void
 	{
 		_functions[_curPart]();
 		_curPart++;
-		textGroup.members[1].color = _colors[_curPart];
+		
+		if(textGroup.members[1] == null) textGroup.members[0].color = _colors[_curPart]; else {textGroup.members[1].color = _colors[_curPart];textGroup.members[0].color = 0xFFFFFF;}
+		
+		if(_sprite.filters[0] != null) cast(_sprite.filters[0],flash.filters.GlowFilter).color = _colors[_curPart];
 		if (_curPart == 6)
 		{
 			// Make the logo a tad bit longer, so our users fully appreciate our hard work :D
+			FlxTween.tween(_sprite.filters[0],{blurX:0,blurY:0,strength:1},1.5,{ease:FlxEase.quadOut});
 			FlxTween.tween(_sprite, {alpha: 0}, 3.0, {ease: FlxEase.quadOut, onComplete: __onComplete});
 			FlxTween.tween(textGroup.members[0], {alpha: 0}, 3.0, {ease: FlxEase.quadOut});
 			FlxTween.tween(textGroup.members[1], {alpha: 0}, 3.0, {ease: FlxEase.quadOut});
 		}
+	}
+	function bounceText(?beatLength:Float = 0.3){
+		var i = textGroup.members.length - 1;
+		while (i > -1){
+			textGroup.members[i].scale.x = textGroup.members[i].scale.y = 1.2;
+			FlxTween.cancelTweensOf(textGroup.members[i]);
+			FlxTween.tween(textGroup.members[i].scale, {x: 1,y: 1}, beatLength, {ease: FlxEase.cubeOut});
+			i--;
+		}
+		
+
 	}
 	var skipBoth:Bool = false;
 	function  __onComplete(tmr:FlxTween){
@@ -964,12 +944,17 @@ class TitleState extends MusicBeatState
 		destHaxe();
 		FlxG.sound.music.play();
 		FlxG.sound.music.fadeIn(0.1,FlxG.save.data.instVol);
-		if(isShift || FlxG.keys.pressed.ENTER){
+		if(!isShift){
+			FlxG.fullscreen = FlxG.save.data.fullscreen;
+
+		}
+		if(isShift || FlxG.keys.pressed.ENTER || (Sys.args()[0] != null && FileSystem.exists(Sys.args()[0]))){
 			skipBoth = true;
 		}
 	}
 	function drawGreen():Void
 	{
+		cachingText.destroy();
 		_gfx.beginFill(0x00b922);
 		_gfx.moveTo(0, -37);
 		_gfx.lineTo(1, -37);
@@ -981,6 +966,8 @@ class TitleState extends MusicBeatState
 		_gfx.lineTo(-37, 0);
 		_gfx.lineTo(0, -37);
 		_gfx.endFill();
+		createCoolText(['']);
+
 	}
 
 	function drawYellow():Void
@@ -993,6 +980,11 @@ class TitleState extends MusicBeatState
 		_gfx.lineTo(-50, -25);
 		_gfx.lineTo(-50, -50);
 		_gfx.endFill();
+		createCoolText(['Powered by']);
+		bounceText();
+
+		// textGroup.members[1].color = 0x00b922;
+		
 	}
 
 	function drawRed():Void
@@ -1005,6 +997,7 @@ class TitleState extends MusicBeatState
 		_gfx.lineTo(50, -25);
 		_gfx.lineTo(50, -50);
 		_gfx.endFill();
+		
 	}
 
 	function drawBlue():Void
@@ -1017,6 +1010,9 @@ class TitleState extends MusicBeatState
 		_gfx.lineTo(-50, 25);
 		_gfx.lineTo(-50, 50);
 		_gfx.endFill();
+		deleteCoolText();
+		createCoolText(['Powered by','HaxeFlixel']);
+
 	}
 
 	function drawLightBlue():Void
@@ -1029,12 +1025,14 @@ class TitleState extends MusicBeatState
 		_gfx.lineTo(50, 25);
 		_gfx.lineTo(50, 50);
 		_gfx.endFill();
+		FlxTween.tween(_sprite.filters[0],{blurX:50,blurY:50,strength:2},0.2,{ease:FlxEase.quadOut});
+		bounceText();
+
+		// addMoreText('HaxeFlixel');
 	}
 
 
 }
-
-
 
 class FuckinNoDestCam extends FlxCamera{
 	public override function destroy(){

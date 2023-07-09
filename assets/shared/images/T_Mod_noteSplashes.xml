@@ -12,59 +12,84 @@
 	<SubTexture name="NoteSplashBlue0002" x="1988" y="0" width="284" height="288"/>
 	<SubTexture name="NoteSplashBlue0003" x="2272" y="0" width="284" height="288"/>
 	<SubTexture name="NoteSplashBlue0004" x="2556" y="0" width="284" height="288"/>
-	<SubTexture name="NoteSplashCyan0000" x="2840" y="0" width="283" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashCyan0001" x="3123" y="0" width="283" height="288"/>
-	<SubTexture name="NoteSplashCyan0002" x="3406" y="0" width="283" height="288"/>
-	<SubTexture name="NoteSplashCyan0003" x="3689" y="0" width="283" height="288"/>
-	<SubTexture name="NoteSplashCyan0004" x="3972" y="0" width="283" height="288"/>
-	<SubTexture name="NoteSplashGreen0000" x="0" y="288" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashGreen0001" x="284" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashGreen0002" x="568" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashGreen0003" x="852" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashGreen0004" x="1136" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashLime0000" x="1420" y="288" width="284" height="287" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashLime0001" x="1704" y="288" width="284" height="287"/>
-	<SubTexture name="NoteSplashLime0002" x="1988" y="288" width="284" height="287"/>
-	<SubTexture name="NoteSplashLime0003" x="2272" y="288" width="284" height="287"/>
-	<SubTexture name="NoteSplashLime0004" x="2556" y="288" width="284" height="287"/>
-	<SubTexture name="NoteSplashMagenta0000" x="2840" y="288" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashMagenta0001" x="3124" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashMagenta0002" x="3408" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashMagenta0003" x="3692" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashMagenta0004" x="3976" y="288" width="284" height="288"/>
-	<SubTexture name="NoteSplashOrange0000" x="0" y="576" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashOrange0001" x="284" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashOrange0002" x="568" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashOrange0003" x="852" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashOrange0004" x="1136" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashPink0000" x="1420" y="576" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashPink0001" x="1704" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashPink0002" x="1988" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashPink0003" x="2272" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashPink0004" x="2556" y="576" width="284" height="288"/>
-	<SubTexture name="NoteSplashPurple0000" x="2840" y="576" width="283" height="287" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashPurple0001" x="3123" y="576" width="283" height="287"/>
-	<SubTexture name="NoteSplashPurple0002" x="3406" y="576" width="283" height="287"/>
-	<SubTexture name="NoteSplashPurple0003" x="3689" y="576" width="283" height="287"/>
-	<SubTexture name="NoteSplashPurple0004" x="3972" y="576" width="283" height="287"/>
-	<SubTexture name="NoteSplashRed0000" x="0" y="864" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashRed0001" x="284" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashRed0002" x="568" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashRed0003" x="852" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashRed0004" x="1136" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashTango0000" x="1420" y="864" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashTango0001" x="1704" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashTango0002" x="1988" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashTango0003" x="2272" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashTango0004" x="2556" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashWhite0000" x="2840" y="864" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashWhite0001" x="3124" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashWhite0002" x="3408" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashWhite0003" x="3692" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashWhite0004" x="3976" y="864" width="284" height="288"/>
-	<SubTexture name="NoteSplashYellow0000" x="0" y="1152" width="283" height="287" pivotX="93.8" pivotY="74.6"/>
-	<SubTexture name="NoteSplashYellow0001" x="283" y="1152" width="283" height="287"/>
-	<SubTexture name="NoteSplashYellow0002" x="566" y="1152" width="283" height="287"/>
-	<SubTexture name="NoteSplashYellow0003" x="849" y="1152" width="283" height="287"/>
-	<SubTexture name="NoteSplashYellow0004" x="1132" y="1152" width="283" height="287"/>
+	<SubTexture name="NoteSplashCanary0000" x="2840" y="0" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashCanary0001" x="3124" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashCanary0002" x="3408" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashCanary0003" x="3692" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashCanary0004" x="3976" y="0" width="284" height="288"/>
+	<SubTexture name="NoteSplashCyan0000" x="0" y="288" width="283" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashCyan0001" x="283" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashCyan0002" x="566" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashCyan0003" x="849" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashCyan0004" x="1132" y="288" width="283" height="288"/>
+	<SubTexture name="NoteSplashErin0000" x="1415" y="288" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashErin0001" x="1699" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashErin0002" x="1983" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashErin0003" x="2267" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashErin0004" x="2551" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0000" x="2835" y="288" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashGreen0001" x="3119" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0002" x="3403" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0003" x="3687" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashGreen0004" x="3971" y="288" width="284" height="288"/>
+	<SubTexture name="NoteSplashLime0000" x="0" y="576" width="283" height="287" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashLime0001" x="283" y="576" width="283" height="287"/>
+	<SubTexture name="NoteSplashLime0002" x="566" y="576" width="283" height="287"/>
+	<SubTexture name="NoteSplashLime0003" x="849" y="576" width="283" height="287"/>
+	<SubTexture name="NoteSplashLime0004" x="1132" y="576" width="283" height="287"/>
+	<SubTexture name="NoteSplashMagenta0000" x="1415" y="576" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashMagenta0001" x="1699" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashMagenta0002" x="1983" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashMagenta0003" x="2267" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashMagenta0004" x="2551" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashOrange0000" x="2835" y="576" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashOrange0001" x="3119" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashOrange0002" x="3403" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashOrange0003" x="3687" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashOrange0004" x="3971" y="576" width="284" height="288"/>
+	<SubTexture name="NoteSplashPink0000" x="0" y="864" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashPink0001" x="284" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashPink0002" x="568" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashPink0003" x="852" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashPink0004" x="1136" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashPurple0000" x="1420" y="864" width="283" height="287" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashPurple0001" x="1703" y="864" width="283" height="287"/>
+	<SubTexture name="NoteSplashPurple0002" x="1986" y="864" width="283" height="287"/>
+	<SubTexture name="NoteSplashPurple0003" x="2269" y="864" width="283" height="287"/>
+	<SubTexture name="NoteSplashPurple0004" x="2552" y="864" width="283" height="287"/>
+	<SubTexture name="NoteSplashRed0000" x="2835" y="864" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashRed0001" x="3119" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashRed0002" x="3403" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashRed0003" x="3687" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashRed0004" x="3971" y="864" width="284" height="288"/>
+	<SubTexture name="NoteSplashScarlet0000" x="0" y="1152" width="284" height="287" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashScarlet0001" x="284" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashScarlet0002" x="568" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashScarlet0003" x="852" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashScarlet0004" x="1136" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashTango0000" x="1420" y="1152" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashTango0001" x="1704" y="1152" width="284" height="288"/>
+	<SubTexture name="NoteSplashTango0002" x="1988" y="1152" width="284" height="288"/>
+	<SubTexture name="NoteSplashTango0003" x="2272" y="1152" width="284" height="288"/>
+	<SubTexture name="NoteSplashTango0004" x="2556" y="1152" width="284" height="288"/>
+	<SubTexture name="NoteSplashViolet0000" x="2840" y="1152" width="284" height="287" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashViolet0001" x="3124" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashViolet0002" x="3408" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashViolet0003" x="3692" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashViolet0004" x="3976" y="1152" width="284" height="287"/>
+	<SubTexture name="NoteSplashWhite0000" x="0" y="1440" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashWhite0001" x="284" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWhite0002" x="568" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWhite0003" x="852" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWhite0004" x="1136" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWintergreen0000" x="1420" y="1440" width="284" height="288" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashWintergreen0001" x="1704" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWintergreen0002" x="1988" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWintergreen0003" x="2272" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashWintergreen0004" x="2556" y="1440" width="284" height="288"/>
+	<SubTexture name="NoteSplashYellow0000" x="2840" y="1440" width="284" height="287" pivotX="93.8" pivotY="74.6"/>
+	<SubTexture name="NoteSplashYellow0001" x="3124" y="1440" width="284" height="287"/>
+	<SubTexture name="NoteSplashYellow0002" x="3408" y="1440" width="284" height="287"/>
+	<SubTexture name="NoteSplashYellow0003" x="3692" y="1440" width="284" height="287"/>
+	<SubTexture name="NoteSplashYellow0004" x="3976" y="1440" width="284" height="287"/>
 </TextureAtlas>

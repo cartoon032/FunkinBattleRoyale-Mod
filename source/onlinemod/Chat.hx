@@ -1,8 +1,9 @@
 package onlinemod;
 
 import flixel.FlxG;
+import flixel.FlxCamera;
 import flixel.addons.ui.FlxUIButton;
-import flixel.addons.ui.FlxInputText;
+import SEInputText as FlxInputText;
 import flixel.addons.ui.FlxUIList;
 import flixel.addons.ui.FlxUIState;
 import flixel.text.FlxText;
@@ -15,12 +16,14 @@ class Chat
   public static var chatSendButton:FlxUIButton;
   public static var chatMessages:Array<Array<Dynamic>>;
   public static var chatId:Int = 0;
+  
+  public static var HideButton:FlxUIButton;
+  public static var hidechat:Bool = true;
+  public static var chatAlpha:Float = 1;
 
   public static var created:Bool = false;
 
-
   public static inline var systemColor:FlxColor = FlxColor.YELLOW;
-
 
   public static inline function MESSAGE(nickname:String, message:String)
   {
@@ -56,8 +59,7 @@ class Chat
 	Chat.OutputChatMessage('You\'re muted', FlxColor.RED);
   }
 
-
-  public static function createChat(state:FlxUIState)
+  public static function createChat(state:FlxUIState,Hide:Bool,?Cam:FlxCamera)
   {
 	Chat.created = true;
 
@@ -79,10 +81,42 @@ class Chat
 	Chat.chatSendButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 	Chat.chatSendButton.resize(100, Chat.chatField.height);
 	state.add(Chat.chatSendButton);
+
+	hidechat = Hide;
+	chatField.visible = Hide;
+	Chat.chatAlpha = (hidechat ? 1 : 0);
+	chatSendButton.visible = Hide;
+	if(Cam != null){
+		chatField.cameras = [Cam];
+		chatMessagesList.cameras = [Cam];
+		chatSendButton.cameras = [Cam];
+	}
+  }
+
+  public static function CreateHideButton(state:FlxUIState){
+	Chat.HideButton = new FlxUIButton(0, 0, "Hide Chat", () -> { Chat.toggleChat();	});
+	Chat.HideButton.setLabelFormat(16, FlxColor.BLACK, CENTER);
+	Chat.HideButton.resize(100, Chat.chatField.height);
+	Chat.HideButton.y = FlxG.height - HideButton.height;
+	state.add(Chat.HideButton);
+  }
+
+  public static function toggleChat(){
+	Chat.hidechat = !Chat.hidechat;
+	Chat.chatField.visible = Chat.hidechat;
+	Chat.chatAlpha = (Chat.hidechat ? 1 : 0);
+	Chat.chatSendButton.visible = Chat.hidechat;
+  }
+
+  public static function update(elapsed:Float){
+	if(!Chat.hidechat)
+		Chat.chatAlpha -= elapsed;
+	Chat.chatMessagesList.alpha = Chat.chatAlpha;
   }
 
   public static function OutputChatMessage(message:String, ?color:FlxColor=FlxColor.WHITE, ?register:Bool=true)
   {
+	Chat.chatAlpha = 5;
 	while (message.length > 86 && !(message.length > 86)){
 		OutputChatMessage(message.substr(0,86),color,register);
 		message = message.substr(87);
@@ -114,7 +148,6 @@ class Chat
 	}
 	Chat.chatMessages.push([message, color]);
   }
-
 
   public static function SendChatMessage()
   {

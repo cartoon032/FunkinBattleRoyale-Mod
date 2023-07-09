@@ -7,10 +7,6 @@ class KadeEngineData
     public static function initSave()
     {
 
-    	// if(FileSystem.exists('SEOPTIONS.json')){ // JSON file
-    	// 	FlxG.save.data = haxe.Json.parse('SEOPTIONS.json');
-    	// }
-
 		if (FlxG.save.data.downscroll == null)
 			FlxG.save.data.downscroll = false;
 
@@ -35,8 +31,6 @@ class KadeEngineData
 			FlxG.save.data.changedHitY = -1;
 			FlxG.save.data.changedHit = false;
 		}
-
-
 
 		if (FlxG.save.data.fpsCap == null)
 			FlxG.save.data.fpsCap = 120;
@@ -98,6 +92,9 @@ class KadeEngineData
 
 		if (FlxG.save.data.animDebug == null)
 			FlxG.save.data.animDebug = false;
+
+		if (FlxG.save.data.PlayStateanimDebug == null)
+			FlxG.save.data.PlayStateanimDebug = false;
 		// Note Splash
 		if (FlxG.save.data.noteSplash == null)
 			FlxG.save.data.noteSplash = true;
@@ -106,8 +103,8 @@ class KadeEngineData
 		if (FlxG.save.data.preformance == null)
 			FlxG.save.data.preformance = false;
 		// View Character on Character Select
-		if (FlxG.save.data.charAuto == null)
-			FlxG.save.data.charAuto = false;
+		if (FlxG.save.data.charAuto == null) FlxG.save.data.charAuto = true;
+		if (FlxG.save.data.charAutoBF == null) FlxG.save.data.charAutoBF = false;
 
 		if (FlxG.save.data.lastServer == null)
 			FlxG.save.data.lastServer = "";
@@ -121,6 +118,7 @@ class KadeEngineData
 		if (FlxG.save.data.inputHandler == null) FlxG.save.data.inputHandler = 1;
 
 		if (FlxG.save.data.hitSound == null) FlxG.save.data.hitSound = false;
+		if (FlxG.save.data.dadhitSound == null) FlxG.save.data.dadhitSound = false;
 
 		if (FlxG.save.data.noteAsset == null) FlxG.save.data.noteAsset = "default";
 
@@ -150,8 +148,17 @@ class KadeEngineData
 		if (FlxG.save.data.FastSongScrollSpeed == null) FlxG.save.data.FastSongScrollSpeed = 1;
 		if (FlxG.save.data.allowServerScripts == null) FlxG.save.data.allowServerScripts = false;
 		if (FlxG.save.data.notefade == null) FlxG.save.data.notefade = 1;
-		if (FlxG.save.data.altsingformultikey == null) FlxG.save.data.altsingformultikey = false;
+		if (FlxG.save.data.swapUpDown == null) FlxG.save.data.swapUpDown = false;
 		if (FlxG.save.data.ShowConnectedIP == null) FlxG.save.data.ShowConnectedIP = false;
+		if (FlxG.save.data.DiscordRPC == null) FlxG.save.data.DiscordRPC = true;
+		if (FlxG.save.data.logGameplay == null) FlxG.save.data.logGameplay = false;
+		if (FlxG.save.data.JudgementCounter == null) FlxG.save.data.JudgementCounter = true;
+		if (FlxG.save.data.PauseMode == null) FlxG.save.data.PauseMode = 1;
+		if (FlxG.save.data.ExtraIcon == null) FlxG.save.data.ExtraIcon = false;
+		if (FlxG.save.data.Server == null) FlxG.save.data.Server = [];
+		if (FlxG.save.data.OnlineEXCharLimit == null) FlxG.save.data.OnlineEXCharLimit = 5;
+		if (FlxG.save.data.accurateNoteSustain == null) FlxG.save.data.accurateNoteSustain = false;
+		if (FlxG.save.data.ReplaceDadWithGF == null) FlxG.save.data.ReplaceDadWithGF = true;
 		
 		if (FlxG.save.data.instVol == null) FlxG.save.data.instVol = 0.8;
 		if (FlxG.save.data.masterVol == null) FlxG.save.data.masterVol = 1;
@@ -159,6 +166,21 @@ class KadeEngineData
 		if (FlxG.save.data.missVol == null) FlxG.save.data.missVol = 0.1;
 		if (FlxG.save.data.hitVol == null) FlxG.save.data.hitVol = 0.6;
 		if (FlxG.save.data.otherVol == null) FlxG.save.data.otherVol = 0.6;
+
+		if(FlxG.save.data.doCoolLoading == null) FlxG.save.data.doCoolLoading = false;
+		if(FlxG.save.data.fullscreen == null) FlxG.save.data.fullscreen = false;
+
+		if(FlxG.save.data.lastUpdateID == null) FlxG.save.data.lastUpdateID = MainMenuState.versionIdentifier;
+
+		MainMenuState.lastVersionIdentifier = FlxG.save.data.lastUpdateID;
+		FlxG.save.data.lastUpdateID = MainMenuState.versionIdentifier;
+		if(MainMenuState.lastVersionIdentifier != MainMenuState.versionIdentifier){ // This is going to be ugly but only executed every time the game's updated
+			var lastVersionIdentifier = MainMenuState.lastVersionIdentifier;
+			if(lastVersionIdentifier < 1)
+				FlxG.save.data.inputEngine = 1; // Update to new input
+			
+
+		}
 
 		Conductor.recalculateTimings();
 		PlayerSettings.player1.controls.loadKeyBinds();

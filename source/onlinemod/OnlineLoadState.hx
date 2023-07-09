@@ -17,9 +17,7 @@ import openfl.utils.ByteArray;
 import sys.io.File;
 import sys.io.FileOutput;
 import sys.FileSystem;
-#if windows
 import Discord.DiscordClient;
-#end
 
 class OnlineLoadState extends MusicBeatState
 {
@@ -71,44 +69,33 @@ class OnlineLoadState extends MusicBeatState
 
 	override function create()
 	{
-		#if windows
 		DiscordClient.changePresence(null,"Loading...");
-		#end
 		var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
 		add(bg);
-
 
 		loadingText = new FlxText(FlxG.width/4, FlxG.height/2 - 36, FlxG.width, "Waiting...");
 		loadingText.setFormat(CoolUtil.font, 28, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(loadingText);
 
-
 		fileSizeText = new FlxText(FlxG.width/4, FlxG.height/2 - 32, FlxG.width/2, "?/?");
 		fileSizeText.setFormat(CoolUtil.font, 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(fileSizeText);
-
 
 		loadingBar = new FlxBar(0, 0, LEFT_TO_RIGHT, 640, 10, this, 'progress', 0, 1);
 		loadingBar.createFilledBar(FlxColor.RED, FlxColor.LIME, true, FlxColor.BLACK);
 		loadingBar.screenCenter(FlxAxes.XY);
 		add(loadingBar);
 
-
 		super.create();
-
 
 		Chat.created = false;
 
-
-
 		OnlinePlayMenuState.receiver.HandleData = HandleData;
-
 
 		// Make sure we are still connected to the server
 		new FlxTimer().start(5, (timer:FlxTimer) -> {
 			Sender.SendPacket(Packets.KEEP_ALIVE, [], OnlinePlayMenuState.socket);
 		}, 0);
-
 
 		new FlxTimer().start(transIn.duration, (timer:FlxTimer) -> {
 			Sender.SendPacket(Packets.READY_DOWNLOAD, [], OnlinePlayMenuState.socket);
@@ -127,13 +114,9 @@ class OnlineLoadState extends MusicBeatState
 				progress = Math.min(1, bytesReceived / fileSize);
 
 				if (fileSize > 1000000) //MB
-				{
-					fileSizeText.text = Std.int(bytesReceived/10000)/100 + "/" + Std.int(fileSize/10000)/100 + "MB" + " (" + FlxMath.roundDecimal((Std.int(bytesReceived) / Std.int(fileSize)) / 100, 2) + "%)";
-				}
+					fileSizeText.text = Std.int(bytesReceived/10000)/100 + "/" + Std.int(fileSize/10000)/100 + "MB" + " (" + FlxMath.roundDecimal(progress * 100, 2) + "%)";
 				else //KB
-				{
-					fileSizeText.text =  Std.int(bytesReceived/10)/100 + "/" + Std.int(fileSize/10)/100 + "KB" + " (" + FlxMath.roundDecimal((Std.int(bytesReceived) / Std.int(fileSize)) / 100, 2) + "%)";
-				}
+					fileSizeText.text =  Std.int(bytesReceived/10)/100 + "/" + Std.int(fileSize/10)/100 + "KB" + " (" + FlxMath.roundDecimal(progress * 100, 2) + "%)";
 			}
 		}
 
@@ -141,10 +124,13 @@ class OnlineLoadState extends MusicBeatState
 		{
 			case Packets.SEND_CHART:
 				loadingText.text = "Downloading Chart...";
+				DiscordClient.changePresence(null,"Downloading Chart...");
 			case Packets.SEND_VOICES:
 				loadingText.text = "Downloading Voices...";
+				DiscordClient.changePresence(null,"Downloading Voices...");
 			case Packets.SEND_INST:
 				loadingText.text = "Downloading Instrumental...";
+				DiscordClient.changePresence(null,"Downloading Instrumental...");
 		}
 
 		super.update(elapsed);

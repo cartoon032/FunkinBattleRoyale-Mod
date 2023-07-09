@@ -16,6 +16,9 @@ using StringTools;
 class DirectoryListing extends SearchMenuState{
 	var curDirReg:EReg = ~/(.+\/)(.*?\/)/g;
 	var dataDir:String = "";
+
+	override public function onTextInputFocus(object:Dynamic){}
+	override public function onTextInputUnfocus(object:Dynamic){}
 	override function findButton(){
 		var nextDir:String = searchField.text;
 		if (!FileSystem.exists(nextDir) || !FileSystem.isDirectory(nextDir)){
@@ -32,6 +35,7 @@ class DirectoryListing extends SearchMenuState{
 	}
 	override function create()
 	{
+		checkInputFocus = false;
 		useAlphabet = false;
 		dataDir = Sys.getCwd();
 		buttonText["Find"] = "Go to/Search";
@@ -53,28 +57,20 @@ class DirectoryListing extends SearchMenuState{
 		}catch(e){
 			addTitleText(dataDir);
 		}
-			#if windows
-			if (dataDir == "Root"){
-				MainMenuState.handleError('Scanning for drives doesnt work yet, due to the developer lacking a Windows system(and 20 gigs) for testing.');
-			}else{
-			#end
-				if (FileSystem.exists(dataDir))
-				{
-					addToList("../");
-					var query = new EReg((~/[-_ ]/g).replace(search.toLowerCase(),'[-_ ]'),'i');
-					for (directory in FileSystem.readDirectory(dataDir))
-					{
-						if(!FileSystem.isDirectory('${dataDir}${directory}') || (search != "" && !query.match(directory.toLowerCase())) ) continue;
-						addToList(directory + "/");
-					}
-				}else{
-				  MainMenuState.handleError('"${dataDir}" does not exist!');
-				}
-			#if windows
+		if (FileSystem.exists(dataDir))
+		{
+			addToList("../");
+			var query = new EReg((~/[-_ ]/g).replace(search.toLowerCase(),'[-_ ]'),'i');
+			for (directory in FileSystem.readDirectory(dataDir))
+			{
+				if(!FileSystem.isDirectory('${dataDir}${directory}') || (search != "" && !query.match(directory.toLowerCase())) ) continue;
+				addToList(directory + "/");
 			}
-			#end
+		}else{
+		  MainMenuState.handleError('"${dataDir}" does not exist!');
+		}
 		changeSelection(0);
-		}catch(e){MainMenuState.handleError('Error while checking directory. ${e.message}');}
+		}catch(e){MainMenuState.handleError(e,'Error while checking directory. ${e.message}');}
   }
 
   function upDir(){
@@ -100,9 +96,7 @@ class DirectoryListing extends SearchMenuState{
   }
   override function handleInput(){
       if (controls.BACK)
-      {
         ret();
-      }
       if(songs.length == 0) return;
       
       if(controls.UP_P && FlxG.keys.pressed.SHIFT){changeSelection(-5);} else if (controls.UP_P){changeSelection(-1);}
@@ -110,9 +104,6 @@ class DirectoryListing extends SearchMenuState{
       if(controls.LEFT_P){upDir();}
       if(controls.RIGHT_P){changeDir(songs[curSelected]);}
       if (controls.ACCEPT && songs.length > 0)
-      {
-        	selDir(getDir(songs[curSelected]));
-      }
+		selDir(getDir(songs[curSelected]));
   }
-
 }

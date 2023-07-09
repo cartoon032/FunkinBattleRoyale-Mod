@@ -3,11 +3,6 @@ package;
 import Song.SwagSong;
 import flixel.FlxG;
 
-/**
- * ...
- * @author
- */
-
 typedef BPMChangeEvent =
 {
 	var stepTime:Int;
@@ -32,9 +27,7 @@ class Conductor
 
 	public static var bpmChangeMap:Array<BPMChangeEvent> = [];
 
-	public function new()
-	{
-	}
+	public function new(){}
 
 	public static function recalculateTimings()
 	{
@@ -47,14 +40,14 @@ class Conductor
 	{
 		bpmChangeMap = [];
 
-		var curBPM:Float = song.bpm;
+		var curBPM:Float = song.bpm * PlayState.songspeed;
 		var totalSteps:Int = 0;
 		var totalPos:Float = 0;
 		for (i in 0...song.notes.length)
 		{
 			if(song.notes[i].changeBPM && song.notes[i].bpm != curBPM)
 			{
-				curBPM = song.notes[i].bpm;
+				curBPM = song.notes[i].bpm * PlayState.songspeed;
 				var event:BPMChangeEvent = {
 					stepTime: totalSteps,
 					songTime: totalPos,

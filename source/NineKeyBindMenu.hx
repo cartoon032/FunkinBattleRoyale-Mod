@@ -126,7 +126,6 @@ class NineKeyBindMenu extends FlxSubState
 
 	override function update(elapsed:Float)
 	{
-        var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
 
         if (frames <= 10)
             frames++;
@@ -146,13 +145,6 @@ class NineKeyBindMenu extends FlxSubState
                     changeItem(1);
                 }
 
-                if (FlxG.keys.justPressed.TAB)
-                {
-                    KeyBinds.gamepad = !KeyBinds.gamepad;
-                    infoText.text = 'Current Mode: ${KeyBinds.gamepad ? 'GAMEPAD' : 'KEYBOARD'}. Press TAB to switch\n(${KeyBinds.gamepad ? 'RIGHT Trigger' : 'Escape'} to save, ${KeyBinds.gamepad ? 'LEFT Trigger' : 'Backspace'} to leave without saving. ${KeyBinds.gamepad ? 'START To change a keybind' : ''})';
-                    textUpdate();
-                }
-
                 if (FlxG.keys.justPressed.ENTER){
                     FlxG.sound.play(Paths.sound('scrollMenu'));
                     state = "input";
@@ -166,32 +158,6 @@ class NineKeyBindMenu extends FlxSubState
                 else if (FlxG.keys.justPressed.L){
                     resetArrows();
                 }
-                if (gamepad != null) // GP Logic
-                {
-                    if (gamepad.justPressed.DPAD_UP)
-                    {
-                        FlxG.sound.play(Paths.sound('scrollMenu'));
-                        changeItem(-1);
-                        textUpdate();
-                    }
-                    if (gamepad.justPressed.DPAD_DOWN)
-                    {
-                        FlxG.sound.play(Paths.sound('scrollMenu'));
-                        changeItem(1);
-                        textUpdate();
-                    }
-
-                    if (gamepad.justPressed.START && frames > 10){
-                        FlxG.sound.play(Paths.sound('scrollMenu'));
-                        state = "input";
-                    }
-                    else if(gamepad.justPressed.LEFT_TRIGGER){
-                        quit();
-                    }
-                    else if (gamepad.justPressed.RIGHT_TRIGGER){
-                        reset();
-                    }
-                }
 
             case "input":
                 tempKey = keys[curSelected];
@@ -202,32 +168,6 @@ class NineKeyBindMenu extends FlxSubState
                 state = "waiting";
 
             case "waiting":
-                if (gamepad != null && KeyBinds.gamepad) // GP Logic
-                {
-                    if(FlxG.keys.justPressed.ESCAPE){ // just in case you get stuck
-                        gpKeys[curSelected] = tempKey;
-                        state = "select";
-                        FlxG.sound.play(Paths.sound('confirmMenu'));
-                    }
-
-                    if (gamepad.justPressed.START)
-                    {
-                        addKeyGamepad(defaultKeys[curSelected]);
-                        save();
-                        state = "select";
-                    }
-
-                    if (gamepad.justPressed.ANY)
-                    {
-                        trace(gamepad.firstJustPressedID());
-                        addKeyGamepad(gamepad.firstJustPressedID());
-                        save();
-                        state = "select";
-                        textUpdate();
-                    }
-
-                }
-                else
                 {
                     if(FlxG.keys.justPressed.ESCAPE){
                         keys[curSelected] = tempKey;

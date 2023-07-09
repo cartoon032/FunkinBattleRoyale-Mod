@@ -47,7 +47,14 @@ class Receiver
           packet = PacketsShit.fields[packetId];
         else{
           // If the PacketID doesn't exist, close the socket.
-          FlxG.switchState(new OnlinePlayMenuState("Received invalid packet"));
+          // FlxG.switchState(new OnlinePlayMenuState("Received invalid packet"));
+          // Actually, nah, just print that the id was invalid
+          try{
+          	Chat.OutputChatMessage('Recieved abnormal packet with id $packetId?');
+          }catch(e){
+
+          }
+          trace('Recieved abnormal packet with id $packetId?');
           return;
         }
 
@@ -69,7 +76,8 @@ class Receiver
       if (bufferedBytes >= packet.varSpaces[w] + varLength && w == packet.varLengths.length)
       {
         // Handle the whole packet.
-        HandleData(packetId, packet.handle(consume(packet.size + varLength)));
+        var _data:Array<Dynamic> = packet.handle(consume(packet.size + varLength));
+        HandleData(packetId, _data);
         w = 0;
         varLength = 0;
         endedPacket = true;
@@ -99,6 +107,7 @@ class Receiver
         else
           result = buf.readUnsignedInt();
         buf.position = 0;
+        trace(result);
 
         return result;
       }
@@ -108,7 +117,7 @@ class Receiver
     return -1;
   }
 
-  public function consume(n:Int)
+  public function consume(n:Int):ByteArray
   {
     // This function returns a Buffer from the n bytes that were received longest ago, and clears and updates the buffers accordingly.
     if (n == 0)

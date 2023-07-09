@@ -137,9 +137,6 @@ class WiggleShader extends FlxShader
 	}
 }
 
-
-
-
 class ChromAbEffect
 {
 	public var shader:ChromAbShader = new ChromAbShader();

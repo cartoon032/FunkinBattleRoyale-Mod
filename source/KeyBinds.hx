@@ -45,6 +45,19 @@ class KeyBinds
         FlxG.save.data.L2Bind = "J";
         FlxG.save.data.U1Bind = "K";
         FlxG.save.data.R2Bind = "L";
+
+        FlxG.save.data.EX0Bind = "Q";
+        FlxG.save.data.EX1Bind = "W";
+        FlxG.save.data.EX2Bind = "E";
+        FlxG.save.data.EX3Bind = "R";
+        FlxG.save.data.EX4Bind = "C";
+        FlxG.save.data.EX5Bind = "V";
+        FlxG.save.data.EX6Bind = "N";
+        FlxG.save.data.EX7Bind = "M";
+        FlxG.save.data.EX8Bind = "U";
+        FlxG.save.data.EX9Bind = "I";
+        FlxG.save.data.EX10Bind = "O";
+        FlxG.save.data.EX11Bind = "P";
         PlayerSettings.player1.controls.loadKeyBinds();
 
     }
@@ -214,11 +227,6 @@ class KeyBinds
             FlxG.save.data.EX11Bind = "P";
             trace("No EX11");
         }
-        /* imma be real idk myself why i did this
-        trace('Keybind :${FlxG.save.data.leftBind}-${FlxG.save.data.downBind}-${FlxG.save.data.upBind}-${FlxG.save.data.rightBind}');
-        trace('Alt Key :${FlxG.save.data.AltleftBind}-${FlxG.save.data.AltdownBind}-${FlxG.save.data.AltupBind}-${FlxG.save.data.AltrightBind}');
-        trace('6/7 Keys :${FlxG.save.data.L1Bind}-${FlxG.save.data.D1Bind}-${FlxG.save.data.R1Bind}-{${FlxG.save.data.N4Bind}// for 7K}-${FlxG.save.data.L2Bind}-${FlxG.save.data.U1Bind}-${FlxG.save.data.R2Bind}');
-        trace('9 Keys :${FlxG.save.data.N0Bind}-${FlxG.save.data.N1Bind}-${FlxG.save.data.N2Bind}-${FlxG.save.data.N3Bind}-${FlxG.save.data.N4Bind}-${FlxG.save.data.N5Bind}-${FlxG.save.data.N6Bind}-${FlxG.save.data.N7Bind}-${FlxG.save.data.N8Bind}'); */
     }
 
 }

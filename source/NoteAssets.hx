@@ -6,30 +6,6 @@ import sys.io.File;
 import sys.FileSystem;
 import flash.display.BitmapData;
 
-
-// typedef NoteSplashType = {
-// 	var type:String;
-// 	var blue:String;
-// 	var purple:String;
-// 	var red:String;
-// 	var green:String;
-// 	var blue2:String;
-// 	var purple2:String;
-// 	var red2:String;
-// 	var green2:String;
-// }
-	// static var baseSplash:NoteSplashType = {
-	// 	type:"se",
-	// 	blue:"note splash blue 1",
-	// 	green:"note splash green 1",
-	// 	purple:"note splash purple 1",
-	// 	red:"note splash red 1",
-	// 	blue2:"note splash blue 2",
-	// 	green2:"note splash green 2",
-	// 	purple2:"note splash purple 2",
-	// 	red2:"note splash red 2"
-	// };
-
 class NoteAssets{
 	public static var name:String;
 	static var path:String = "mods/noteassets"; // The slash not being here is just for ease of reading
@@ -110,20 +86,4 @@ class NoteAssets{
 
 		}catch(e){MainMenuState.handleError('Error occurred while loading notes ${e.message}');}
 	}
-
-// class SplashNoteAsset{
-// 	// public var name:String;
-// 	var path:String = "mods/noteassets";
-// 	// public var image:FlxGraphic;
-// 	// public var xml:String;
-	// public function genSplashes(?name_:String = "noteSplashes",?path_:String = "assets/shared/images/"):Void{
-	// 	try{
-
-
-	// 	NoteAssets.splashImage = '${path_}/${name_}.png';
-	// 	NoteAssets.splashXml = File.getContent('${path_}/${name_}.xml');
-	// 	return;
-	// 	}catch(e) MainMenuState.handleError('Error occurred while loading splashes ${e.message}');
-		
-	// }
 }

@@ -20,10 +20,7 @@ import sys.io.File;
 import tjson.Json;
 import multi.MultiPlayState;
 
-
-#if windows
 import Discord.DiscordClient;
-#end
 
 class FreeplayState extends MusicBeatState
 {
@@ -54,10 +51,8 @@ class FreeplayState extends MusicBeatState
 		
 		ChartingState.charting = false;
 		PlayState.sectionStart = false;
-		#if windows
 		 // Updating Discord Rich Presence
 		DiscordClient.changePresence("Browsing Freeplay Menu", null);
-		#end
 		
 		if (FileSystem.exists("assets/data"))
 		{
@@ -252,7 +247,7 @@ class FreeplayState extends MusicBeatState
 				onlinemod.OfflinePlayState.chartFile = 'assets/data/${songs[curSelected].songName}/${poop}.json';
 				PlayState.isStoryMode = false;
 				// Set difficulty
-				PlayState.actualSongName = ${songs[curSelected].songName};
+				PlayState.actualSongName = songs[curSelected].songName;
 				onlinemod.OfflinePlayState.voicesFile = '';
 
 				if (FileSystem.exists('assets/songs/${songs[curSelected].songName}/Voices.ogg')) onlinemod.OfflinePlayState.voicesFile = 'assets/songs/${songs[curSelected].songName}/Voices.ogg';
@@ -266,8 +261,7 @@ class FreeplayState extends MusicBeatState
 				PlayState.stateType = 0;
 				FlxG.sound.music.fadeOut(0.4);
 				LoadingState.loadAndSwitchState(new MultiPlayState());
-			}catch(e){MainMenuState.handleError(e,'Error while loading chart ${e.message}');
-			}
+			}catch(e){MainMenuState.handleError(e,'Error while loading chart ${e.message}');}
 		}
 	}
 

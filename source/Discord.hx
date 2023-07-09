@@ -1,18 +1,20 @@
 package;
-
-#if windows
 import Sys.sleep;
 import discord_rpc.DiscordRpc;
+import flixel.FlxG;
 
 using StringTools;
 
 class DiscordClient
 {
+	static var TurnOn:Bool = true;
 	public function new()
 	{
+		TurnOn = FlxG.save.data.DiscordRPC;
+		if(!TurnOn)return;
 		trace("Discord Client starting...");
 		DiscordRpc.start({
-			clientID: "983726933164572693", // change this to what ever the fuck you want lol
+			clientID: "983726933164572693",
 			onReady: onReady,
 			onError: onError,
 			onDisconnected: onDisconnected
@@ -22,8 +24,7 @@ class DiscordClient
 		while (true)
 		{
 			DiscordRpc.process();
-			sleep(2);
-			//trace("Discord Client Update");
+			sleep(1);
 		}
 
 		DiscordRpc.shutdown();
@@ -56,6 +57,7 @@ class DiscordClient
 
 	public static function initialize()
 	{
+		if(!TurnOn)return;
 		var DiscordDaemon = sys.thread.Thread.create(() ->
 		{
 			new DiscordClient();
@@ -63,8 +65,9 @@ class DiscordClient
 		trace("Discord Client initialized");
 	}
 
-	public static function changePresence(details:String, state:Null<String>, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float, ?largeImageKey:String = "icon")
+	public static function changePresence(details:String, state:Null<String>, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float, ?largeImageKey:String = "icon", ?smallImageText:String)
 	{
+		if(!TurnOn)return;
 		var startTimestamp:Float = if(hasStartTimestamp) Date.now().getTime() else 0;
 
 		if (endTimestamp > 0)
@@ -77,13 +80,15 @@ class DiscordClient
 			state: state,
 			largeImageKey: largeImageKey,
 			largeImageText: "FNF : SE-T",
-			smallImageKey : smallImageKey,
+			smallImageKey: smallImageKey,
+			smallImageText: smallImageText,
 			// Obtained times are in milliseconds so they are divided so Discord can use it
-			startTimestamp : Std.int(startTimestamp / 1000),
-            endTimestamp : Std.int(endTimestamp / 1000)
+			startTimestamp: Std.int(startTimestamp / 1000),
+            endTimestamp: Std.int(endTimestamp / 1000)
+			// partyID: "AAAAAAAAAAA", // brain size tiny
+			// joinSecret: "AAAAAAAAAAAAAA"
 		});
 
 		//trace('Discord RPC Updated. Arguments: $details, $state, $smallImageKey, $hasStartTimestamp, $endTimestamp');
 	}
 }
-#end

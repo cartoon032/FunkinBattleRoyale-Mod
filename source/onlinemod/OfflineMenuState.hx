@@ -16,9 +16,7 @@ import flixel.tweens.FlxTween;
 import sys.io.File;
 import sys.FileSystem;
 
-#if windows
 import Discord.DiscordClient;
-#end
 using StringTools;
 
 class OfflineMenuState extends SearchMenuState
@@ -45,15 +43,13 @@ class OfflineMenuState extends SearchMenuState
   }
   override function create()
   {
-    #if windows
     DiscordClient.changePresence('Browsing Offline Menu',null);
-    #end
     super.create();
-    optionsButton = new FlxUIButton(1100, 40, "Options", goOptions);
+    optionsButton = new FlxUIButton(1120, 30, "Options", goOptions);
     optionsButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
     optionsButton.resize(150, 30);
     add(optionsButton);
-    sideButton = new FlxUIButton(820, 40, "Chart Options", chartOptions);
+    sideButton = new FlxUIButton(1020, 65, "Chart Options", chartOptions);
     sideButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
     sideButton.resize(250, 30);
     add(sideButton);
@@ -76,6 +72,7 @@ class OfflineMenuState extends SearchMenuState
     add(grpSongs);
     songs = [];
     songFiles = [];
+    songDirs = [];
     var i:Int = 0;
 
     var query = new EReg((~/[-_ ]/g).replace(search.toLowerCase(),'[-_ ]'),'i'); // Regex that allows _ and - for songs to still pop up if user puts space, game ignores - and _ when showing
@@ -112,7 +109,7 @@ class OfflineMenuState extends SearchMenuState
   }
   override function extraKeys(){
     if (FlxG.keys.justPressed.R && !FlxG.keys.pressed.SHIFT){
-      changeSelection(FlxG.random.int(-songs.length,songs.length));
+      changeSelection(FlxG.random.int(-curSelected,songs.length - curSelected));
     }
 		if (FlxG.keys.pressed.SHIFT)
 		{
@@ -121,14 +118,14 @@ class OfflineMenuState extends SearchMenuState
 					if(Speedtwee != null)Speedtwee.cancel();
 					SpeedText.scale.set(1.2,1.2);
 					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
-					rate -= 0.05;
+					rate -= 0.05 * (FlxG.keys.pressed.ALT ? 5 : 1);
 				}
 			if (FlxG.keys.justPressed.RIGHT)
 				{
 					if(Speedtwee != null)Speedtwee.cancel();
 					SpeedText.scale.set(1.2,1.2);
 					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
-					rate += 0.05;
+					rate += 0.05 * (FlxG.keys.pressed.ALT ? 5 : 1);
 				}
 			if (FlxG.keys.justPressed.R)
 				{
@@ -138,8 +135,6 @@ class OfflineMenuState extends SearchMenuState
 					rate = 1;
 				}
 
-			if (rate > 5)
-				rate = 5;
 			else if (rate < 0.25)
 				rate = 0.25;
 			SpeedText.text = "Song Speed : " + HelperFunctions.truncateFloat(rate, 2) + "x";

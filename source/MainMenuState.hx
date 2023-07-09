@@ -14,6 +14,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import lime.app.Application;
 import sys.io.File;
+// import ScriptableState;
 
 // For Title Screen GF
 import flixel.graphics.FlxGraphic;
@@ -23,29 +24,42 @@ import sys.FileSystem;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flash.display.BitmapData;
 import flixel.util.FlxAxes;
+import haxe.CallStack;
 
 
 using StringTools;
 
 class MainMenuState extends SickMenuState
 {
-	public static var ver:String = "0.10.0";
-	public static var modver:String = "7.1";
-	
 	public static var firstStart:Bool = true;
 
-	public static var nightly:String = "";
+	public static var nightly(default,never):String = "";
+	public static var ver(default,never):String = "1.0.0" + (if(nightly != "") "-" + nightly else "");
+	// This should be incremented every update, this'll be sequential so you can just compare it to another version identifier
+	public static var versionIdentifier:Int = 1;
+	public static var lastVersionIdentifier:Int = 0;
+	public static var modver(default,never):String = "23w27a";
 
-	public static var kadeEngineVer:String = "1.5.2";
-	public static var gameVer:String = "0.2.7.1";
+	public static var compileType(default,never):String =
+	#if ghaction
+		"Github action build"
+	#elseif debug
+		"Manual debug build"
+	#else
+		"Manual build"
+	#end;
+	public static var buildType:String = Sys.systemName();
 	public static var errorMessage:String = "";
 	public static var bgcolor:Int = 0;
-	var char:Character = null;
+	public static var char:Character = null;
 	static var hasWarnedInvalid:Bool = false;
 	static var hasWarnedNightly:Bool = (nightly == "");
+	public static var triedChar:Bool = false;
 	
 	public static function handleError(?exception:haxe.Exception = null,?error:String = "An error occurred",?details:String="",?forced:Bool = true):Void{
 		// if (MainMenuState.errorMessage != "") return; // Prevents it from trying to switch states multiple times
+		// ScriptableStateManager.lastState = "";
+		// ScriptableStateManager.goToLastState = false;
 		if(MainMenuState.errorMessage.contains(error)) return; // Prevents the same error from showing twice
 		MainMenuState.errorMessage += "\n" + error;
 		if(details != "") trace(details);
@@ -66,22 +80,9 @@ class MainMenuState extends SickMenuState
 				trace('${exception.message}\n${exception.stack}');
 			}catch(e){}
 		}
-		// try{
-		// 	var callStack:Array<StackItem> = cast CallStack.exceptionStack(true);
-		// 	for (stackItem in callStack)
-		// 	{
-		// 		switch (stackItem)
-		// 		{
-		// 			case FilePos(s, file, line, column):
-		// 				Sys.println(file + ":" + line + "");
-		// 			default:
-		// 				Sys.println(stackItem);
-		// 		}
-		// 	}
-		// }catch(e){trace('I fucking errored while tracing a stack: ${e.message}');}
+
 		try{
 			LoadingScreen.object.alpha = 0;
-			
 		}catch(e){
 			trace("bruhh");
 		}
@@ -89,31 +90,30 @@ class MainMenuState extends SickMenuState
 			Main.game.forceStateSwitch(new MainMenuState());
 		else
 			FlxG.switchState(new MainMenuState());
-		
 	}
-
+	// macro function getTime():String{
+	// 	var time = Date.now();
+	// 	return '${time.getDay()}/${time.getMonth}/${time.getYear() - 2000} ${time.getHours()}:${time.getMinutes()}';
+	// }
 	override function create()
 	{
-		forceQuit = false;
-		ChartingState.charting = false;
-		PlayState.sectionStart = false;
+		// forceQuit = true;
 		if (Main.errorMessage != ""){
 			errorMessage = Main.errorMessage;
 			Main.errorMessage = "";
+			trace(errorMessage);
 		}
 		mmSwitch(false);
-		trace(errorMessage);
 
 		persistentUpdate = persistentDraw = true;
 		bgImage = 'menuDesat';
-		if (FlxG.save.data.dfjk)
-			controls.setKeyboardScheme(KeyboardScheme.Solo, true);
-		else
-			controls.setKeyboardScheme(KeyboardScheme.Duo(true), true);
+		controls.setKeyboardScheme(KeyboardScheme.Solo, true);
 		loading = false;
 		isMainMenu = true;
 		super.create();
-
+		/* if(MainMenuState.errorMessage == "" && ScriptableStateManager.goToLastState && ScriptableStateManager.lastState != ""){
+			SelectScriptableState.selectState(ScriptableStateManager.lastState);
+		} */
 		bg.scrollFactor.set(0.1,0.1);
 		bg.color = MainMenuState.bgcolor;
 		if (onlinemod.OnlinePlayMenuState.socket != null){
@@ -123,44 +123,61 @@ class MainMenuState extends SickMenuState
 				onlinemod.OnlinePlayMenuState.socket=null;
 			}catch(e){trace('Error closing socket? ${e.message}');}
 		}
-		var versionShit:FlxText = new FlxText(5, FlxG.height - 50, 0, 'FNF ${gameVer}/Kade ${kadeEngineVer}/Super-Engine ${ver}/T Mod ${modver}', 12);
-		versionShit.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		versionShit.borderSize = 2;
-		versionShit.scrollFactor.set();
-		add(versionShit);
 
 		if (TitleState.outdated){
-			var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'SE is outdated, Latest: ${TitleState.updatedVer}, please be patient while i update it', 32);
-			outdatedLMAO.setFormat(CoolUtil.font, 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+
+			var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,(if(nightly == "") 'SE is outdated, Latest: ${TitleState.updatedVer}, Check Changelog for more info' else 'Latest nightly: ${TitleState.updatedVer}. You are on ${ver}'), 32);
+			outdatedLMAO.setFormat(CoolUtil.font, 32, if(nightly == "") FlxColor.RED else FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			outdatedLMAO.scrollFactor.set();
  			outdatedLMAO.screenCenter(FlxAxes.X);
 			add(outdatedLMAO);
 		}
 		//  Whole bunch of checks to prevent crashing
-		if (!TitleState.choosableCharacters.contains(FlxG.save.data.playerChar) && FlxG.save.data.playerChar != "automatic"){
+		if (TitleState.retChar(FlxG.save.data.playerChar) == "" && FlxG.save.data.playerChar != "automatic"){
 			errorMessage += '\n${FlxG.save.data.playerChar} is an invalid player! Reset back to BF!';
 			FlxG.save.data.playerChar = "bf";
 		}
-		if (!TitleState.choosableCharacters.contains(FlxG.save.data.opponent)){
+		if (TitleState.retChar(FlxG.save.data.opponent) == null){
 			errorMessage += '\n${FlxG.save.data.opponent} is an invalid opponent! Reset back to BF!';
 			FlxG.save.data.opponent = "bf";
 		}
-		if (!TitleState.choosableCharacters.contains(FlxG.save.data.gfChar)){
+		if (TitleState.retChar(FlxG.save.data.gfChar) == null){
 			errorMessage += '\n${FlxG.save.data.gfChar} is an invalid GF! Reset back to GF!';
 			FlxG.save.data.gfChar = "gf";
 		}
-		// if(MainMenuState.errorMessage == "" && !FlxG.keys.pressed.CONTROL && !FlxG.keys.pressed.SHIFT){
+		// if(MainMenuState.errorMessage == "" && !triedChar && FlxG.save.data.mainMenuChar && !FlxG.keys.pressed.CONTROL && !FlxG.keys.pressed.SHIFT){
+		// 	triedChar = true;
 		// 	try{
 		// 		char = new Character(FlxG.width * 0.55,FlxG.height * 0.10,FlxG.save.data.playerChar,true,0,true);
 		// 		if(char != null) add(char);
-		// 	}catch(e){trace(e);char = null;}
+		// 	}catch(e){MainMenuState.lastStack = e.stack;trace(e);char = null;}
 		// }
+		if(firstStart){
+			// FlxG.sound.volumeHandler = function(volume:Float){
+			// 	FlxG.save.data.masterVol = volume;
+			// 	FlxG.save.data.flush();
+			// };
+			FlxG.camera.scroll.y -= 100;
+			FlxTween.tween(FlxG.camera.scroll,{y:0},1,{ease:FlxEase.cubeOut});
+			firstStart = false;
+		}
 
 
 		if (MainMenuState.errorMessage == "" && TitleState.invalidCharacters.length > 0 && !hasWarnedInvalid) {
 			errorMessage += "You have some characters missing config.json files.";
 			hasWarnedInvalid = true;
 		} 
+		if (!hasWarnedNightly) {
+			errorMessage += "This is a nightly build for " + ver.substring(0,ver.length - (1 + nightly.length) ) +", expect bugs and things changing without warning!\nBasing a fork off of this is not advised!";
+			// ver+=nightly;
+			hasWarnedNightly = true;
+		} 
+
+		var versionShit:FlxText = new FlxText(5, FlxG.height - 50, 0, 'FNF 0.2.7.1/Kade 1.5.2/Super-Engine ${ver}/T Mod ${modver} ${buildType} ${compileType}', 12);
+		versionShit.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		versionShit.borderSize = 2;
+		versionShit.scrollFactor.set();
+		add(versionShit);
 		if (MainMenuState.errorMessage != ""){
 
 			FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -172,7 +189,21 @@ class MainMenuState extends SickMenuState
 		    errorText.setFormat(CoolUtil.font, 32, FlxColor.RED, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		    add(errorText);
 		}
-		
+		FlxG.bitmap.clearCache();
+		eventColors(Date.now());
+	}
+
+	public function eventColors(date:Date){
+		if(date.getMonth() == 11){
+
+			var _d = date.getDate();
+			if(_d > 19 && _d < 26){
+				bg.color = 0xaa3333;
+				FlxTween.cancelTweensOf(bg);
+				FlxTween.color(bg,10,FlxColor.fromString("#aa3333"),FlxColor.fromString("#33aa33"),{type:FlxTweenType.PINGPONG});
+			}
+			return;
+		}
 	}
 
 	override function goBack(){
@@ -187,22 +218,32 @@ class MainMenuState extends SickMenuState
 		{
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
 		}
+		// if(char != null){
+		// 	if(controls.LEFT){
+		// 		char.playAnim("singLEFT",true);
+		// 	}else if(controls.RIGHT){
+		// 		char.playAnim("singRIGHT",true);
+		// 	}
+		// }
 		super.update(elapsed);
 	}
-	override function beatHit(){
+	override function beatHit()
+	{
 		super.beatHit();
 		// if(char != null && char.animation.curAnim.finished) char.dance(true);
 	}
 	override function changeSelection(change:Int = 0){
-		// if(char != null && change != 0) char.playAnim(Note.noteAnims[FlxG.random.int(0,3)],true);
+		// if(char != null && change != 0) char.playAnim(Note.noteAnims[if(change > 0)1 else 2],true);
+		if(MainMenuState.errorMessage != "")MainMenuState.errorMessage = "";
 		super.changeSelection(change);
 	}
 
 	var otherMenu:Bool = false;
 
 	function otherSwitch(){
-		options = ["story mode","freeplay","download charts","download characters"];
-		descriptions = ['Play through the story mode', 'Play any song from the game',"Download charts made for or ported to Super Engine","Download characters made for or ported to Super Engine"];
+		options = ["freeplay","download charts","download characters"];
+		descriptions = ['Play any song from the main game or your assets folder',"Download charts made for or ported to Super Engine","Download characters made for or ported to Super Engine"];
+		
 		if (TitleState.osuBeatmapLoc != '') {options.push("osu beatmaps"); descriptions.push("Play osu beatmaps converted over to FNF");}
 		options.push("back"); descriptions.push("Go back to the main menu");
 		generateList();
@@ -212,8 +253,17 @@ class MainMenuState extends SickMenuState
 		changeSelection();
 	}
 	function mmSwitch(regen:Bool = false){
-		options = ['modded songs','online', 'online songs','other',"changelog", 'options'];
-		descriptions = ["Play songs from your mods/charts folder, packs or weeks","Join and Play online with other people on a Battle Royale compatible server.","Play songs that have been downloaded during online games.",'Story mode, Freeplay, Osu beatmaps, and download characters or songs',"Check the latest update and it's changes",'Customise your experience to fit you'];
+		options = ['modded songs','join BR compatible server',
+			'host br server',
+			'online songs',"story mode",'other',"import charts from mods",
+			// "scripted states",
+			"changelog", 'options'];
+		descriptions = ["Play songs from your mods/charts folder, packs or weeks","Join and play online with other people on a Battle Royale compatible server.",
+		'DON\'T TOUCH THIS! IT BASICLY DOESN\'T WORK.',
+		// 'Host a server so people can join locally, via ngrok or from your IP using portforwarding',
+		"Play songs that have been downloaded during online games.","Play a vanilla or custom week",'Freeplay, Osu beatmaps, and download characters or songs','Convert charts from other mods to work here. Will put them in Modded Songs',
+		// "Run a script in a completely scriptable blank state",
+		"Check the latest update and it's changes",'Customise your experience to fit you'];
 		if(regen)generateList();
 		curSelected = 0;
 		if(regen)changeSelection();
@@ -225,21 +275,32 @@ class MainMenuState extends SickMenuState
   override function select(sel:Int){
 		MainMenuState.errorMessage="";
 		if (selected){return;}
-		// if(char != null) {char.playAnim("hey",true);char.playAnim("win",true);}
+		// if(char != null) {char.playAnimAvailable(["win","hey","singSPACE","singUP"],true);}
 		selected = true;
 		var daChoice:String = options[sel];
 		FlxG.sound.play(Paths.sound('confirmMenu'));
+		triedChar = false;
+		if(daChoice != "other" && daChoice != 'back'){
+			FlxTween.tween(grpControls.members[sel],{x:500},0.4,{ease:FlxEase.quadIn});
+		}
 		
 		switch (daChoice)
 		{
 			case 'other':
 				// FlxG.switchState(new OtherMenuState());
 				otherSwitch();
-			case 'online':
-				FlxG.switchState(new onlinemod.OnlinePlayMenuState());
+			case 'join BR compatible server':
+				if(FlxG.save.data.Server.length == 0)
+					FlxG.switchState(new onlinemod.OnlineAddServer());
+				else
+					FlxG.switchState(new onlinemod.OnlinePlayMenuState());
+			case 'host br server':
+				FlxG.switchState(new onlinemod.OnlineHostMenu());
 			case 'modded songs':
+				loading = true;
 				FlxG.switchState(new multi.MultiMenuState());
 			case 'online songs':
+				loading = true;
 				FlxG.switchState(new onlinemod.OfflineMenuState());
 			case 'changelog':
 				FlxG.switchState(new OutdatedSubState());
@@ -247,16 +308,21 @@ class MainMenuState extends SickMenuState
 				FlxG.switchState(new OptionsMenu());
 			// case "Setup characters":
 			// 	FlxG.switchState(new SetupCharactersList());
-
+			
+			// case "scripted states":
+			// 	FlxG.switchState(new SelectScriptableState());
 			case "download charts":
 				FlxG.switchState(new ChartRepoState());
 			case 'story mode':
+				loading = true;
 				FlxG.switchState(new StoryMenuState());
 			case 'freeplay':
+				loading = true;
 				FlxG.switchState(new FreeplayState());
 			case 'osu beatmaps':
+				loading = true;
 				FlxG.switchState(new osu.OsuMenuState());
-			case "Convert Charts from other mods":
+			case "import charts from mods":
 				FlxG.switchState(new ImportMod());
 			case 'download characters':
 				FlxG.switchState(new RepoState());

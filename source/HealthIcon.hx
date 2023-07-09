@@ -4,6 +4,7 @@ import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
 import sys.FileSystem;
 import flash.display.BitmapData;
+import flixel.tweens.FlxTween;
 
 class HealthIcon extends FlxSprite
 {
@@ -16,6 +17,8 @@ class HealthIcon extends FlxSprite
 	var isMenuIcon:Bool = false;
 	var frameCount:Int = 2;
 	var hichar:String = "";
+	var bounceTween:FlxTween;
+	var Lockscale:Float = 1;
 	// public var pathh = "mods/characters";
 
 	public function new(?char:String = 'bf', ?isPlayer:Bool = false,?clone:String = "",?isMenuIcon:Bool = false,?path:String = "mods/characters")
@@ -31,6 +34,16 @@ class HealthIcon extends FlxSprite
 			animation.curAnim.curFrame = 1;
 		else
 			animation.curAnim.curFrame = 0;
+	}
+	public function bounce(time:Float){
+		if(angle == 0){
+			angle = 11.25;
+			Lockscale = scale.x;
+		}
+		angle = angle * -1;
+		if(bounceTween != null) bounceTween.cancel();
+		scale.set(Lockscale + (Lockscale * 0.2),Lockscale + (Lockscale * 0.2));
+		bounceTween = FlxTween.tween(this.scale,{x:Lockscale,y:Lockscale},time / 2);
 	}
 
 	public function changeSprite(?char:String = 'bf',?clone:String = "face",?useClone:Bool = true,?pathh:String = "mods/characters")
@@ -68,7 +81,7 @@ class HealthIcon extends FlxSprite
 				};
 				if(frameCount > 1) updateAnim = function(health:Float){animation.curAnim.curFrame = Math.round(animation.curAnim.numFrames * (health / 150));};
 			}
-			trace(frameCount);
+			// trace(frameCount);
 			loadGraphic(FlxGraphic.fromBitmapData(bitmapData), true, bitmapData.height, bitmapData.height);
 			char = "bf";
 			vanIcon = false;
@@ -88,7 +101,6 @@ class HealthIcon extends FlxSprite
 		}
 		
 		antialiasing = true;
-		
 		
 		if(chars.contains(char.toLowerCase())){ // For vanilla characters
 			if (relAnims){

@@ -9,6 +9,8 @@ import flixel.util.FlxColor;
 import flash.media.Sound;
 import sys.FileSystem;
 import sys.io.File;
+import sys.thread.Lock;
+import sys.thread.Thread;
 
 import Section.SwagSection;
 
@@ -23,6 +25,8 @@ class OfflinePlayState extends PlayState
 	var shouldLoadSongs = true;
 	public static var voicesFile = "";
 	public static var instFile = "";
+	public static var lastInstFile = "";
+	public static var lastVoicesFile = "";
 	public static var chartFile:String = "";
 	public static var nameSpace:String = "";
 	public static var stateNames:Array<String> = ["-freep","","-Offl","","-Multi","-OSU","-Story","","",""];
@@ -32,29 +36,64 @@ class OfflinePlayState extends PlayState
 	super();
   }
   function loadSongs(){
-
-		if(instFile == ""){
-
-			for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg']) {
-				if (FileSystem.exists('${Sys.getCwd()}/$i')){
-					instFile = i;
-				}
-			}
-			if (instFile == ""){MainMenuState.handleError('${PlayState.actualSongName} is missing a inst file!');}
-			for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Voices.ogg']) {
-				if (FileSystem.exists('${Sys.getCwd()}/$i')){
-					voicesFile = i;
-				}
-			}
-			if (voicesFile != ""){loadedVoices = new FlxSound().loadEmbedded(Sound.fromFile(voicesFile));}
-		}else{
-			if (voicesFile != ""){loadedVoices = new FlxSound().loadEmbedded(Sound.fromFile(voicesFile));}
+  		LoadingScreen.loadingText = "Loading music";
+		if(lastVoicesFile != voicesFile && loadedVoices != null){
+			loadedVoices.destroy();
 		}
-		trace('Inst - ${instFile}');
-		trace('Voices - ${voicesFile}');
-    
-    loadedInst = Sound.fromFile(instFile);
-}
+		#if(target.threaded)
+		var lock = new Lock();
+		sys.thread.Thread.create(() -> { // Offload to another thread for faster loading
+		#end
+			if(!(lastVoicesFile == voicesFile && loadedVoices != null)){
+				if(voicesFile == ""){
+					for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song}/Voices.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Voices.ogg']) {
+						trace('looking for voice at $i');
+						if (FileSystem.exists('${Sys.getCwd()}/$i')){
+							voicesFile = i;
+							break;
+						}
+					}
+				}
+				if(voicesFile != ""){loadedVoices = SELoader.loadFlxSound(voicesFile);}
+				if(voicesFile == "" && PlayState.SONG != null){
+					loadedVoices =  new FlxSound();
+					PlayState.SONG.needsVoices = false;
+				}
+				if(loadedVoices.length < 1){
+					trace('Voices.ogg didn\'t load properly. Try converting to MP3 and then into OGG Vorbis');
+				}
+
+			}
+		#if(target.threaded)
+			lock.release();
+		});
+		#end
+			if(!(lastInstFile == instFile && loadedInst != null)){ // This doesn't need to be threaded
+				if(instFile == ""){
+
+					for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song}/Inst.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg']) {
+						trace('looking for inst at $i');
+						if (FileSystem.exists('${Sys.getCwd()}/$i')){
+							instFile = i;
+							break;
+						}
+					}
+					if (instFile == ""){MainMenuState.handleError('${PlayState.actualSongName} is missing a inst file!');}
+
+				}
+				loadedInst = SELoader.loadSound(instFile);
+			}
+		#if(target.threaded)
+		lock.wait();
+		#end
+		if(loadedVoices != null)loadedVoices.time = 0;
+
+		lastInstFile = instFile;
+		lastVoicesFile = voicesFile;
+		loadedVoices.persist = true;
+	trace('Loading $voicesFile, $instFile');
+	
+  }
 function loadJSON(){
 	try{
 		if (!ChartingState.charting)
@@ -76,21 +115,7 @@ override function create()
 	try{
 		instanc = this;
 		if (shouldLoadJson) loadJSON();
-	    // PlayState.player1 = FlxG.save.data.playerChar;
-	    // if ((FlxG.save.data.charAuto) && TitleState.retChar(PlayState.player2) != ""){ // Check is second player is a valid character
-	    // 	PlayState.player2 = TitleState.retChar(PlayState.player2);
-	    // }else{
-	    // 	PlayState.player2 = FlxG.save.data.opponent;
-	    // }
 	    PlayState.stateType=stateType;
-	    // var voicesFile = 'assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg'
-	    // if (!FileSystem.exists('${FileSystem.exists(Sys.getCwd()}/assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg')){
-	    // 	voicesFile = '${FileSystem.exists(Sys.getCwd()}/assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg';
-	    // }
-	    // var instFile = 'assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg'
-	    // if (!FileSystem.exists('${FileSystem.exists(Sys.getCwd()}/assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg')){
-	    // 	voicesFile = '${FileSystem.exists(Sys.getCwd()}/assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg';
-	    // }
 	    if (shouldLoadSongs) loadSongs();
 
 	    var oldScripts:Bool = false;
@@ -102,7 +127,7 @@ override function create()
 
 
 	    // Add XieneDev watermark
-	    var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "SuperEngine" + stateNames[stateType] + " " + MainMenuState.ver + " T Mod-" + MainMenuState.modver, 16);
+	    var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "SE-T" + stateNames[stateType] + " " + MainMenuState.ver + "-" + MainMenuState.modver, 16);
 			xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 			xieneDevWatermark.scrollFactor.set();
 			add(xieneDevWatermark);
@@ -140,103 +165,6 @@ override function create()
     super.generateSong(dataPath);
 
   }
-  // override function generateSong(dataPath:String)
-  // {try{
-  //   // I have to code the entire code over so that I can remove the offset thing
-  //   var songData = PlayState.SONG;
-		// Conductor.changeBPM(songData.bpm);
-
-		// curSong = songData.song;
-
-		// if (PlayState.SONG.needsVoices)
-		// 	vocals = loadedVoices;
-		// else
-		// 	vocals = new FlxSound();
-
-		// FlxG.sound.list.add(vocals);
-
-		// notes = new FlxTypedGroup<Note>();
-		// add(notes);
-
-		// var noteData:Array<SwagSection>;
-
-		// // NEW SHIT
-		// noteData = songData.notes;
-
-		// var playerCounter:Int = 0;
-
-		// // Per song offset check
-		// var daBeats:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
-		// for (section in noteData)
-		// {
-		// 	var coolSection:Int = Std.int(section.lengthInSteps / 4);
-
-		// 	for (songNotes in section.sectionNotes)
-		// 	{
-
-		// 		if(songNotes[1] == -1) continue;
-		// 		var daStrumTime:Float = songNotes[0] + FlxG.save.data.offset;
-		// 		if (daStrumTime < 0)
-		// 			daStrumTime = 0;
-		// 		var daNoteData:Int = songNotes[1];
-
-		// 		var gottaHitNote:Bool = section.mustHitSection;
-
-		// 		if (songNotes[1] > 3)
-		// 		{
-		// 			gottaHitNote = !section.mustHitSection;
-		// 		}
-
-		// 		var oldNote:Note;
-		// 		if (unspawnNotes.length > 0)
-		// 			oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
-		// 		else
-		// 			oldNote = null;
-
-		// 		var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote,null,null,songNotes[3] == 1,songNotes,gottaHitNote);
-		// 		swagNote.sustainLength = songNotes[2];
-		// 		swagNote.scrollFactor.set(0, 0);
-
-		// 		var susLength:Float = swagNote.sustainLength;
-
-		// 		susLength = susLength / Conductor.stepCrochet;
-		// 		unspawnNotes.push(swagNote);
-
-		// 		for (susNote in 0...Math.floor(susLength))
-		// 		{
-		// 			oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
-
-		// 			var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + Conductor.stepCrochet, daNoteData, oldNote, true,null,songNotes[3] == 1,gottaHitNote);
-		// 			sustainNote.scrollFactor.set();
-		// 			unspawnNotes.push(sustainNote);
-
-		// 			sustainNote.mustPress = gottaHitNote;
-
-		// 			if (sustainNote.mustPress)
-		// 			{
-		// 				sustainNote.x += FlxG.width / 2; // general offset
-		// 			}
-		// 		}
-
-		// 		swagNote.mustPress = gottaHitNote;
-
-		// 		if (swagNote.mustPress)
-		// 		{
-		// 			swagNote.x += FlxG.width / 2; // general offset
-		// 		}
-		// 	}
-		// 	daBeats += 1;
-		// }
-
-		// // trace(unspawnNotes.length);
-		// // playerCounter += 1;
-
-		// unspawnNotes.sort(sortByShit);
-
-		// generatedMusic = true;
-  //  }catch(e){MainMenuState.handleError('Caught "gensong" crash: ${e.message}');}}
-
-
   override function endSong()
   {
   	if(PlayState.isStoryMode){
