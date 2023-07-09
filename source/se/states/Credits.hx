@@ -51,7 +51,7 @@ class Credits extends SearchMenuState
 "],["Shoutouts" , "Some general shoutouts
 
 * V.S. Ex Tabi - The arrow examples are from here
-* ShadowMario - A huge inspiration. Both Psych Engine and FNF Multi 3.2 were massive inspirations for Super Engine"
+* Anthonyjrvill - He makes Note Skins specially for SE-T. What a mad lad"
 ]];
 	override function reloadList(?reload:Bool = false,?search:String=""){try{
 			curSelected = 0;

@@ -254,16 +254,20 @@ class MainMenuState extends SickMenuState
 	}
 	function mmSwitch(regen:Bool = false){
 		options = ['modded songs','join BR compatible server',
+		#if !ghaction
 			'host br server',
+		#end
 			'online songs',"story mode",'other',"import charts from mods",
 			// "scripted states",
-			"changelog", 'options'];
+			"changelog",'credits', 'options'];
 		descriptions = ["Play songs from your mods/charts folder, packs or weeks","Join and play online with other people on a Battle Royale compatible server.",
+		#if !ghaction
 		'DON\'T TOUCH THIS! IT BASICLY DOESN\'T WORK.',
 		// 'Host a server so people can join locally, via ngrok or from your IP using portforwarding',
+		#end
 		"Play songs that have been downloaded during online games.","Play a vanilla or custom week",'Freeplay, Osu beatmaps, and download characters or songs','Convert charts from other mods to work here. Will put them in Modded Songs',
 		// "Run a script in a completely scriptable blank state",
-		"Check the latest update and it's changes",'Customise your experience to fit you'];
+		"Check the latest update and it's changes","Check out the awesome people who helped with this engine in some way",'Customise your experience to fit you'];
 		if(regen)generateList();
 		curSelected = 0;
 		if(regen)changeSelection();
@@ -294,8 +298,13 @@ class MainMenuState extends SickMenuState
 					FlxG.switchState(new onlinemod.OnlineAddServer());
 				else
 					FlxG.switchState(new onlinemod.OnlinePlayMenuState());
-			case 'host br server':
-				FlxG.switchState(new onlinemod.OnlineHostMenu());
+			case "credits":
+				FlxG.switchState(new se.states.Credits());
+				#if !ghaction
+				// Unstable,this'll be removed when I actually make it work
+				case 'host br server':
+					FlxG.switchState(new onlinemod.OnlineHostMenu());
+				#end
 			case 'modded songs':
 				loading = true;
 				FlxG.switchState(new multi.MultiMenuState());
