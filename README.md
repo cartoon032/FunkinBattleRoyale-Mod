@@ -5,7 +5,7 @@ some notable feature
 - Multi Key from 1K-18K + 21K
 - (hopefully) a smoother Mid Song Mania Change.
 - support for Leather Engine multiple Characters with a bit of edit in the chart file.<br>
-    this doesn't mean multiple characters character it just allows the chart to load more character
+    this doesn't mean multiple characters character it just allows the chart to load more character and using notetype to assign who sing what note
 - with my custom server code a better online
 - a probably better Chart Editor
 - More customization Discord RPC
