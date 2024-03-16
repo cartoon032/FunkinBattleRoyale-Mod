@@ -2,8 +2,10 @@ package onlinemod;
 
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.FlxState;
+import flixel.graphics.FlxGraphic;
 import flixel.addons.ui.FlxUIButton;
-import flixel.addons.ui.FlxInputText;
+import SEInputText as FlxInputText;
 import flixel.addons.ui.FlxUIState;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
@@ -15,51 +17,34 @@ import openfl.events.IOErrorEvent;
 
 import openfl.net.Socket;
 import openfl.utils.ByteArray;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxTimer;
 
 import Discord.DiscordClient;
-class OnlineAddServer extends MusicBeatState
+class OnlineAddServer extends MusicBeatSubstate
 {
-	var errorMessage:String;
-	var errorColor:FlxColor;
-
 	static var errorText:FlxText;
 	var ipField:FlxInputText;
 	var portField:FlxInputText;
 	var pwdField:FlxInputText;
-
-	public static var socket:Socket;
-	public static var receiver:Receiver;
-
 	public static var muteKeys:Array<Int>;
 	public static var volumeUpKeys:Array<Int>;
 	public static var volumeDownKeys:Array<Int>;
-	public static var scripts:Array<String> = [];
-	public static var rawScripts:Array<Array<String>> = [];
 
 	var ServerList:Array<Array<Dynamic>> = [];
 	var SaveButton:FlxUIButton;
-	var serverdelete:Int = 0;
 
-	public function new(?message:String="", ?color:FlxColor=FlxColor.RED)
-	{
+	public function new(?color:FlxColor=FlxColor.RED) {
 		super();
-		PlayState.invertedChart = false;
-		PlayState.dadShow = true;
-		OnlinePlayState.autoDetPlayer2 = true;
-		OnlinePlayState.useSongChar = ["","",""];
-		errorMessage = message;
-		errorColor = color;
-		scripts = [];
-		rawScripts = [];
-		serverdelete = 0;
 	}
-
-	override function create()
-	{
-		DiscordClient.changePresence("In Server adding menu",null);
+	inline function saveServer(){
+		FlxG.save.data.Server.push([ipField.text,portField.text,pwdField.text]);
+	}
+	override function create() {
 		TitleState.supported = false;
-		var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
-		bg.color = 0xFFFF6E6E;
+		var bg:FlxSprite = new FlxSprite(0,-FlxG.height * 0.25).loadGraphic(FlxGraphic.fromRectangle(FlxG.width,Std.int(FlxG.height * 1.5),0xff000000));
+		bg.alpha = 0.7;
 		add(bg);
 
 		var topText = new FlxText(0, FlxG.height * 0.05, "Add server");
@@ -67,27 +52,23 @@ class OnlineAddServer extends MusicBeatState
 		topText.screenCenter(FlxAxes.X);
 		add(topText);
 
-		errorText = new FlxText(0, FlxG.height * 0.175, FlxG.width, errorMessage);
-		errorText.setFormat(CoolUtil.font, 32, errorColor, CENTER);
-		add(errorText);
-		SetErrorText(errorMessage, errorColor);
 
-		var ipText:FlxText = new FlxText(FlxG.width/2 - 350, FlxG.height * 0.3 - 40, "IP Address:");
+		var ipText:FlxText = new FlxText(290, FlxG.height * 0.3 - 40, "IP Address:");
 		ipText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(ipText);
 
-		ipField = new FlxInputText(0, FlxG.height * 0.3, 700, 32,FlxG.save.data.lastServer);
+		ipField = new FlxInputText(0,FlxG.height * 0.3, 700,32);
 		ipField.setFormat(32, FlxColor.BLACK, CENTER);
 		ipField.screenCenter(FlxAxes.X);
 		ipField.customFilterPattern = ~/[^A-Za-z0-9.-]/;
 		ipField.hasFocus = true;
 		add(ipField);
 
-		var portText:FlxText = new FlxText(FlxG.width/2 - 350, FlxG.height * 0.5 - 40, "Port:");
+		var portText:FlxText = new FlxText(290, FlxG.height * 0.5 - 40, "Port:");
 		portText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(portText);
 
-		portField = new FlxInputText(0, FlxG.height * 0.5, 700, 32,FlxG.save.data.lastServerPort);
+		portField = new FlxInputText(0,FlxG.height * 0.5, 700,32);
 		portField.setFormat(32, FlxColor.BLACK, CENTER);
 		portField.screenCenter(FlxAxes.X);
 		portField.customFilterPattern = ~/[^0-9]/;
@@ -105,7 +86,7 @@ class OnlineAddServer extends MusicBeatState
 		add(pwdField);
 
 		var ConnectButton = new FlxUIButton(0, FlxG.height * 0.85, "Connect", () -> {
-			Connect(ipField.text,portField.text,pwdField.text);
+			OnlinePlayMenuState.Connect(ipField.text,portField.text,pwdField.text);
 		});
 		ConnectButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 		ConnectButton.resize(200, 50);
@@ -113,9 +94,9 @@ class OnlineAddServer extends MusicBeatState
 		ConnectButton.x -= 375;
 		add(ConnectButton);
 
-		var ConnectSaveButton = new FlxUIButton(0, FlxG.height * 0.85, "Save And Connect", () -> {
-			FlxG.save.data.Server.push([ipField.text,portField.text,pwdField.text]);
-			Connect(ipField.text,portField.text,pwdField.text);
+		var ConnectSaveButton = new FlxUIButton(0, FlxG.height * 0.85, "Save & Connect", () -> {
+			saveServer();
+			OnlinePlayMenuState.Connect(ipField.text,portField.text,pwdField.text);
 		});
 		ConnectSaveButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 		ConnectSaveButton.resize(200, 50);
@@ -124,8 +105,8 @@ class OnlineAddServer extends MusicBeatState
 		add(ConnectSaveButton);
 
 		var SaveButton = new FlxUIButton(0, FlxG.height * 0.85, "Save", () -> {
-			FlxG.save.data.Server.push([ipField.text,portField.text,pwdField.text]);
-			showTempmessage("Server have been save!");
+			saveServer();
+			close();
 		});
 		SaveButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 		SaveButton.resize(200, 50);
@@ -133,9 +114,7 @@ class OnlineAddServer extends MusicBeatState
 		SaveButton.x += 125;
 		add(SaveButton);
 
-		var BackButton = new FlxUIButton(0, FlxG.height * 0.85, "Go Back", () -> {
-			FlxG.switchState(new onlinemod.OnlinePlayMenuState());
-		});
+		var BackButton = new FlxUIButton(0, FlxG.height * 0.85, "Go Back", close);
 		BackButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 		BackButton.resize(200, 50);
 		BackButton.screenCenter(FlxAxes.X);
@@ -147,106 +126,39 @@ class OnlineAddServer extends MusicBeatState
 		FlxG.mouse.visible = true;
 		FlxG.autoPause = true;
 
+
 		muteKeys = FlxG.sound.muteKeys;
 		volumeUpKeys = FlxG.sound.volumeUpKeys;
 		volumeDownKeys = FlxG.sound.volumeDownKeys;
+		for (i in members){
+			var i = cast (i,FlxSprite);
+			if(i != null){
+				var _y = i.y;
+				var _a = i.alpha;
+				i.y -= FlxG.height * 0.24;
+				i.alpha = 0;
+				FlxTween.tween(i,{alpha:_a,y:_y},0.5,{ease:FlxEase.quadInOut});
+			}
+		}
 
-		if (socket != null && socket.connected)socket.close();
 
-		socket = new Socket();
-		socket.timeout = 10000;
-		socket.addEventListener(Event.CONNECT, (e:Event) -> {
-			Sender.SendPacket(Packets.SEND_CLIENT_TOKEN, [Tokens.clientToken], socket);
-		});
-		socket.addEventListener(IOErrorEvent.IO_ERROR, OnError);
-		socket.addEventListener(Event.CLOSE, OnClose);
-		socket.addEventListener(ProgressEvent.SOCKET_DATA, OnData);
-		receiver = new Receiver(HandleData);
+
 
 		super.create();
 	}
 
-	function HandleData(packetId:Int, data:Array<Dynamic>)
-	{
-		switch (packetId)
-		{
-			case Packets.SEND_SERVER_TOKEN:
-				var serverToken:Int = data[0];
-				if (serverToken == Tokens.serverToken)
-				{
-					Sender.SendPacket(Packets.SEND_PASSWORD, [pwdField.text], socket);
-				}
-				else
-				{
-					SetErrorText("Failed to verify server. Make sure the server and client are up to date");
-					if (socket.connected)
-						socket.close();
-				}
-			case Packets.PASSWORD_CONFIRM:
-				switch (data[0])
-				{
-					case 0:
-						SetErrorText("Correct password", FlxColor.LIME);
-						FlxG.switchState(new OnlineNickState());
-					case 1:
-						SetErrorText("Game already in progress");
-					case 2:
-						SetErrorText("Wrong password");
-					case 3:
-						SetErrorText("Game is already full");
-				}
-		}
-	}
-
-	public static function OnData(e:ProgressEvent)
-	{
-		var data:ByteArray = new ByteArray();
-		socket.readBytes(data);
-		receiver.OnData(data);
-	}
-
-	public static function OnError(e:IOErrorEvent)
-	{
-		if (Type.getClass(FlxG.state) == OnlineAddServer)
-			OnlineAddServer.SetErrorText('Socket error: ${e.text}');
-		else
-			FlxG.switchState(new OnlinePlayMenuState('Socket error: ${e.text}'));
-
-	}
-
-	public static function OnClose(e:Event)
-	{
-		if (Type.getClass(FlxG.state) == OnlineAddServer)
-			OnlineAddServer.SetErrorText("Disconnected from server");
-		else
-			FlxG.switchState(new OnlinePlayMenuState("Disconnected from server"));
-	}
-
-	public static function RespondKeepAlive(packetId:Int)
-	{
-		if (packetId == Packets.KEEP_ALIVE)
-			Sender.SendPacket(Packets.KEEP_ALIVE, [], OnlinePlayMenuState.socket);
-	}
-
 	override function update(elapsed:Float)
 	{
-		if (!(ipField.hasFocus || portField.hasFocus || pwdField.hasFocus))
-		{
+		if (!(ipField.hasFocus || portField.hasFocus || pwdField.hasFocus)) {
 			SetVolumeControls(true);
-			if (controls.BACK)
-			{
-				FlxG.switchState(new onlinemod.OnlinePlayMenuState());
-
-				if (socket != null)
-				{
-					if(socket.connected) socket.close();
-					socket = null;
-				}
-			}
-		}
-		else
-		{
+			if (controls.BACK) close();
+		}else{
 			SetVolumeControls(false);
+			if(FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.V){
+				if (ipField.hasFocus) ipField.text = CoolUtil.pasteFromClipboard();
+				if (portField.hasFocus) portField.text = CoolUtil.pasteFromClipboard();
+				if (pwdField.hasFocus) pwdField.text = CoolUtil.pasteFromClipboard();
+			}
 		}
 		super.update(elapsed);
 		FlxG.mouse.visible = true;
@@ -275,33 +187,12 @@ class OnlineAddServer extends MusicBeatState
 		}
 	}
 
-	public static function AddXieneText(state:FlxUIState)
+	public static function AddXieneText(state:FlxState)
 	{
-		var xieneText = new FlxText(0, FlxG.height - 30, "XieneDev");
+		var xieneText = new FlxText(0, FlxG.height - 30, "XieneDev - BR Online");
 		xieneText.setFormat(CoolUtil.font, 28, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		xieneText.screenCenter(FlxAxes.X);
 		state.add(xieneText);
 	}
 
-	function Connect(IP:String,Port:String,Password:String){
-		try
-		{ 
-			socket = new Socket();
-			socket.timeout = 10000;
-			socket.addEventListener(Event.CONNECT, (e:Event) -> {
-				Sender.SendPacket(Packets.SEND_CLIENT_TOKEN, [Tokens.clientToken], socket);
-			});
-			socket.addEventListener(IOErrorEvent.IO_ERROR, OnError);
-			socket.addEventListener(Event.CLOSE, OnClose);
-			socket.addEventListener(ProgressEvent.SOCKET_DATA, OnData);
-			receiver = new Receiver(HandleData);
-			FlxG.save.data.lastServer = IP;
-			FlxG.save.data.lastServerPort = Port;
-			OnlinePlayMenuState.socket = socket;
-			OnlinePlayMenuState.receiver = receiver;
-			socket.connect(IP, Std.parseInt(Port));
-		}catch (e: Dynamic){
-			trace(e);
-		}
-	}
 }

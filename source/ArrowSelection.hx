@@ -39,25 +39,43 @@ class ArrowSelection extends SearchMenuState
 	}
 	override function create()
 	{try{
-		DiscordClient.changePresence("Changing Arrow Skin",null);
 		{ // Looks for all notes, This will probably be rarely accessed, so loading like this shouldn't be a problem
 			searchList = ["default"];
 			var dataDir:String = Sys.getCwd() + "mods/noteassets/";
 			var customArrows:Array<String> = [];
-			if (FileSystem.exists(dataDir))
+			if (SELoader.exists(dataDir))
 			{
-				for (file in FileSystem.readDirectory(dataDir))
+				for (file in SELoader.readDirectory(dataDir))
 				{
 					if (file.endsWith(".png") && !file.endsWith("-bad.png") && !file.endsWith("-splash.png")){
 						var name = file.substr(0,-4);
-						if (FileSystem.exists('${dataDir}${name}.xml'))
+						if (SELoader.exists('${dataDir}${name}.xml'))
 						{
 							customArrows.push(name);
-
 						}
 					}
 				}
-			}else{MainMenuState.handleError('mods/noteassets is not a folder!');}
+			}else{MainMenuState.handleError('mods/noteassets is not a folder. You need to create it to use custom arrow skins!');}
+			{
+				var dataDir = "mods/packs/";
+				for (_dir in SELoader.readDirectory(dataDir))
+				{
+					var dataDir = 'mods/packs/$_dir/noteassets/';
+					if(SELoader.exists(dataDir)){
+						for (file in SELoader.readDirectory(dataDir))
+						{
+							if (file.endsWith(".png") && !file.endsWith("-bad.png") && !file.endsWith("-splash.png")){
+								var name = file.substr(0,-4);
+								if (SELoader.exists('${dataDir}${name}.xml'))
+								{
+									// Really shit but it works
+									customArrows.push('../packs/$_dir/noteassets/$name');
+								}
+							}
+						}
+					}
+				}
+			}
 			// customCharacters.sort((a, b) -> );
 			haxe.ds.ArraySort.sort(customArrows, function(a, b) {
 						 if(a < b) return -1;
@@ -68,14 +86,13 @@ class ArrowSelection extends SearchMenuState
 				searchList.push(char);
 			}
 		}
+
 		generateStaticArrows();
 		super.create();
+		updateInfoText('Press Tab to change mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
 		add(playerStrums);
+
 		changeSelection();
-		new FlxTimer().start(0.1, function(tmr)
-		{
-			updateInfoText('Press Tab to change mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
-		});
 
 	}catch(e) MainMenuState.handleError('Error with notesel "create" ${e.message}');}
 	override function changeSelection(change:Int = 0){
@@ -92,15 +109,11 @@ class ArrowSelection extends SearchMenuState
 	}
 	override function beatHit(){
 		super.beatHit();
-		playerStrums.forEach(
-			function(arrow:StrumArrow){
-				switch(curBeat % 3){
-					case 0:arrow.playStatic(); 
-					case 1:arrow.press(); 
-					case 2:arrow.confirm();
-				}
-			}
-		);
+		if(playerStrums.members[curBeat % PlayState.keyAmmo[PlayState.mania]] != null) {
+			playerStrums.members[curBeat % PlayState.keyAmmo[PlayState.mania]].confirm();
+			playerStrums.members[(curBeat - 2) % PlayState.keyAmmo[PlayState.mania]].playStatic();
+			playerStrums.members[(curBeat - 1) % PlayState.keyAmmo[PlayState.mania]].press();
+		}
 	}
 	override function extraKeys(){
 		if(FlxG.keys.justPressed.TAB){
@@ -135,19 +148,52 @@ class ArrowSelection extends SearchMenuState
 	function changeColor(){
 		switch (PlayState.mania)
 		{
-			case 0:Note.noteNames = ['purple','aqua','green','red'];
-			case 1:Note.noteNames = ['purple','aqua','red','yellow','green','orange'];
-			case 2:Note.noteNames = ['purple','aqua','red','white','yellow','green','orange'];
-			case 3:Note.noteNames = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
-			case 4:Note.noteNames = ['purple','aqua','white','green','red'];
-			case 5:Note.noteNames = ['purple','aqua','green','red','yellow','pink','blue','orange'];
-			case 6:Note.noteNames = ['white'];
-			case 7:Note.noteNames = ['purple','red'];
-			case 8:Note.noteNames = ['purple','white','red'];
-			case 9:Note.noteNames = ['purple','aqua','green','red','cyan','magenta','yellow','pink','blue','orange'];
-			case 10:Note.noteNames = ['purple','aqua','green','red','cyan','white','magenta','yellow','pink','blue','orange'];
-			case 11:Note.noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','yellow','pink','blue','orange'];
-			case 12:Note.noteNames = ['purple','aqua','green','red','lime','cyan','white','magenta','tango','yellow','pink','blue','orange'];
+			case 0:
+				Note.noteNames = ['purple','aqua','green','red'];
+			case 1: 
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','green','red','yellow','aqua','orange'];
+				else Note.noteNames = ['purple','aqua','red','yellow','green','orange'];
+			case 2: 
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','green','red','white','yellow','aqua','orange'];
+				else Note.noteNames = ['purple','aqua','red','white','yellow','green','orange'];
+			case 3: 
+				Note.noteNames = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
+			case 4:
+				Note.noteNames = ['purple','aqua','white','green','red'];
+			case 5:
+				Note.noteNames = ['purple','aqua','green','red','yellow','pink','blue','orange'];
+			case 6:
+				Note.noteNames = ['white'];
+			case 7:
+				Note.noteNames = ['purple','red'];
+			case 8:
+				Note.noteNames = ['purple','white','red'];
+			case 9:
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','aqua','green','red','magenta','cyan','yellow','pink','blue','orange'];
+				else Note.noteNames = ['purple','aqua','green','red','cyan','magenta','yellow','pink','blue','orange'];
+			case 10:
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','aqua','green','red','magenta','wintergreen','cyan','yellow','pink','blue','orange'];
+				else Note.noteNames = ['purple','aqua','green','red','cyan','white','magenta','yellow','pink','blue','orange'];
+			case 11:
+				Note.noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','yellow','pink','blue','orange'];
+			case 12:
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','aqua','green','red','lime','tango','wintergreen','canary','erin','yellow','pink','blue','orange'];
+				else Note.noteNames = ['purple','aqua','green','red','lime','cyan','wintergreen','magenta','tango','yellow','pink','blue','orange'];
+			case 13:
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','aqua','green','red','lime','tango','white','wintergreen','canary','erin','yellow','pink','blue','orange'];
+				else Note.noteNames = ['purple','aqua','green','red','lime','cyan','tango','canary','magenta','tango','yellow','pink','blue','orange'];
+			case 14:
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','aqua','green','red','lime','tango','magenta','wintergreen','violet','canary','erin','yellow','pink','blue','orange'];
+				else Note.noteNames = ['purple','aqua','green','red','lime','cyan','tango','wintergreen','canary','magenta','tango','yellow','pink','blue','orange'];
+			case 15:
+				Note.noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+			case 16:
+				if(FlxG.save.data.AltMK) Note.noteNames = ['purple','aqua','green','red','wintergreen','lime','white','cyan','wintergreen','magenta','white','tango','wintergreen','yellow','pink','blue','orange'];
+				else Note.noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','wintergreen','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+			case 17:
+				Note.noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','white','wintergreen','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+			case 18: // 21K
+				Note.noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','lime','cyan','wintergreen','violet','erin','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
 		}
 	}
 }

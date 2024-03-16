@@ -40,7 +40,12 @@ class OutdatedSubState extends MusicBeatState
 		kadeLogo.y -= 180;
 		kadeLogo.alpha = 0.8;
 		add(kadeLogo);
-		var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,if(TitleState.outdated) 'SE-T is probably outdated, Your version: ${MainMenuState.ver} latest: ${needVer}' else 'Up to date: ${MainMenuState.ver}' , 32);
+		var broInFuture:Bool = (Std.parseInt(MainMenuState.modver.substr(0,2)) > Std.parseInt(TitleState.updatedVer.substr(0,2)) || // year
+													Std.parseInt(MainMenuState.modver.substr(3,5)) > Std.parseInt(TitleState.updatedVer.substr(3,5)) || // week
+													MainMenuState.letterToVer[MainMenuState.modver.charAt(MainMenuState.modver.length - 1)] > MainMenuState.letterToVer[TitleState.updatedVer.charAt(TitleState.updatedVer.length - 1)] // letter
+													);
+
+		var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,(broInFuture ? 'you are running a Test Build of SE-T. ${MainMenuState.modver} Current public build: ${TitleState.updatedVer}' : 'SE-T is outdated, Latest: ${TitleState.updatedVer}. You are on ${MainMenuState.modver}'), 32);
 		outdatedLMAO.setFormat(CoolUtil.font, 32, if(TitleState.outdated) FlxColor.RED else FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		outdatedLMAO.scrollFactor.set();
 		outdatedLMAO.screenCenter(flixel.util.FlxAxes.X);
@@ -48,7 +53,7 @@ class OutdatedSubState extends MusicBeatState
 		var txt:FlxText = new FlxText(0, 0, FlxG.width,
 			"\n\nChangelog:\n\n"
 			+ currChanges
-			+ "\n\n\nPress D to open a invite to the Discord server or Escape to close.",
+			+ "\n\n\nPress D to open an invite to the SE Discord server \nEscape to close.",
 			32);
 		
 		txt.setFormat(CoolUtil.font, 32, FlxColor.fromRGB(200, 200, 200), CENTER);
@@ -84,13 +89,9 @@ class OutdatedSubState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		if (FlxG.keys.justPressed.D)
-		{
 			fancyOpenURL("https://discord.gg/28GPGTRuuR");
-		}
 		if (controls.BACK)
-		{
 			FlxG.switchState(new MainMenuState());
-		}
 		super.update(elapsed);
 	}
 }

@@ -38,7 +38,8 @@ class Sender
           case DataTypes.STRING:
             socket.writeUTF(arguments[i]);
           case DataTypes.FILE:
-
+            socket.writeUnsignedInt(arguments[i].length);
+            socket.writeBytes(arguments[i]);
         }
         i++;
       }

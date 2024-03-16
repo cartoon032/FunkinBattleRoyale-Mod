@@ -26,21 +26,34 @@ class EmptyCharacter extends Character
 {
 
 
-	override public function new(x:Float, y:Float, ?character:String = "lonely", ?isPlayer:Bool = false,?char_type:Int = 0,?preview:Bool = false) // CharTypes: 0=BF 1=Dad 2=GF
+	override public function new(x:Float, y:Float, ?character:String = "", ?isPlayer:Bool = false,?charType:Int = 0,?preview:Bool = false,?exitex:FlxAtlasFrames = null,?charJson:CharacterJson = null,?useHscript:Bool = true,?charPath:String = "") // CharTypes: 0=BF 1=Dad 2=GF
 	{
 		this.lonely = true;
-		super(x, y);
 		animOffsets = new Map<String, Array<Float>>();
 		animOffsets['all'] = [0.0, 0.0];
-		character = "lonely";
 
-		curCharacter = character;
-		charType = char_type;
+		curCharacter = character = "lonely";
+		this.charType = charType;
 		this.isPlayer = isPlayer;
+		this.visible = false;
+		super(x, y,"lonely",false,0,false);
+		curCharacter = character = "lonely";
+		this.lonely = true;
 		this.visible = false;
 
 		var tex:FlxAtlasFrames = null; // Dunno why this fixed crash with BF but it did
-		tex = Paths.getSparrowAtlas('onlinemod/lonely');
+		tex = FlxAtlasFrames.fromSparrow(FlxGraphic.fromRectangle(2,2,0x00000000,false,'lonelyspr'), '<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="lonely.png">
+	<!-- Created with Adobe Animate version 20.0.0.17400 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="Idle0000" x="0" y="0" width="1" height="1"/>
+	<SubTexture name="DanceRight0000" x="0" y="0" width="1" height="1"/>
+	<SubTexture name="DanceLeft0000" x="0" y="0" width="1" height="1"/>
+	<SubTexture name="SingUP0000" x="0" y="0" width="1" height="1"/>
+	<SubTexture name="SingDOWN0000" x="0" y="0" width="1" height="1"/>
+	<SubTexture name="SingLEFT0000" x="0" y="0" width="1" height="1"/>
+	<SubTexture name="SingRIGHT0000" x="0" y="0" width="1" height="1"/>
+</TextureAtlas>');
 		frames = tex;
 		animation.addByPrefix('idle', 'Idle', 24, false);
 		animation.addByPrefix('Idle', 'Idle', 24, false);

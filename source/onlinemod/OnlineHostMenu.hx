@@ -10,20 +10,21 @@ import flixel.util.FlxAxes;
 import openfl.events.Event;
 import openfl.events.ProgressEvent;
 import openfl.events.IOErrorEvent;
+import openfl.events.ServerSocketConnectEvent;
 
 import openfl.net.Socket;
 import openfl.net.ServerSocket;
 import openfl.utils.ByteArray;
 import openfl.utils.Endian;
-import openfl.events.ServerSocketConnectEvent;
 
+import onlinemod.Packets.Packet;
 import Discord.DiscordClient;
 @:structInit class ConnectedPlayer {
 	public var nick:String;
 	public var socket:Socket;
 	public var receiver:Receiver;
+	public var tryConnect:Bool;
 }
-
 
 class OnlineHostMenu extends MusicBeatState
 {
@@ -116,12 +117,13 @@ class OnlineHostMenu extends MusicBeatState
 					var ID = connectedPlayers.length;
 					connectedPlayers[ID] = {
 						socket:e.socket,
-						receiver:new Receiver(HandleData.bind(_,_,ID)),
-						nick:"Unspecified"
+						receiver:new Receiver(HandleData.bind(ID,_,_)),
+						nick:"Unspecified",
+						tryConnect: false
 					}
 					trace('New connection! ${e.socket}');
 					var socket = e.socket;
-					socket.endian = OnlinePlayMenuState.socket.endian;
+					socket.endian = Endian.LITTLE_ENDIAN;
 
 					socket.addEventListener(IOErrorEvent.IO_ERROR, OnErrorSocket.bind(ID,_));
 					socket.addEventListener(Event.CLOSE, OnCloseSock.bind(ID,_));
@@ -134,6 +136,7 @@ class OnlineHostMenu extends MusicBeatState
 				// Literally just code from OnlinePlayMenu
 				var socket = new Socket();
 				socket.timeout = 10000;
+				socket.endian = Endian.LITTLE_ENDIAN;
 				socket.addEventListener(Event.CONNECT, (e:Event) -> {
 					Sender.SendPacket(Packets.SEND_CLIENT_TOKEN, [Tokens.clientToken], socket);
 				});
@@ -191,7 +194,6 @@ class OnlineHostMenu extends MusicBeatState
 			if (controls.BACK)
 				FlxG.switchState(new MainMenuState());
 		}
-
 		super.update(elapsed);
 	}
 
@@ -227,14 +229,14 @@ class OnlineHostMenu extends MusicBeatState
 		shutdownServer();
 		FlxG.switchState(new OnlinePlayMenuState('Closed server: ${e}'));
 	}
-	function HandleData(packetId:Int, data:Array<Dynamic>, socketID:Int)
-	{	
+	function HandleData(socketID:Int,packetId:Int, data:Array<Dynamic>)
+	{
 		var player = connectedPlayers[socketID];
 		var socket = player.socket;
 		var pktName:String = 'Unknown ID ${packetId}';
 		if(Packets.PacketsShit.fields[packetId] != null)
 			pktName = Packets.PacketsShit.fields[packetId].name;
-		trace('$socketID: Recieved $pktName($packetId)  $data');
+			trace('$socketID: Recieved $pktName($packetId)  $data');
 		try{
 			switch (packetId)
 			{
@@ -242,12 +244,25 @@ class OnlineHostMenu extends MusicBeatState
 					var token = data[0];
 					if(token == Tokens.clientToken)
 						Sender.SendPacket(Packets.SEND_SERVER_TOKEN, [Tokens.serverToken], socket);
+					else
+					{
+						if(!player.tryConnect)
+							{
+								Sender.SendPacket(Packets.CUSTOMPACKETSTRING,["BrokenData","try again"],socket);
+								player.tryConnect = true;
+							}
+						else{
+							trace('${socketID}: Unable to verify token($data, expected ${Tokens.clientToken}). Closing connection');
+							// SetErrorText("Failed to verify server. Make sure the server and client are up to date");
+							closeSocket(socketID);
+						}
+					}
 				case Packets.SEND_PASSWORD:
 					if(data[0] == null) data[0] = "";
 					Sender.SendPacket(Packets.PASSWORD_CONFIRM, [(if(data[0] == serverVariables["password"]) 0 else 1)], socket);
 					if(data[0] != serverVariables["password"]) closeSocket(socketID);
 				case Packets.SEND_NICKNAME:
-					if(data[0] != "unspecified" || clientsFromNames[data[0]] != null){
+					if(data[0] != "unspecified" && clientsFromNames[data[0]] != null){
 						Sender.SendPacket(Packets.NICKNAME_CONFIRM, [1], socket);
 					}else{
 						clientsFromNames[data[0]] = socketID;

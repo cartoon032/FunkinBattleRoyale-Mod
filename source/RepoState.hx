@@ -45,10 +45,11 @@ typedef RepoCharsJSON = {
 class RepoState extends SickMenuState
 {
 	var repo = "https://raw.githubusercontent.com/superpowers04/FNFBR-Repo/main/characters.json";
+	public static var unarExe = 
 	#if windows
-	var unarExe = "C:\\Program Files\\7-Zip\\7z.exe";
+	"C:\\Program Files\\7-Zip\\7z.exe";
 	#else
-	var unarExe = "/bin/7z";
+	"/bin/7z";
 	#end
 	var repoArray:RepoJSON;
 	var repoRet:String = "";
@@ -56,8 +57,9 @@ class RepoState extends SickMenuState
 	var installingList:Array<String> = [];
 	var installingText:FlxText;
 	var installedText:FlxText;
+	var waiting:Bool = true;
 
-	function unzip(from:String,to:String):Void{
+	@:keep inline public static function unzip(from:String,to:String):Void{
 		Sys.command(unarExe,['x','-y',from,'-o${to}']);
 	}
 	override function goBack(){
@@ -79,36 +81,39 @@ class RepoState extends SickMenuState
 	  }
 	override public function create():Void
 	{
-		#if mac
-			MainMenuState.handleError("This feature is not supported on mac!");
+		#if (linux || windows)
+			grpControls = new FlxTypedGroup<Alphabet>();
+			descriptions = [];
+			if (!sys.FileSystem.exists(unarExe)) {
+				MainMenuState.handleError("This feature requires 7-Zip to be installed");
+				return;			
+			}
+			new FlxTimer().start(2, function(tmr:FlxTimer)
+			{
+				
+				var http = new Http(repo);
+				
+				http.onData = function (data:String)
+				{
+					repoRet += data;
+					createCont();
+				}
+				
+				http.onError = function (error) {
+					MainMenuState.handleError('Something went wrong, $error');
+					return;	
+				}
+				
+				http.request();
+			});
+		#else
+			MainMenuState.handleError('This feature is not supported on ${Sys.systemName()}!');
 			return;
 		#end
-		descriptions = [];
-		if (!sys.FileSystem.exists(unarExe)) {
-			MainMenuState.handleError("This feature requires 7-Zip to be installed");
-			return;			
-		}
-		new FlxTimer().start(2, function(tmr:FlxTimer)
-		{
-			
-			var http = new Http(repo);
-			
-			http.onData = function (data:String)
-			{
-				repoRet += data;
-				createCont();
-			}
-			
-			http.onError = function (error) {
-				MainMenuState.handleError('Something went wrong, $error');
-				return;	
-			}
-			
-			http.request();
-		});
 
 	}
 	override public function update(elapsed:Float){
+		if(waiting) return;
 		super.update(elapsed);
 
 	}
@@ -127,8 +132,8 @@ class RepoState extends SickMenuState
 			MainMenuState.handleError('Something went wrong, ${e.message}');
 			return;	
 		}
-
 		super.create();
+		bg.color = 0x335533;
 
 		installingText = new FlxText(FlxG.width * 0.12, 5, 0,'Installing ${installing}', 32);
 		installingText.scrollFactor.set();
@@ -139,6 +144,7 @@ class RepoState extends SickMenuState
 		installedText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(installedText);
 		updateText();
+		waiting = false;
 	}
 	override function select(sel:Int){
 		var char:RepoCharsJSON = repoArray.characters[sel];
@@ -152,7 +158,7 @@ class RepoState extends SickMenuState
 			installing += 1;
 			installingList.push(char.name);
 			updateText();
-			new FlxTimer().start(2, function(tmr:FlxTimer)
+			new FlxTimer().start(0.5, function(tmr:FlxTimer)
 			{
 				
 				var http = new Http(char.url);
@@ -170,8 +176,7 @@ class RepoState extends SickMenuState
 				http.request();
 			});
 
-		}catch(e){
-			MainMenuState.handleError('Something went wrong, ${e.message}');
+		}catch(e){MainMenuState.handleError(e,'Something went wrong, ${e.message}');
 			return;	
 		}
 	}
@@ -182,7 +187,7 @@ class RepoState extends SickMenuState
 	}
 	function updateText(){
 		installingText.text = 'Installing ${installing} mod${if (installing != 1) 's' else '' }';
-		installedText.text = if (TitleState.choosableCharacters.contains(repoArray.characters[curSelected].name)) "Installed" else "Not Installed";
+		installedText.text = if (TitleState.retChar(repoArray.characters[curSelected].name) != "") "Installed" else "Not Installed";
 	}
 	function finishDownload(data:Bytes,char:RepoCharsJSON,sel:Int){
 		File.saveBytes(Sys.getCwd() + 'mods/characters/${char.name}.zip',data);

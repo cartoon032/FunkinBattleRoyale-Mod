@@ -37,6 +37,7 @@ typedef SwagSong =
 	var ?chartType:String;
 	var ?forceCharacters:Bool;
 	var ?playerKeyCount:Int;
+	var ?timescale:Array<Int>;
 	var ?multichar:Array<MoreChar>;
 }
 typedef MoreChar={
@@ -113,11 +114,14 @@ class Song
 	}
 
 	static function invertChart(swagShit:SwagSong):SwagSong{
-		var invertedNotes:Array<Int> = [4,5,6,7,0,1,2,3];
 		for (sid => section in swagShit.notes) {
 			section.mustHitSection = !section.mustHitSection;
 			swagShit.notes[sid] = section;
 		}
+		var PKC = swagShit.playerKeyCount;
+		var KC = swagShit.keyCount;
+		swagShit.keyCount = PKC;
+		swagShit.playerKeyCount = KC;
 		return swagShit;
 	}
 
@@ -209,9 +213,13 @@ class Song
 					swagShit.keyCount = swagShit.mania + 1;
 				else if(swagShit.mania > 0)swagShit.keyCount = PlayState.keyAmmo[swagShit.mania];
 				else if(swagShit.keyCount == null)swagShit.keyCount = 4;
+				if(swagShit.playerKeyCount == null)swagShit.playerKeyCount = swagShit.keyCount;
 
-				if (PlayState.invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Inverted chart")) && !charting) swagShit = invertChart(swagShit);
-				swagShit = modifyChart(swagShit,charting);
+				if (PlayState.invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Inverted chart")) && !charting){
+					PlayState.invertedChart = true;
+					swagShit = invertChart(swagShit);
+				}
+				// swagShit = modifyChart(swagShit,charting);
 				if(QuickOptionsSubState.getSetting("Scroll speed") > 0) swagShit.speed = QuickOptionsSubState.getSetting("Scroll speed");
 				if (swagShit.noteMetadata == null) swagShit.noteMetadata = Song.defNoteMetadata;
 				swagShit.chartType = ChartingState.detectChartType(swagShit);

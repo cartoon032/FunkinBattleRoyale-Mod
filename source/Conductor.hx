@@ -9,6 +9,12 @@ typedef BPMChangeEvent =
 	var songTime:Float;
 	var bpm:Float;
 }
+typedef ManiaChangeEvent =
+{
+	var Section:Int;
+	var Mania:Int;
+	var Skip:Bool;
+}
 
 class Conductor
 {
@@ -26,6 +32,7 @@ class Conductor
 	public static var timeScale:Float = Conductor.safeZoneOffset / 166;
 
 	public static var bpmChangeMap:Array<BPMChangeEvent> = [];
+	public static var ManiaChangeMap:Array<ManiaChangeEvent> = [];
 
 	public function new(){}
 
@@ -48,12 +55,11 @@ class Conductor
 			if(song.notes[i].changeBPM && song.notes[i].bpm != curBPM)
 			{
 				curBPM = song.notes[i].bpm * PlayState.songspeed;
-				var event:BPMChangeEvent = {
+				bpmChangeMap.push({
 					stepTime: totalSteps,
 					songTime: totalPos,
 					bpm: curBPM
-				};
-				bpmChangeMap.push(event);
+				});
 			}
 
 			var deltaSteps:Int = song.notes[i].lengthInSteps;
@@ -61,6 +67,28 @@ class Conductor
 			totalPos += ((60 / curBPM) * 1000 / 4) * deltaSteps;
 		}
 		trace("new BPM map BUDDY " + bpmChangeMap);
+	}
+	public static function mapManiaChanges(song:SwagSong)
+	{
+		ManiaChangeMap = [];
+
+		var curMania:Int = song.mania;
+		var totalSections:Int = -100;
+		for (i in 0...song.notes.length)
+		{
+			if(song.notes[i].changeMania >= 0 && song.notes[i].changeMania != curMania)
+			{
+				curMania = song.notes[i].changeMania;
+				ManiaChangeMap.push({
+					Section: totalSections,
+					Mania: curMania,
+					Skip: false
+				});
+			}
+
+			totalSections = i + 1;
+		}
+		trace("new Mania map BUDDY " + ManiaChangeMap);
 	}
 
 	public static function changeBPM(newBpm:Float)

@@ -1,5 +1,7 @@
 package;
 
+import onlinemod.OnlinePlayMenuState;
+import onlinemod.OnlineLobbyState;
 import haxe.Timer;
 import openfl.events.Event;
 import openfl.text.TextField;
@@ -14,8 +16,6 @@ import se.handlers.SELua;
 
 import hscript.Expr;
 import hscript.Interp;
-import hscript.InterpEx;
-import hscript.ParserEx;
 
 using StringTools;
 
@@ -98,14 +98,13 @@ class Overlay extends TextField
 			/ 1024) / 1000);
 			if (mem > memPeak)
 				memPeak = mem;
-			text = "" + currentFPS + " FPS/" + deltaTime + 
+			text = "" + currentFPS + " FPS/" + deltaTime +
 			" MS\nMemory Usage/Peak: " + mem + "MB/" + memPeak + "MB"
 			#if cpp
-			+"\nMemory Reserved/Current: " + Math.round((cpp.NativeGc.memInfo(3) / 1024) / 1000) + "MB/" + Math.round((cpp.NativeGc.memInfo(2) / 1024) / 1000) + "MB" 
+			+"\nMemory Reserved/Current: " + Math.round((cpp.NativeGc.memInfo(3) / 1024) / 1000) + "MB/" + Math.round((cpp.NativeGc.memInfo(2) / 1024) / 1000) + "MB"
 			#end
 			+ debugVar;
 		// }
-
 		cacheCount = currentCount;
 	}
 }
@@ -217,13 +216,17 @@ class Console extends TextField
 	function updateConsoleVisibility(){
 		isShowingConsole = showConsole;
 		commandBox.alpha = alpha = (if(showConsole) 1 else 0);
+		#if linc_luajit
+			if(commandBox.selua != null){ // Stack overflow if this isn't done
+				commandBox.selua.stop();
+				print('lua closed');
+				commandBox.selua = null;
+			}
+		#end
 		if(showConsole){
 			wasMouseDisabled = FlxG.mouse.visible;
 			FlxG.mouse.visible = true;
-			// FlxG.mouse.enabled = false;
 			requestUpdate = true;
-			// commandBox.scaleX = scaleX = lime.app.Application.current.window.width / 1280;
-			// commandBox.scaleY = scaleY = lime.app.Application.current.window.height / 720;
 			var _SY = (lime.app.Application.current.window.height / 720);
 			var _SX = (lime.app.Application.current.window.width / 1280);
 			width = 1240 * _SY;
@@ -234,8 +237,9 @@ class Console extends TextField
 			commandBox.width =width;
 			if(firstOpen){
 				firstOpen = false;
-				print('Super Engine ${MainMenuState.ver} ${MainMenuState.buildType} ${MainMenuState.compileType} - Debug console. Type help for commands.\nDO NOT BLINDLY PASTE CODE INTO HERE, This console allows you to run arbitrary code.\nSuper is not held responsible for whatever you paste here');
+				print('Super Engine ${MainMenuState.modver} ${MainMenuState.buildType} - Debug console. Type help for commands.\nDO NOT BLINDLY PASTE CODE INTO HERE, This console allows you to run arbitrary code.\nSuper is not held responsible for whatever you paste here');
 			}
+
 
 
 		}else{
@@ -326,7 +330,7 @@ class ConsoleInput extends TextField{
 		try{
 			@:privateAccess
 			parser.line = 0;
-			interp.variables.set("state",cast (FlxG.state)); 
+			interp.variables.set("state",cast (FlxG.state));
 			interp.variables.set("game",cast (FlxG.state));
 			interp.execute(parser.parseString(songScript,'CONSOLE'));
 		}catch(e){
@@ -454,6 +458,13 @@ class ConsoleInput extends TextField{
 		if(FlxG.keys == null || alpha <= 0) return;
 
 
+		if(FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.V){
+			var text = CoolUtil.pasteFromClipboard();
+			addTextAtCaret(text);
+			caretPos += text.length;
+			updateShownText();
+			return;
+		}
 		for(key => char in keyList){
 			@:privateAccess
 			if(Reflect.getProperty(FlxG.keys.justPressed,key)){
@@ -502,7 +513,12 @@ class ConsoleInput extends TextField{
 				updateShownText();
 			}else if(FlxG.keys.justPressed.DELETE){
 				actualText = actualText.substring(0,caretPos) + actualText.substring(caretPos + 1);
-				caretPos--;
+				updateShownText();
+			}else if(FlxG.keys.justPressed.HOME){
+				caretPos = 0;
+				updateShownText();
+			}else if(FlxG.keys.justPressed.END){
+				caretPos = actualText.length;
 				updateShownText();
 			}else if(FlxG.keys.justPressed.LEFT){
 				caretPos--;
@@ -556,10 +572,10 @@ class ConsoleInput extends TextField{
 				text = text.substring(text.indexOf(' '));
 				Console.print(text);
 				return text;
-			case 'hs': 
+			case 'hs':
 				if(!QuickOptionsSubState.getSetting("Song hscripts")){Console.error('Scripts are currently disabled!');return null;}
 				return runHscript(text.substring(3));
-			case 'lua': 
+			case 'lua':
 				#if linc_luajit
 					if(!QuickOptionsSubState.getSetting("Song hscripts")){Console.error('Scripts are currently disabled!');return null;}
 					runlua(text.substring(4));
@@ -567,7 +583,7 @@ class ConsoleInput extends TextField{
 					Console.error('Lua scripts aren\'t supported on this build or game was compiled without linc_luajit!');
 				#end
 				return null;
-			case 'luat': 
+			case 'luat':
 				#if linc_luajit
 					if(!QuickOptionsSubState.getSetting("Song hscripts")){Console.error('Scripts are currently disabled!');return null;}
 					runlua('trace(${text.substring(5)})');
@@ -683,28 +699,60 @@ class ConsoleUtils{
 	public static function getValueFromPath(object:Dynamic,path:String = "",returnErrors:Bool = true):Dynamic{
 		var splitPath:Array<String> = path.split('.');
 
+
 		if(path == "" || splitPath[0] == null){
 			throw 'Path is empty!';
 			return null;
 		}
 		if(object == null){
 			var obj:String = splitPath.shift();
-			if(obj == "state"){
-				object = cast FlxG.state;
-			}else{
-
-				object = Reflect.field((cast FlxG.state),obj);
-				if(object == null) object = Type.resolveClass(obj);
-				if(object == null){
-					throw 'Unable to find top-level object ${obj} from path ${path}';
-					return null;
-				}
+			if(obj.indexOf('[') > -1){
+				var _obj = obj.split('[');
+				obj = _obj[0];
+				splitPath.unshift('this'+ _obj[1].substr(0,-1));
 			}
+			object = ConsoleUtils.quickObject(obj);
+			if(object == null) object = Reflect.field((cast FlxG.state),obj);
+			if(object == null) object = Type.resolveClass(obj);
+			// if(object == null) object = getStaticObject(object);
+			// if(object == null && PlayState.instance != null) object = PlayState.instance.objects[obj];
+			if(object == null) object = Reflect.field(PlayState,obj);
+			if(object == null) object = Reflect.getProperty(PlayState,obj);
+
+			if(object == null){
+				throw 'Unable to find top-level object ${obj} from path ${path}';
+				return null;
+			}
+			
 		}
 		var currentPath:String = "";
 		while(splitPath.length > 0){
 			currentPath = splitPath.shift();
-			object = Reflect.field(object,currentPath);
+			var subPath:String = "";
+			if(currentPath.indexOf('[') > -1){
+				var _obj = currentPath.split('[');
+				currentPath = _obj[0];
+				subPath = _obj[1].substr(0,-1);
+			}
+			if(currentPath != "this") object = Reflect.field(object,currentPath);
+			if(object != null && subPath != ""){
+				if(object is Array){
+					object = object.get(Std.parseInt(subPath));
+				}else if(subPath.indexOf(':') != -1){
+					var _subPath = subPath.split(':');
+					switch(_subPath[0]){
+						case 'f':
+							object = object.get(Std.parseFloat(_subPath[1]));
+						case 'i':
+							object = object.get(Std.parseInt(_subPath[1]));
+						default:
+							object = object.get(_subPath[1]);
+					}
+
+				}else{
+					object = object.get(subPath);
+				}
+			}
 			if(object == null){
 				throw 'Unable to find object from path ${path}(On ${currentPath})';
 				return null;
@@ -715,13 +763,28 @@ class ConsoleUtils{
 		}
 		return object;
 	}
+
+	public static function quickObject(vari:String):Dynamic{
+		switch(vari){
+			case "boyfriend" | "bf": return PlayState.boyfriend;
+			case "opponent" | "dad": return PlayState.dad;
+			case "girlfriend" | "gf": return PlayState.gf;
+			case "song" | "SONG": return PlayState.SONG;
+			case "PlayState": return PlayState;
+			case "Note": return Note;
+			case "Character": return Character;
+			case "TitleState": return TitleState;
+			case "MainMenuState": return MainMenuState;
+			case "MusicBeatState": return MusicBeatState;
+			case "NoteStuffExtra": return NoteStuffExtra;
+			case "state" | "State" | "game" | "Game": return cast FlxG.state;
+		}
+
+		return null;
+	}
 	public static function setValueFromPath(path:String = "",value:Dynamic){
 		var splitPath:Array<String> = path.split('.');
 		var obj:Dynamic = null;
-		if(splitPath[0] == "state"){
-			splitPath.shift();
-			obj = cast FlxG.state;
-		}
 		if(splitPath.length > 1) obj = getValueFromPath(obj,path.substring(0,path.lastIndexOf('.')),false);
 		if(obj is String) return obj;
 		if(obj == null) throw('Object "${path}" is null!');

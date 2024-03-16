@@ -23,10 +23,11 @@ import sys.FileSystem;
 import sys.io.File;
 import PlayState.OutNote;
 import flash.media.Sound;
+import tjson.Json;
+import haxe.crypto.Md5;
 
 import Discord.DiscordClient;
 using StringTools;
-
 
 typedef ActionsFile = {
 	var info:String;
@@ -35,8 +36,8 @@ typedef ActionsFile = {
 	var gf:String;
 	var opp:String;
 	var ver:String;
-
 }
+
 class FinishSubState extends MusicBeatSubstate
 {
 	var curSelected:Int = 0;
@@ -53,24 +54,36 @@ class FinishSubState extends MusicBeatSubstate
 	var isError:Bool = false;
 	var healthBarBG:FlxSprite;
 	var healthBar:FlxBar;
-	var iconP1Array:Array<HealthIcon>; 
+	var iconP1Array:Array<HealthIcon>;
 	var iconP2Array:Array<HealthIcon>;
-	var scoretype:Array<String> = ["","FNF Score","OSU! Score","Osu!Mania Score","Bal Score","Invert Bal Score","Stupid Score"];
+	var scoretype:Array<String> = ["","FNF Score","OSU! Score","Osu!Mania Score","Bal Score","Invert Bal Score","Voiid Score","Voiid Uncap Score","Stupid Score"];
 	var randommode:Array<String> = ["","Full Random","Full Random With Jack Prevent","Random Per Section"];
 	var extrainfo:Bool = false;
-	var noteratingscore:Array<Float> = [350,300,200,-300];
+	var noteratingscore:Array<Float> = [350,350,200,0,-300];
+	var MaxScore:Float = 0;
 	var settingsText:FlxText;
 	var chartdifficult:Float = NoteStuffExtra.CalculateDifficult(0.93,0);
 	var Opponentchartdifficult:Float = NoteStuffExtra.CalculateDifficult(0.93,1);
+	public static var instance:FinishSubState;
 	public static var pauseGame:Bool = true;
 	public static var autoEnd:Bool = true;
 	public function new(x:Float, y:Float,?won = true,?error:String = "",force:Bool = false)
 	{
+		instance = this;
+		super();
 		if (error != ""){
 			isError = true;
 			errorMsg = error;
 			won = false;
-			
+			// PlayState.instance.paused = true;
+		}
+		if(force){
+			FlxG.state.persistentUpdate = false;
+			FlxG.sound.pause();
+			PlayState.instance.generatedMusic = PlayState.instance.handleTimes = PlayState.instance.acceptInput = false;
+			super();
+			finishNew("FORCEDMOMENT.MP4efdhseuifghbehu");
+			return;
 		}
 		FlxG.camera.alpha = PlayState.instance.camGame.alpha = PlayState.instance.camHUD.alpha = 1;
 		PlayState.instance.followChar(0);
@@ -155,12 +168,15 @@ class FinishSubState extends MusicBeatSubstate
 	var cam:FlxCamera;
 	var shownResults:Bool = false;
 	public var contText:FlxText;
+	var KeyCount:String = "";
 	public function saveScore(forced:Bool = false):Bool{
 		if(win && !PlayState.instance.hasDied && !ChartingState.charting && PlayState.instance.canSaveScore)
-			return (Highscore.setScore('${PlayState.nameSpace}-${PlayState.actualSongName}${(if(PlayState.invertedChart) "-inverted" else "")}${(if(FlxG.save.data.scoresystem == 0) "" else "-" + FlxG.save.data.scoresystem)}',PlayState.songScore,[PlayState.songScore,'${HelperFunctions.truncateFloat(PlayState.accuracy,2)}%',Ratings.GenerateLetterRank(PlayState.accuracy),(PlayState.songspeed != 1 ? "(" + PlayState.songspeed + "x)" : "")],forced));
+			return (Highscore.setScore('${PlayState.nameSpace}-${PlayState.actualSongName}${(if(PlayState.invertedChart || QuickOptionsSubState.getSetting("Inverted chart") || QuickOptionsSubState.getSetting("Mirror Mode") == 2) "-inverted" else "")}${(if(FlxG.save.data.scoresystem == 0) "" else "-" + FlxG.save.data.scoresystem)}',PlayState.songScore,[PlayState.songScore,'${HelperFunctions.truncateFloat(PlayState.accuracy,2)}%',Ratings.GenerateLetterRank(PlayState.accuracy),(PlayState.songspeed != 1 ? "(" + PlayState.songspeed + "x)" : "")],forced));
 		return false;
 	}
 	public function finishNew(?name:String){
+			Conductor.changeBPM(70);
+			if(isError) win = false;
 			FlxG.camera.alpha = PlayState.instance.camGame.alpha = PlayState.instance.camHUD.alpha = 1;
 			cam = new FlxCamera();
 			FlxG.cameras.add(cam);
@@ -176,8 +192,7 @@ class FinishSubState extends MusicBeatSubstate
 			music.play(false);
 			if(win){
 				music.looped = false;
-				music.onComplete = function(){music = new FlxSound().loadEmbedded(Paths.music('breakfast'), true, true);music.play(false);} 
-
+				music.onComplete = function(){music = new FlxSound().loadEmbedded(Paths.music('breakfast'), true, true);music.play(false);}
 			}
 
 			shownResults = true;
@@ -208,7 +223,7 @@ class FinishSubState extends MusicBeatSubstate
 				FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
 				FlxTween.tween(finishedText, {y:20},0.5,{ease: FlxEase.expoInOut});
 				FlxTween.tween(comboText, {y:145},0.5,{ease: FlxEase.expoInOut});
-				FlxTween.tween(contText, {y:FlxG.height - 90},0.5,{ease: FlxEase.expoInOut});
+				FlxTween.tween(contText, {y:FlxG.height - contText.height},0.5,{ease: FlxEase.expoInOut});
 				add(bg);
 				add(finishedText);
 				add(comboText);
@@ -220,18 +235,24 @@ class FinishSubState extends MusicBeatSubstate
 				finishedText.color = FlxColor.WHITE;
 				finishedText.scrollFactor.set();
 				var comboText:FlxText = new FlxText(20 + FlxG.save.data.guiGap,-75,0,
-				'Song/Chart:'
-				+ '\n\nMarvelous - ${PlayState.marvelous}'
-				+ '\nSicks - ${PlayState.sicks}'
-				+ '\nGoods - ${PlayState.goods}'
-				+ '\nBads - ${PlayState.bads}'
-				+ '\nShits - ${PlayState.shits}'
-				+ '\nGhost Taps - ${PlayState.ghostTaps}'
-				+ '\n\nLast combo: ${PlayState.combo} (Max: ${PlayState.maxCombo})'
+				(if(PlayState.instance.botPlay) "Botplay " else "") + (!PlayState.isStoryMode ? 'Song performance' : "Week performance")
+				+ '\n\nMarvelous - ${CoolUtil.FormatNumber(PlayState.marvelous)}'
+				+ '\nSicks - ${CoolUtil.FormatNumber(PlayState.sicks)}'
+				+ '\nGoods - ${CoolUtil.FormatNumber(PlayState.goods)}'
+				+ '\nBads - ${CoolUtil.FormatNumber(PlayState.bads)}'
+				+ '\nShits - ${CoolUtil.FormatNumber(PlayState.shits)}'
+				+ '\nGhost Taps - ${CoolUtil.FormatNumber(PlayState.ghostTaps)}'
+				+ '\nMA: ${PlayState.MA}'
+				+ (PlayState.goods > 0 ||
+					PlayState.bads > 0 ||
+					PlayState.shits > 0 ||
+					PlayState.misses > 0
+					? '\nSA: ${PlayState.SA}' : '')
+				+ '\n\nLast combo: ${CoolUtil.FormatNumber(PlayState.combo)}x (Max: ${CoolUtil.FormatNumber(PlayState.maxCombo)})'
 				+ '\nMisses: ${PlayState.misses}'
 				+ (PlayState.badNote > 0 ? '\nBad Note: ${PlayState.badNote}' : '')
-				+ '\n\n${scoretype[FlxG.save.data.scoresystem + 1]}: ${PlayState.songScore}'
-				+ (FlxG.save.data.altscoresystem > 0 ? '\n${scoretype[FlxG.save.data.altscoresystem]}: ${Math.round(PlayState.altsongScore)}' : '')
+				+ '\n\n${scoretype[FlxG.save.data.scoresystem + 1]}: ${CoolUtil.FormatNumber(PlayState.songScore)}'
+				+ (FlxG.save.data.altscoresystem > 0 && Math.round(PlayState.songScoreInFloat) != Math.round(PlayState.altsongScore) ? '\n${scoretype[FlxG.save.data.altscoresystem]}: ${CoolUtil.FormatNumber(Math.round(PlayState.altsongScore))}' : '')
 				+ '\nAccuracy: ${HelperFunctions.truncateFloat(PlayState.accuracy,2)}%'
 				+ '\n\n${Ratings.GenerateLetterRank(PlayState.accuracy)}'
 				+ '\n');
@@ -260,6 +281,21 @@ class FinishSubState extends MusicBeatSubstate
 				});
 				if (FlxG.save.data.scoresystem == 1 || FlxG.save.data.scoresystem == 2)
 					noteratingscore = [350,300,200,100,50];
+				if (FlxG.save.data.scoresystem == 5 || FlxG.save.data.scoresystem == 6)
+					noteratingscore = [400,350,200,50,-150];
+				for(combo in 1...PlayState.bfnoteamount + 1){
+					switch(FlxG.save.data.scoresystem)
+					{
+						case 0: MaxScore += noteratingscore[0] * PlayState.songspeed; //FNF
+						case 1: MaxScore += noteratingscore[0] + (noteratingscore[0] * ((combo * PlayState.songspeed) / 25)); //Osu!
+						case 2: MaxScore += (1000000 / PlayState.bfnoteamount) * (noteratingscore[0] / 350); //Osu!mania
+						case 3: MaxScore += noteratingscore[0] * PlayState.ScoreMultiplier * PlayState.songspeed; //Bal
+						case 4: MaxScore += noteratingscore[0] * PlayState.ScoreDivider * PlayState.songspeed; //Bal invert
+						case 5: MaxScore += Math.floor(noteratingscore[0] * Math.min(5,Math.ceil(combo / 10))); //Voiid
+						case 6: MaxScore += Math.floor(noteratingscore[0] * Math.ceil(combo / 10) * PlayState.songspeed); //Voiid Uncap
+						case 7: MaxScore = 0; break; //Stupid
+					}
+				}
 				for(i in 0...noteratingscore.length){
 					switch(FlxG.save.data.scoresystem)
 					{
@@ -268,26 +304,38 @@ class FinishSubState extends MusicBeatSubstate
 						case 2: noteratingscore[i] = HelperFunctions.truncateFloat((1000000 / PlayState.bfnoteamount) * (noteratingscore[i] / 350),2); //Osu!mania
 						case 3: noteratingscore[i] = HelperFunctions.truncateFloat(noteratingscore[i] * PlayState.ScoreMultiplier * PlayState.songspeed,2); //Bal
 						case 4: noteratingscore[i] = HelperFunctions.truncateFloat(noteratingscore[i] * PlayState.ScoreDivider * PlayState.songspeed,2); //Bal invert
-						case 5: noteratingscore[i] = HelperFunctions.truncateFloat(noteratingscore[i] * PlayState.combo * PlayState.songspeed,2); //Stupid
+						case 5: noteratingscore[i] = HelperFunctions.truncateFloat(Math.floor(noteratingscore[i] * Math.min(5,Math.ceil(PlayState.combo / 10))),2); //Voiid
+						case 6: noteratingscore[i] = HelperFunctions.truncateFloat(Math.floor(noteratingscore[i] * Math.ceil(PlayState.combo / 10) * PlayState.songspeed),2); //Voiid Uncap
+						case 7: noteratingscore[i] = HelperFunctions.truncateFloat(noteratingscore[i] * PlayState.combo * PlayState.songspeed,2); //Stupid
 					}
 				}
 
 				settingsText = new FlxText(comboText.width * 1.10 + FlxG.save.data.guiGap,-30,0,'');
+				if(Conductor.ManiaChangeMap.length > 0)
+					{
+						for(ManiaMap in Conductor.ManiaChangeMap)
+							{
+							if(ManiaMap.Section != -100 && KeyCount == "") KeyCount += PlayState.keyAmmo[PlayState.SONG.mania] + 'K ';
+							if(KeyCount != "") KeyCount += ">";
+							KeyCount += " " + PlayState.keyAmmo[ManiaMap.Mania] + "K ";
+						}
+					}
+				else
+					KeyCount = (PlayState.instance.BothSide ? '4k + 4k' : '${PlayState.keyAmmo[PlayState.playermania]}K') + (QuickOptionsSubState.getSetting("Force Mania") > -1 ? '*' : '');
 				settingsText.text =
 					(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
 					+ (FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : "")
 					+'\n\nSettings:'
-					+'\n\n Downscroll: ${FlxG.save.data.downscroll}'
-					+'\n Ghost Tapping: ${FlxG.save.data.ghost}'
-					+'\n Practice: ${FlxG.save.data.practiceMode}'
-					+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count:${PlayState.instance.interpCount}' : "")
+					+'\n\n Ghost Tapping: ${FlxG.save.data.ghost}'
+					+(FlxG.save.data.practiceMode ? '\n Practice: true' : '')
+					+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count: ${PlayState.instance.interpCount}' : "")
 					+'\n Safe Frames: ${FlxG.save.data.frames}'
-					+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver},T${MainMenuState.modver}'
+					+'\n Input Engine: ${PlayState.inputEngineName}, T${MainMenuState.modver}'
 					+'\n Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms'
-					+(FlxG.save.data.scoresystem == 3 || FlxG.save.data.altscoresystem == 4 ? '\n Bal ScoreMultiplier : ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3)}' : '')
-					+(FlxG.save.data.scoresystem == 4 || FlxG.save.data.altscoresystem == 5 ? '\n Bal ScoreDivider : ${HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3)}' : '')
-					+'\n Key count: ' + (PlayState.instance.BothSide ? '4k + 4k' : '${PlayState.keyAmmo[PlayState.mania]}K') + (QuickOptionsSubState.getSetting("Force Mania") > -1 ? '*' : '')
-					+ (PlayState.instance.ADOFAIMode ? '\n ADOFAI Mode : true' : '')
+					+(FlxG.save.data.scoresystem == 3 || FlxG.save.data.altscoresystem == 4 ? '\n Bal ScoreMultiplier: ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3)}' : '')
+					+(FlxG.save.data.scoresystem == 4 || FlxG.save.data.altscoresystem == 5 ? '\n Bal ScoreDivider: ${HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3)}' : '')
+					+'\n Key count: ' + KeyCount
+					+ (PlayState.instance.ADOFAIMode ? '\n ADOFAI Mode: true' : '')
 					+ (PlayState.instance.randomnote != 0 ? '\n Random Mode: ${randommode[PlayState.instance.randomnote]}' : '')
 					+'\n'
 					;
@@ -296,17 +344,12 @@ class FinishSubState extends MusicBeatSubstate
 				settingsText.color = FlxColor.WHITE;
 				settingsText.scrollFactor.set();
 
-				contText = new FlxText(0,FlxG.height + 100,FlxG.width,'Press ENTER to continue Press R to restart\nor Tab for extra info.');
-				contText.size = 28;
+				contText = new FlxText(0,FlxG.height + 100,FlxG.width,'ENTER: to continue\nR: to restart\nTab: for extra info\nS: to Post Score to discord\nCtrl + S: to overwrite your PB');
+				contText.size = 20;
 				contText.alignment = "right";
 				contText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,4,1);
 				contText.color = FlxColor.WHITE;
 				contText.scrollFactor.set();
-				// var chartInfoText:FlxText = new FlxText(20,FlxG.height + 50,0,'Offset: ${FlxG.save.data.offset + PlayState.songOffset}ms | Played on ${songName}');
-				// chartInfoText.size = 16;
-				// chartInfoText.setBorderStyle(FlxTextBorderStyle.OUTLINE,FlxColor.BLACK,2,1);
-				// chartInfoText.color = FlxColor.WHITE;
-				// chartInfoText.scrollFactor.set();
 				
 
 				if(saveScore()){
@@ -320,17 +363,15 @@ class FinishSubState extends MusicBeatSubstate
 				add(comboText);
 				add(contText);
 				add(settingsText);
-				// add(chartInfoText);
 				healthBar.cameras = healthBarBG.cameras = [cam];
 				for(icon in iconP2Array){icon.cameras = [cam];}
 				for(icon in iconP1Array){icon.cameras = [cam];}
 
 				FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
 				FlxTween.tween(finishedText, {y:20},0.5,{ease: FlxEase.expoInOut});
-				FlxTween.tween(comboText, {y:105},0.5,{ease: FlxEase.expoInOut});
-				FlxTween.tween(contText, {y:FlxG.height - 90},0.5,{ease: FlxEase.expoInOut});
-				// FlxTween.tween(chartInfoText, {y:FlxG.height - 35},0.5,{ease: FlxEase.expoInOut});
-				FlxTween.tween(settingsText, {y:105},0.5,{ease: FlxEase.expoInOut});
+				FlxTween.tween(comboText, {y:75},0.5,{ease: FlxEase.expoInOut});
+				FlxTween.tween(contText, {y:FlxG.height - contText.height},0.5,{ease: FlxEase.expoInOut});
+				FlxTween.tween(settingsText, {y:75},0.5,{ease: FlxEase.expoInOut});
 				if(PlayState.logGameplay){
 
 					try{
@@ -369,7 +410,7 @@ class FinishSubState extends MusicBeatSubstate
 \\';
 							if(!v.isSustain && v.rating != "Missed without note")noteCount++;
 						}
-						var eventsjson:String = haxe.Json.stringify(eventLog);
+						var eventsjson:String = Json.encode(eventLog,"fancy",true);
 						events += '\n---\nLog generated at ${Date.now()}, Assumed Note Count: ${noteCount}. USE THE JSON FOR AUTOMATION';
 						if(!FileSystem.exists("songLogs/"))
 							FileSystem.createDirectory("songLogs/");
@@ -385,17 +426,16 @@ class FinishSubState extends MusicBeatSubstate
 				}
 			}
 
-			cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]]; 
+			cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 	var shouldveLeft = false;
 	function retMenu(){
 		if (PlayState.isStoryMode){FlxG.switchState(new StoryMenuState());return;}
 		PlayState.actualSongName = ""; // Reset to prevent issues
 		PlayState.instance.persistentUpdate = true;
-		if (shouldveLeft){
+		if (shouldveLeft)
 			Main.game.forceStateSwitch(new MainMenuState());
-
-		}else{
+		else{
 			switch (PlayState.stateType)
 			{
 				case 2:FlxG.switchState(new onlinemod.OfflineMenuState());
@@ -407,15 +447,12 @@ class FinishSubState extends MusicBeatSubstate
 		shouldveLeft = true;
 		return;
 	}
-
+	var canSendEmbed = true;
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 		if (ready){
-			var accepted = controls.ACCEPT;
-			var oldOffset:Float = 0;
-
-			if (accepted)
+			if (controls.ACCEPT)
 				retMenu();
 			if (FlxG.keys.justPressed.R)
 				{
@@ -426,6 +463,74 @@ class FinishSubState extends MusicBeatSubstate
 				if(saveScore(true))
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 			}
+			if (!FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S && !isError){
+				if(!canSendEmbed){
+					showTempmessage('You already post the score.',FlxColor.RED);
+					return;
+				}
+				canSendEmbed = false;
+				var _Rank:String = Ratings.GenerateLetterRank(PlayState.accuracy);
+				var Rank:String = _Rank.substring(_Rank.indexOf(')') + 1, _Rank.length);
+				var RankImage:String = (Rank == "Bro Hacking" || Rank == "actual bot moment" || Rank == "N/A" ? "skull" : Rank);
+
+				var Player:String = "";
+				if(FlxG.save.data.nickname == null){
+					if(FlxG.save.data.randomNumber == null) FlxG.save.data.randomNumber = Std.int(Math.random() * 100000);
+					Player = 'anonymous#' + FlxG.save.data.randomNumber;
+				}else Player = FlxG.save.data.nickname;
+
+				var _Performance:String = 'Marvelous - ${CoolUtil.FormatNumber(PlayState.marvelous)}[newline]Sicks - ${CoolUtil.FormatNumber(PlayState.sicks)}[newline]Goods - ${CoolUtil.FormatNumber(PlayState.goods)}[newline]Bads - ${CoolUtil.FormatNumber(PlayState.bads)}[newline]Shits - ${CoolUtil.FormatNumber(PlayState.shits)}[newline]Ghost Taps - ${CoolUtil.FormatNumber(PlayState.ghostTaps)}[newline]MA: ${PlayState.MA}[newline]SA: ${PlayState.SA}[newline][newline]Last combo: ${CoolUtil.FormatNumber(PlayState.combo)}x (Max: ${CoolUtil.FormatNumber(PlayState.maxCombo)})[newline]Misses: ${PlayState.misses}';
+				var _Settings:String = 'Ghost Tapping: ${FlxG.save.data.ghost}[newline]HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}[newline] Script Count: ${(QuickOptionsSubState.getSetting("Song hscripts") ? '${PlayState.instance.interpCount}' : 'off')}[newline]Safe Frames: ${FlxG.save.data.frames}[newline]Input Engine: ${PlayState.inputEngineName}, T${MainMenuState.modver}[newline]Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms[newline]Key count: ${KeyCount}${(FlxG.save.data.scoresystem == 3 ? "[newline] Bal ScoreMultiplier: " + HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3) : '')}${(FlxG.save.data.scoresystem == 4 ? "[newline] Bal ScoreDivider: " + HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3) : '')}${(PlayState.instance.ADOFAIMode ? "[newline]ADOFAI Mode: true" : '')}${(PlayState.instance.randomnote != 0 ? "[newline]Random Mode: " + randommode[PlayState.instance.randomnote] : '')}';
+				var Performance:String = _Performance.replace('[newline]','\\n'); // fuck you haxe
+				var Settings:String = _Settings.replace('[newline]','\\n'); // fuck you haxe
+
+				var http = new haxe.Http("https://canary.discord.com/api/webhooks/1194182726790676511/tiuC_k_k44wJVxcXA9Jk2l96QEEjj2QMcfYnZ9Fnetw7udNfygfgVD0yk3GG6PXdEmrG");
+				var data = '{
+					"content": null,
+					"embeds": [
+					  {
+						"title": "${(if(week) "Week" else "Song") + " " + (if(win) "Won!" else "failed...")}",
+						"description": "${(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')}${FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : ""}${PlayState.invertedChart || QuickOptionsSubState.getSetting("Inverted chart") ? " Left Side" : ""}\\n${scoretype[FlxG.save.data.scoresystem + 1]}: ${CoolUtil.FormatNumber(PlayState.songScore)} ${HelperFunctions.truncateFloat(PlayState.accuracy,2)}% ${Ratings.GenerateLetterRank(PlayState.accuracy)}",
+						"color": ${(win ? 10212085 : 15835313)},
+						"fields": [
+						  {
+							"name": "Song Performance",
+							"value": "$Performance",
+							"inline": true
+						  },
+						  {
+							"name": "Settings",
+							"value": "$Settings",
+							"inline": true
+						  }
+						],
+						"author": {
+						  "name": "Played By $Player"
+						},
+						"footer": {
+						  "text": "Evil Text: ${Md5.encode(PlayState.SONG.notes.toString())}"
+						},
+						"thumbnail": {
+						  "url": "https://github.com/cartoon032/Super-Engine-T-Mod/blob/master/art/Extra/Rank/${RankImage}.png?raw=true"
+						}
+					  }
+					]
+				  }';
+				http.setHeader("Content-Type", "application/json");
+				http.setPostData(data);
+				http.onError = function (error:String) {
+					canSendEmbed = true;
+					showTempmessage('Something went wrong. error: $error',FlxColor.RED);
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+					trace(data);
+					trace('error: $error');
+				}
+				http.onData = function (data:String) {
+					showTempmessage('Score have been post by the name ${Player}!');
+					FlxG.sound.play(Paths.sound('confirmMenu'));
+				}
+				http.request(true);
+			}
 			if (FlxG.keys.justPressed.TAB)
 				{
 					extrainfo = !extrainfo;
@@ -434,36 +539,36 @@ class FinishSubState extends MusicBeatSubstate
 							(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
 							+ (FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : "")
 							+'\n\nSettings:'
-							+'\n\n Downscroll: ${FlxG.save.data.downscroll}'
-							+'\n Ghost Tapping: ${FlxG.save.data.ghost}'
-							+'\n Practice: ${FlxG.save.data.practiceMode}'
-							+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count:${PlayState.instance.interpCount}' : "")
-							+'\n Safe Frames: ${FlxG.save.data.frames}'
-							+'\n Input Engine: ${PlayState.inputEngineName}, V${MainMenuState.ver},T${MainMenuState.modver}'
+							+'\n\n Ghost Tapping: ${FlxG.save.data.ghost}'
+							+(FlxG.save.data.practiceMode ? '\n Practice: true' : '')
+							+'\n HScripts: ${QuickOptionsSubState.getSetting("Song hscripts")}' + (QuickOptionsSubState.getSetting("Song hscripts") ? '\n  Script Count: ${PlayState.instance.interpCount}' : "")
+							+(FlxG.save.data.frames != 10 ? '\n Safe Frames: ${FlxG.save.data.frames}' : '')
+							+'\n Input Engine: ${PlayState.inputEngineName}, T${MainMenuState.modver}'
 							+'\n Song Offset: ${HelperFunctions.truncateFloat(FlxG.save.data.offset + PlayState.songOffset,2)}ms'
-							+ (FlxG.save.data.scoresystem == 3 || FlxG.save.data.altscoresystem == 4 ? '\n Bal ScoreMultiplier : ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3)}' : '')
-							+ (FlxG.save.data.scoresystem == 4 || FlxG.save.data.altscoresystem == 5 ? '\n Bal ScoreDivider : ${HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3)}' : '')
-							+'\n Key count: ' + (PlayState.instance.BothSide ? '4k + 4k' : '${PlayState.keyAmmo[PlayState.mania]}K') + (QuickOptionsSubState.getSetting("Force Mania") > -1 ? '*' : '')
-							+ (PlayState.instance.ADOFAIMode ? '\n ADOFAI Mode : true' : '')
+							+(FlxG.save.data.scoresystem == 3 || FlxG.save.data.altscoresystem == 4 ? '\n Bal ScoreMultiplier: ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3)}' : '')
+							+(FlxG.save.data.scoresystem == 4 || FlxG.save.data.altscoresystem == 5 ? '\n Bal ScoreDivider: ${HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3)}' : '')
+							+'\n Key count: ' + KeyCount
+							+ (PlayState.instance.ADOFAIMode ? '\n ADOFAI Mode: true' : '')
 							+ (PlayState.instance.randomnote != 0 ? '\n Random Mode: ${randommode[PlayState.instance.randomnote]}' : '')
 							+'\n'
 							;
 					else
-						settingsText.text = 
+						settingsText.text =
 							(if (PlayState.stateType == 4) PlayState.actualSongName else '${PlayState.SONG.song} ${PlayState.songDiff}')
 							+ (FlxMath.roundDecimal(PlayState.songspeed, 2) != 1.00 ? " (" + FlxMath.roundDecimal(PlayState.songspeed, 2) + "x)" : "")
-							+ '\n\nScore Mode : ${scoretype[FlxG.save.data.scoresystem + 1]}'
-							+ (FlxG.save.data.scoresystem == 1 || FlxG.save.data.scoresystem == 2 ? '\n Marvelous : ${noteratingscore[0]}' + '\n Sick : ${noteratingscore[1]}' : '\n Marvelous/Sick : ${noteratingscore[0]}')
-							+ '\n Good : ${noteratingscore[2]}'
-							+ '\n Bad : ' + (FlxG.save.data.scoresystem == 1 || FlxG.save.data.scoresystem == 2 ? '${noteratingscore[3]}' : '0')
-							+ '\n Shit : ' + (FlxG.save.data.scoresystem == 1 || FlxG.save.data.scoresystem == 2 ? '${noteratingscore[4]}' : '${noteratingscore[3]}')
-							+ (FlxG.save.data.scoresystem == 3 ? '\nScoreMultiplier : ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3)}' : '')
-							+ (FlxG.save.data.scoresystem == 4 ? '\nScoreDivider : ${HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3)}' : '')
-							+ '\nMax Score : ' + (FlxG.save.data.scoresystem == 1 ? 'OSU! Score is not supported' : FlxG.save.data.scoresystem == 2 ? '1,000,000' : FlxG.save.data.scoresystem == 5 ? '2,147,483,647' : FlxG.save.data.scoresystem == 3 ? Std.string(350 * Math.max(PlayState.bfnoteamount, PlayState.dadnoteamount)) : FlxG.save.data.scoresystem == 4 ? Std.string(350 * Math.min(PlayState.bfnoteamount, PlayState.dadnoteamount)) : PlayState.instance.BothSide ? Std.string(noteratingscore[0] * (PlayState.bfnoteamount + PlayState.dadnoteamount)) : Std.string(noteratingscore[0] * PlayState.bfnoteamount))
-							+ '\nYour Note Total : ${PlayState.bfnoteamount}' + (PlayState.bfnoteamount != PlayState.bfnoteamountwithhurt ? ' + ${PlayState.bfnoteamountwithhurt - PlayState.bfnoteamount} Bad Note' : '')
-							+ '\nOpponent Note Total : ${PlayState.dadnoteamount}' + (PlayState.dadnoteamount != PlayState.dadnoteamountwithhurt ? ' + ${PlayState.dadnoteamountwithhurt - PlayState.dadnoteamount} Bad Note' : '')
-							+ '\nChart difficult : ' + (chartdifficult > 0.1 ? Std.string(chartdifficult) : PlayState.bfnoteamount < 10 ? '0/10 Where gameplay' : 'Error happen :crying:')
-							+ '\nOpponent Chart difficult : ' + (Opponentchartdifficult > 0.1 ? Std.string(Opponentchartdifficult) : PlayState.dadnoteamount < 10 ? '0/10 Where gameplay' : 'Error happen :crying:')
+							+ '\n\nScore Mode: ${scoretype[FlxG.save.data.scoresystem + 1]} ' + (FlxG.save.data.scoresystem == 1 || FlxG.save.data.scoresystem == 5  || FlxG.save.data.scoresystem == 6 || FlxG.save.data.scoresystem == 7 ? "Calculate using last combo" : "")
+							+ (FlxG.save.data.scoresystem == 1 || FlxG.save.data.scoresystem == 2 || FlxG.save.data.scoresystem == 5 || FlxG.save.data.scoresystem == 6 ? '\n Marvelous: ${CoolUtil.FormatNumber(noteratingscore[0])}' + '\n Sick: ${CoolUtil.FormatNumber(noteratingscore[1])}' : '\n Marvelous/Sick: ${CoolUtil.FormatNumber(noteratingscore[0])}')
+							+ '\n Good: ${CoolUtil.FormatNumber(noteratingscore[2])}'
+							+ '\n Bad: ${CoolUtil.FormatNumber(noteratingscore[3])}'
+							+ '\n Shit: ${CoolUtil.FormatNumber(noteratingscore[4])}'
+							+ (FlxG.save.data.scoresystem == 3 ? '\nScoreMultiplier: ${HelperFunctions.truncateFloat(PlayState.ScoreMultiplier, 3)}' : '')
+							+ (FlxG.save.data.scoresystem == 4 ? '\nScoreDivider: ${HelperFunctions.truncateFloat(PlayState.ScoreDivider, 3)}' : '')
+							+ '\nMax Score: ' + (FlxG.save.data.scoresystem == 7 ? 'A very high number source: trust me bro' : CoolUtil.FormatNumber(Math.round(MaxScore)))
+							+ '\nYour Note Total: ${CoolUtil.FormatNumber(PlayState.bfnoteamount)}' + (PlayState.bfnoteamount != PlayState.bfnoteamountwithhurt ? ' + ${CoolUtil.FormatNumber(PlayState.bfnoteamountwithhurt - PlayState.bfnoteamount)} Bad Note' : '')
+							+ '\nOpponent Note Total: ${CoolUtil.FormatNumber(PlayState.dadnoteamount)}' + (PlayState.dadnoteamount != PlayState.dadnoteamountwithhurt ? ' + ${CoolUtil.FormatNumber(PlayState.dadnoteamountwithhurt - PlayState.dadnoteamount)} Bad Note' : '')
+							+ '\nNote Outside of chart: ${CoolUtil.FormatNumber(NoteStuffExtra.shitNotes)}'
+							+ '\nChart difficult: ' + (chartdifficult > 0.1 ? Std.string(chartdifficult) : PlayState.bfnoteamount < 10 ? '0/10 Where gameplay' : 'Error happen :crying:')
+							+ '\nOpponent Chart difficult: ' + (Opponentchartdifficult > 0.1 ? Std.string(Opponentchartdifficult) : PlayState.dadnoteamount < 10 ? '0/10 Where gameplay' : 'Error happen :crying:')
 							+'\n'
 							;
 					}
@@ -479,6 +584,44 @@ class FinishSubState extends MusicBeatSubstate
 					contText.alpha = readyTimer - 1;
 				}
 
+				if(tempMessages[0] != null && (tempMessages[0][0] -= elapsed) < 0){
+					try{
+						var msg = tempMessages.shift();
+						remove(msg[1]);
+						remove(msg[2]);
+						msg[1].destroy();
+						msg[2].destroy();
+						if(tempMessages[0] != null){
+							for (_ => msg in tempMessages){
+								msg[1].y -= Std.int(msg[2].height);
+								msg[2].y -= Std.int(msg[2].height);
+							}
+						}
+					}catch(e){}
+				}
+	}
+	var tempMessages:Array<Array<Dynamic>> = [];
+	function showTempmessage(str:String,?color:FlxColor = FlxColor.LIME){ // stole from the MusicBeatState lol
+		var moveDown = false;
+		var lastBacking = null;
+		if (tempMessages.length > 0){
+			moveDown = true;
+			lastBacking = tempMessages[tempMessages.length - 1][2];
+		}
+
+		var tempMessage = new FlxText(0,60,FlxG.width,str,24);
+		tempMessage.setFormat(CoolUtil.font, 24, color, CENTER, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
+		tempMessage.scrollFactor.set();
+		var tempMessBacking = new FlxSprite(tempMessage.x - 2,tempMessage.y - 2).makeGraphic(Std.int(tempMessage.width + 4),Std.int(tempMessage.height + 4),0xaa000000);
+		tempMessBacking.scrollFactor.set();
+		add(tempMessBacking);
+		add(tempMessage);
+
+		if(moveDown){
+			tempMessBacking.y = lastBacking.y + lastBacking.height;
+			tempMessage.y = tempMessBacking.y + 2;
+		};
+		tempMessages.push([5.0,tempMessage,tempMessBacking]);
 	}
 	function restart()
 	{

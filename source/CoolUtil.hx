@@ -12,7 +12,7 @@ using StringTools;
 class CoolUtil
 {
 	public static var fontName:String = "vcr.ttf";
-	public static var font:String = if(FileSystem.exists('mods/font.ttf')) 'mods/font.ttf' else Paths.font(fontName);
+	public static var font:String = if(FileSystem.exists('mods/font.otf')) 'mods/font.otf' else if(FileSystem.exists('mods/font.ttf')) 'mods/font.ttf' else Paths.font(fontName);
 	public static var difficultyArray:Array<String> = ['EASY', "NORMAL", "HARD"];
 	public static var volKeys:Array<Array<Int>> = [];
 	public static var volKeysEnabled = true;
@@ -40,15 +40,10 @@ class CoolUtil
 		while (obj.members.length > 0){
 			var e = obj.members.pop();
 			if(e != null && e.destroy != null) e.destroy();
-
 		}
 		return obj;
 	}
-	public static function difficultyString():String
-	{
-
-		return if (PlayState.stateType == 4) PlayState.actualSongName else difficultyArray[PlayState.storyDifficulty];
-	}
+	public static function difficultyString():String{return if (PlayState.stateType == 4) PlayState.actualSongName else difficultyArray[PlayState.storyDifficulty];}
 	public static function toggleVolKeys(?toggle:Bool = true){
 		if (toggle)
 		{
@@ -63,6 +58,37 @@ class CoolUtil
 			FlxG.sound.volumeDownKeys = null;
 		}
 	}
+
+	public static function FormatNumber(Num:Float,?Separator:String = ",") {
+		var numString = Std.string(Num);
+		var index:Int = numString.indexOf('.');
+		var decimal:String = "";
+		if(index > 0) {
+			var splitByDecimal:Array<String> = numString.split(".");
+			numString = splitByDecimal[0];
+			decimal = splitByDecimal[1];
+		} else if(index == 0) {
+			return "0"+numString;
+		}
+		var result:String = '';
+		var isNegative:Bool = false;
+		if (numString.charAt(0) == "-") {
+			isNegative = true;
+			numString = numString.substr(1); // remove the minus sign
+		}
+		while (numString.length > 3) {
+			var chunk:String = numString.substr(-3);
+			numString = numString.substr(0, numString.length - 3);
+			result = Separator + chunk + result;
+		}
+		result = numString + result;
+		if (isNegative) {
+			result = "-" + result; // add the minus sign back
+		}
+		if(decimal != "") result = result + "." + decimal;
+		return result;
+	}
+
 	public static function coolTextFile(path:String):Array<String>
 	{
 		var daList:Array<String> = Assets.getText(path).trim().split('\n');
@@ -86,21 +112,6 @@ class CoolUtil
 
 		return daList;
 	}
-	// static var songNames:Map<String,String> = [
-	// 	'dad-battle'=> "Dad Battle",
-	// 	'dadbattle'=> "Dad Battle",
-	// 	'phillynice' =>"philly",
-	// 	'philly-nice' =>"philly",
-	// 	'philly nice' =>"philly",
-	// 	'winter-horrorland' =>"winterhorrorland",
-	// 	'winterhorrorland' =>"Winter Horrorland",
-	// 	'satin-panties' => "satinpanties"
-	// ];
-	// public static function getNativeSongname(?song:String = "",?convLower:Bool = false):String{
-
-	// 	if (songNames[song.toLowerCase()] != null) return if (convLower) songNames[song.toLowerCase()].toLowerCase() else songNames[song.toLowerCase()];
-	// 	return if (convLower) song.toLowerCase() else song;
-	// }
 	public static function orderList(list:Array<String>):Array<String>{
 		haxe.ds.ArraySort.sort(list, function(a, b) {
 		   if(a < b) return -1;
@@ -130,12 +141,43 @@ class CoolUtil
 		}
 		return dumbArray;
 	}
+
+	public static function pasteFromClipboard():String {
+		#if windows
+		var command = "powershell";
+		var args = ["Get-Clipboard"];
+		#elseif linux
+		var command = "xclip";
+		var args = ["-selection", "clipboard", "-o"];
+		#elseif mac
+		var command = "pbpaste";
+		var args = null;
+		#else
+		throw "Clipboard not supported on this platform";
+		#end
+		var process = new sys.io.Process(command, args);
+		var text = process.stdout.readLine();
+		process.close();
+		return text;
+	}
+
 	public static function multiInt(?int:Int = 0){
 		if (int == 1) return ''; else return 's';
 	}
+
 	public static function cleanJSON(input:String):String{ // Haxe doesn't filter out comments?
 		input = input.trim();
 		input = (~/\/\*[\s\S]*?\*\/|\/\/.*/g).replace(input,'');
 		return input;
+	}
+
+	public static function formatChartName(str:String):String{
+		str = (~/[-_ ]/g).replace(str,' ');
+		var e = str.split(' ');
+		str = "";
+		for (item in e){
+			str+=' ' + item.substring(0,1).toUpperCase() + item.substring(1);
+		}
+		return str.trim();
 	}
 }

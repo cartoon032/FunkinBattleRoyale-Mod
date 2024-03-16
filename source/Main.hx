@@ -119,10 +119,8 @@ class Main extends Sprite
 		var message:String = "";
 		var callStack:Array<StackItem> = CallStack.exceptionStack(true);
 
-		for (stackItem in callStack)
-		{
-			switch (stackItem)
-			{
+		for (stackItem in callStack){
+			switch (stackItem){
 				case FilePos(s, file, line, column):
 					message += file + " (line " + line + ")\n";
 				default:
@@ -172,26 +170,21 @@ class FlxGameEnhanced extends FlxGame{
 	public var blockUpdate:Bool = false;
 	public var blockDraw:Bool = false;
 	public var blockEnterFrame:Bool = false;
+
 	var requestAdd = false;
 	override function create(_){
 
-		#if !debug
 		try{
-		#end
 			super.create(_);
-		#if !debug
 		}catch(e){
 			FuckState.FUCK(e,"FlxGame.Create");
 		}
-		#end
 	}
 	override function onEnterFrame(_){
-		#if !debug
 		try{
-		#end
 			if(requestAdd){
 				requestAdd = false;
-				Main.funniSprite.addChildAt(this,0);
+				// Main.funniSprite.addChildAt(this,0);
 				blockUpdate = blockEnterFrame = blockDraw = false;
 				FlxG.autoPause = _oldAutoPause;
 				_oldAutoPause = false;
@@ -216,11 +209,9 @@ class FlxGameEnhanced extends FlxGame{
 				super.onEnterFrame(_);
 			}
 
-		#if !debug
 		}catch(e){
 			FuckState.FUCK(e,"FlxGame.onEnterFrame");
 		}
-		#end
 	}
 	public var funniLoad:Bool = false;
 	function _update(){
@@ -256,22 +247,22 @@ class FlxGameEnhanced extends FlxGame{
 		filters = filtersEnabled ? _filters : null;
 	}
 	var _oldAutoPause:Bool = false;
+	var hasUpdated = false;
 
 	override function update(){
 		
-		#if !debug
 		try{
-		#end
-			#if(target.threaded)
+
+			#if(target.threaded && !hl)
 				if(_state != _requestedState && FlxG.save.data.doCoolLoading){
 					blockUpdate = blockEnterFrame = blockDraw = true;
-					Main.funniSprite.removeChild(this);
+					// Main.funniSprite.removeChild(this);
 					_oldAutoPause = FlxG.autoPause;
 					FlxG.autoPause = false;
 					visible = false;
+					hasUpdated = false;
 					sys.thread.Thread.create(() -> { 
 						switchState();
-						
 						requestAdd = true;
 						visible = true;
 					});
@@ -279,58 +270,93 @@ class FlxGameEnhanced extends FlxGame{
 				}
 			#end
 			if(blockUpdate) _update(); else {
+				hasUpdated = true;
 				super.update();
 
-				if (FlxG.keys.justPressed.F11)
-					FlxG.save.data.fullscreen = (FlxG.fullscreen = !FlxG.fullscreen);
+				if (FlxG.keys.justPressed.F11) FlxG.save.data.fullscreen = (FlxG.fullscreen = !FlxG.fullscreen);
 			}
-		#if !debug
 		}catch(e){
 			FuckState.FUCK(e,"FlxGame.Update");
 		}
-		#end
 	}
 	override function draw(){
-		#if !debug
-		try{
-		#end
-			if(blockDraw)
-				return;
-			else{
-				super.draw();
+			if (blockDraw || _state == null || !_state.visible || !_state.exists || !hasUpdated) return;
+			#if FLX_DEBUG
+			if (FlxG.debugger.visible) ticks = getTicks();
+			#end
+			try{
+				FlxG.signals.preDraw.dispatch();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:preDraw"); return;
 			}
-		#if !debug
-		}catch(e){
-			FuckState.FUCK(e,"FlxGame.Draw");
-		}
-		#end
+			if (FlxG.renderTile)
+				flixel.graphics.tile.FlxDrawBaseItem.drawCalls = 0;
+
+
+			#if FLX_POST_PROCESS
+			try{
+			if (postProcesses[0] != null)
+				postProcesses[0].capture();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:postProcess"); return;
+			}
+			#end
+			try{
+
+				FlxG.cameras.lock();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:camerasLock"); return;
+			}
+			try{
+				FlxG.plugins.draw();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:pluginDraw"); return;
+			}
+			try{
+				_state.draw();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:stateDraw"); return;
+			}
+			if (FlxG.renderTile)
+			{
+				try{
+					FlxG.cameras.render();
+				}catch(e){
+					FuckState.FUCK(e,"FlxGame.Draw:cameraRender"); return;
+				}
+			}
+			try{
+				FlxG.cameras.unlock();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:cameraUnlock"); return;
+			}
+			try{
+				FlxG.signals.postDraw.dispatch();
+			}catch(e){
+				FuckState.FUCK(e,"FlxGame.Draw:postDraw"); return;
+			}
+			#if FLX_DEBUG
+			debugger.stats.flixelDraw(getTicks() - ticks);
+			#end
 	}
 	var _lostFocusWhileLoading:flash.events.Event = null;
 	override function onFocus(_){
-		#if !debug
 		try{
-		#end
 			if(blockEnterFrame)
 				_lostFocusWhileLoading = null;
 			else
 				super.onFocus(_);
-		#if !debug
 		}catch(e){
 			FuckState.FUCK(e,"FlxGame.onFocus");
 		}
-		#end
 	}
 	override function onFocusLost(_){
-		#if !debug
 		try{
-		#end
 			if(blockEnterFrame && _oldAutoPause) _lostFocusWhileLoading = _; 
 			else if(!blockEnterFrame && onlinemod.OnlinePlayMenuState.socket == null) 
 				super.onFocusLost(_);
-		#if !debug
 		}catch(e){
 			FuckState.FUCK(e,"FlxGame.onFocusLost");
 		}
-		#end
 	}
 }

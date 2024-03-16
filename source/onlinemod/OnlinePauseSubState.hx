@@ -118,8 +118,8 @@ class OnlinePauseSubState extends MusicBeatSubstate
 					}else{Sender.SendPacket(Packets.SEND_SCORE, [PlayState.songScore], OnlinePlayMenuState.socket);}
 
 					Sender.SendPacket(Packets.GAME_END, [], OnlinePlayMenuState.socket);
-					
-					FlxG.switchState(new OnlineLobbyState(true,false));
+
+					FlxG.switchState(new OnlineLobbyState(true));
 				case "Exit to menu":
 					OnlinePlayMenuState.socket.close();
 					FlxG.switchState(new OnlinePlayMenuState("Disconnected"));

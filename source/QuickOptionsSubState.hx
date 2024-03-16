@@ -36,11 +36,12 @@ class QuickOptionsSubState extends MusicBeatSubstate
 			"Custom Arrows" => {type:0,value:true},
 			"BotPlay" => {type:0,value:false},
 			"Scroll speed" => {type:2,value:0,min:0,max:10},
+			"Mirror Mode" => {type:2,value:0,min:0,max:2,lang:[0 => "OFF",1 => "Mirror Player",2 => "Mirror Opponent"]},
 			"Random Notes" => {type:2,value:0,min:0,max:3,lang:[0 => "OFF",1 => "Full Random",2 => "Full Random With Jack Prevent",3 => "Random note per section"]},
 			"Force Mania" => {type:2,value:-1,min:-1,max:18,lang:[-1 => "OFF",0 => "0 : 4K",1 => "1 : 6K",2 => "2 : 7K",3 => "3 : 9K",4 => "4 : 5K",5 => "5 : 8K",6 => "6 : 1K",7 => "7 : 2K",8 => "8 : 3K",9 => "9 : 10K",10 => "10 : 11K",11 => "11 : 12K",12 => "12 : 13K",13 => "13 : 14K",14 => "14 : 15K",15 => "15 : 16K",16 => "16 : 17K",17 => "17 : 18K",18 => "18 : 21K"]},
 			"Play Both Side" => {type:0,value:false},
 			"ADOFAI Chart" => {type:0,value:false},
-			"CO OP Mode" => {type:0,value:false,lang:[false => "OFF",true => "ON"]}
+			"CO OP Mode" => {type:0,value:false}
 		];
 	public static var osuSettings:Map<String,QOSetting> = [
 			"Scroll speed" => {type:2,value:0,min:0,max:10},
@@ -118,16 +119,10 @@ class QuickOptionsSubState extends MusicBeatSubstate
 		var accepted = controls.ACCEPT;
 		var oldOffset:Float = 0;
 
-		if (upP)
-		{
-			changeSelection(-1);
-   
-		}else if (downP)
-		{
-			changeSelection(1);
-		}
-		
-		if (FlxG.keys.pressed.ESCAPE){saveSettings();close();} 
+		if (upP) changeSelection(-1);
+		if (downP) changeSelection(1);
+
+		if (FlxG.keys.pressed.ESCAPE){saveSettings();close();}
 
 		if (accepted && settings[menuItems[curSelected]].type != 1) changeSetting(curSelected);
 		if (leftP || rightP) changeSetting(curSelected,rightP);
@@ -140,8 +135,8 @@ class QuickOptionsSubState extends MusicBeatSubstate
 			var inc:Float = 1;
 			if(settings[menuItems[sel]].type == 2 && FlxG.keys.pressed.SHIFT) inc=0.1;
 			val += if(dir) inc else -inc;
-			if (val > settings[menuItems[sel]].max) val = settings[menuItems[sel]].min; 
-			if (val < settings[menuItems[sel]].min) val = settings[menuItems[sel]].max - 1; 
+			if (val > settings[menuItems[sel]].max) val = settings[menuItems[sel]].min;
+			if (val < settings[menuItems[sel]].min) val = settings[menuItems[sel]].max - 1;
 			setValue(menuItems[sel],val);
 		}
 

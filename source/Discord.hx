@@ -24,7 +24,7 @@ class DiscordClient
 		while (true)
 		{
 			DiscordRpc.process();
-			sleep(1);
+			sleep(2);
 		}
 
 		DiscordRpc.shutdown();
@@ -71,15 +71,13 @@ class DiscordClient
 		var startTimestamp:Float = if(hasStartTimestamp) Date.now().getTime() else 0;
 
 		if (endTimestamp > 0)
-		{
 			endTimestamp = startTimestamp + endTimestamp;
-		}
 
 		DiscordRpc.presence({
 			details: details,
 			state: state,
 			largeImageKey: largeImageKey,
-			largeImageText: "FNF : SE-T",
+			largeImageText: "FNF : SE-T " + MainMenuState.modver,
 			smallImageKey: smallImageKey,
 			smallImageText: smallImageText,
 			// Obtained times are in milliseconds so they are divided so Discord can use it

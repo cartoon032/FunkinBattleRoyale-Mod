@@ -1,5 +1,6 @@
 import openfl.system.System;
 import flixel.math.FlxMath;
+import flixel.system.FlxSound;
 import Song.SwagSong;
 import sys.FileSystem;
 import sys.io.File;
@@ -9,13 +10,11 @@ class SmallNote // basically Note.hx but small as fuck
 {
 	public var strumTime:Float;
 	public var noteData:Int;
-	public var notetype:String;
 
-	public function new(strum, data, type)
+	public function new(strum, data)
 	{
 		strumTime = strum;
 		noteData = data;
-		notetype = type;
 	}
 }
 
@@ -24,7 +23,9 @@ class NoteStuffExtra
 	public static var scale = 3 * 1.8;
 	public static var bfNotes:Array<SmallNote> = [];
 	public static var dadNotes:Array<SmallNote> = [];
-	public static function CalculateNoteAmount(song:SwagSong)
+	public static var eventNotes:Array<SmallNote> = [];
+	public static var shitNotes:Int = 0;
+	public static function CalculateNoteAmount(song:SwagSong,instLength:Float)
 	{
 		bfNotes = [];
 		dadNotes = [];
@@ -36,23 +37,30 @@ class NoteStuffExtra
 			return 0.0;
 
 		// find all of the notes
-		for (i in song.notes) // sections
+		for (section in song.notes) // sections
 		{
-			for (ii in i.sectionNotes) // notes
+			for (note in section.sectionNotes) // notes
 			{
-				var gottaHitNote:Bool = i.mustHitSection;
-
-				if (ii[1] >= PlayState.keyAmmo[PlayState.mania] && !gottaHitNote && ii[1] != -1 && ii[1] < PlayState.keyAmmo[PlayState.mania] * 2)
-					bfNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
-				if (ii[1] <= PlayState.keyAmmo[PlayState.mania] - 1 && gottaHitNote && ii[1] != -1)
-					bfNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
-
-				if (ii[1] >= PlayState.keyAmmo[PlayState.mania] && gottaHitNote && ii[1] != -1 && ii[1] < PlayState.keyAmmo[PlayState.mania] * 2)
-					dadNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
-				if (ii[1] <= PlayState.keyAmmo[PlayState.mania] - 1 && !gottaHitNote && ii[1] != -1 && ii[1] < PlayState.keyAmmo[PlayState.mania] * 2)
-					dadNotes.push(new SmallNote(ii[0] / onlinemod.OfflineMenuState.rate, Math.floor(Math.abs(ii[1])),ii[3]));
+				var gottaHitNote:Bool = section.mustHitSection;
+				if(note[1] == -1)
+					eventNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
+				else if(note[1] >= song.playerKeyCount + song.keyCount && note[0] >= instLength)
+					shitNotes++;
+				else if(gottaHitNote){
+					if(note[1] >= song.playerKeyCount)
+						dadNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
+					else
+						bfNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
+				}else{
+					if(note[1] >= song.keyCount)
+						bfNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
+					else
+						dadNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
+				}
 			}
 		}
+		getUniqueSameArray(bfNotes);
+		getUniqueSameArray(dadNotes);
 		return 0.0;
 	}
 
@@ -61,7 +69,17 @@ class NoteStuffExtra
 			var handOne:Array<SmallNote> = [];
 			var handTwo:Array<SmallNote> = [];
 			var Notedata:Array<SmallNote> = [];
-			if(NoteSet == 0) Notedata = bfNotes; else Notedata = dadNotes;
+			var mania:Int = 0;
+			if(NoteSet == 0)
+				{
+					Notedata = bfNotes;
+					mania = PlayState.playermania;
+				}
+			else
+				{
+					Notedata = dadNotes;
+					mania = PlayState.mania;
+				}
 			if(Notedata.length != 0)
 		{
 			Notedata.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
@@ -76,7 +94,7 @@ class NoteStuffExtra
 
 			for (i in Notedata)
 			{
-				if (i.noteData % PlayState.keyAmmo[PlayState.mania] < PlayState.keyAmmo[PlayState.mania] / 2)
+				if (i.noteData % PlayState.keyAmmo[mania] < PlayState.keyAmmo[mania] / 2)
 					handOne.push(i);
 				else
 					handTwo.push(i);
@@ -84,18 +102,18 @@ class NoteStuffExtra
 			// collect all of the notes in each col
 			var leftHandCol:Array<Array<Float>> = [];
 			var rightHandCol:Array<Array<Float>> = [];
-			for (i in 0...PlayState.keyAmmo[PlayState.mania] * 2)
+			for (i in 0...PlayState.keyAmmo[PlayState.mania] + PlayState.keyAmmo[PlayState.playermania])
 			{
 				leftHandCol.push([]);
 				rightHandCol.push([]);
 			}
 			for (i in 0...handOne.length)
 			{
-				leftHandCol[handOne[i].noteData].push(handOne[i].strumTime);
+				leftHandCol[handOne[i].noteData % PlayState.keyAmmo[mania]].push(handOne[i].strumTime);
 			}
 			for (i in 0...handTwo.length)
 			{
-				rightHandCol[handTwo[i].noteData].push(handTwo[i].strumTime);
+				rightHandCol[handTwo[i].noteData % PlayState.keyAmmo[mania]].push(handTwo[i].strumTime);
 			}
 			// length in segments of the song
 			var length = ((Notedata[Notedata.length - 1].strumTime / 1000) / 0.5);
@@ -158,7 +176,7 @@ class NoteStuffExtra
 				if (ve == null)
 					continue;
 				var fuckYou:Array<Array<SmallNote>> = [];
-				for (i in 0...PlayState.keyAmmo[PlayState.mania] * 2)
+				for (i in 0...PlayState.keyAmmo[PlayState.mania] + PlayState.keyAmmo[PlayState.playermania])
 				{
 					fuckYou.push([]);
 				}
@@ -185,7 +203,7 @@ class NoteStuffExtra
 				if (ve == null)
 					continue;
 				var fuckYou:Array<Array<SmallNote>> = [];
-				for (i in 0...PlayState.keyAmmo[PlayState.mania] * 2)
+				for (i in 0...PlayState.keyAmmo[PlayState.mania] + PlayState.keyAmmo[PlayState.playermania])
 				{
 					fuckYou.push([]);
 				}
@@ -344,4 +362,30 @@ class NoteStuffExtra
 			diffVector[i] = (fuck + floatZero) / 2;
 		}
 	}
+
+    public static function getUniqueSameArray<T>(array:Array<T>) {
+        var values = getUniqueAsNewArray(array);
+        for (v in values) {
+            var origIndex = array.indexOf(v);
+			while (true) {
+                var i = array.indexOf(v, origIndex + 1);
+                if (i == -1) 
+					break; // not found
+                else{
+					array.splice(i, 1); // remove
+					shitNotes++;
+				}
+            }
+        }
+        return array;
+    }
+
+	public static function getUniqueAsNewArray<T>(array:Array<T>) {
+        var l = [];
+        for (v in array) {
+         	if (l.indexOf(v) == -1)  // array has not v
+				l.push(v);
+		}
+        return l;
+    }
 }

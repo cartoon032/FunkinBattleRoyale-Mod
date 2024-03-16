@@ -72,7 +72,7 @@
 	
 	<!-- <assets path="CHANGELOG.md" rename='changelog.txt'/> -->
 
-	<!-- NOTE FOR FUTURE SELF SINCE FONTS ARE ALWAYS FUCKY 
+	<!-- NOTE FOR FUTURE SELF SINCE FONTS ARE ALWAYS FUCKY
 		TO FIX ONE OF THEM, I CONVERTED IT TO OTF. DUNNO IF YOU NEED TO
 		THEN UHHH I USED THE NAME OF THE FONT WITH SETFORMAT() ON THE TEXT!!!
 		NOT USING A DIRECT THING TO THE ASSET!!!
@@ -85,11 +85,11 @@
 
 	<!--In case you want to use the addons package-->
 	<haxelib name="flixel-addons" />
-	<haxelib name="hscript" />
-	<haxelib name="hscript-ex"/>
+	<haxelib name="hscript-improved" />
 	<haxedef name="hscriptPos"/>
 	<!-- Fuck Them FlxAnimate crash my compile don't know and don't care-->
 	<!-- <haxelib name="flxanimate"/> -->
+	<haxelib name="hxShaders"/>
 
 	<!--In case you want to use the ui package-->
 	<haxelib name="flixel-ui" />
@@ -97,7 +97,7 @@
 	<haxelib name="faxe" if='switch'/>
 	<!-- <haxelib name="polymod"/> -->
 	<haxelib name="discord_rpc" if="windows"/>
-	<!-- <haxelib name="linc_luajit" if="windows"/> -->
+	<haxelib name="linc_luajit" if="cpp" />
 
 	<haxelib name="hxcpp-debug-server" if="debug"/>
 
@@ -137,8 +137,11 @@
 	<haxedef name="FLX_NO_DEBUG" unless="debug" />
 	<!-- <haxedef name="HXCPP_DEBUGGER"/> -->
 	<!-- This is to hopefully increase preformance on x64 systems, if it's not compiling to them already for some reason -->
-	<haxedef name="HXCPP_M64"/> 
+	<haxedef name="HXCPP_M64"/>
 	<haxedef name="HXCPP_CHECK_POINTER"/>
+	<haxedef name="HXCPP_STACK_LINE"/>
+	<haxedef name="HXCPP_STACK_TRACE"/>
+	<!-- <haxedef name="HXCPP_GC_GENERATIONAL"/> -->
 
 	<!--Enable this for Nape release builds for a serious peformance improvement-->
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />

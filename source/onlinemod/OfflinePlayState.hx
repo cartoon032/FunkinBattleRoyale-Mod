@@ -19,6 +19,7 @@ class OfflinePlayState extends PlayState
 	public static var instanc:OfflinePlayState;
 	public var loadedVoices:FlxSound;
 	public var loadedInst:Sound;
+	public var xieneDevWatermark:FlxText;
 	var loadingtext:FlxText;
 	var shouldLoadJson:Bool = true;
 	var stateType = 2;
@@ -127,10 +128,10 @@ override function create()
 
 
 	    // Add XieneDev watermark
-	    var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "SE-T" + stateNames[stateType] + " " + MainMenuState.ver + "-" + MainMenuState.modver, 16);
-			xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
-			xieneDevWatermark.scrollFactor.set();
-			add(xieneDevWatermark);
+	    xieneDevWatermark = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "SE-T" + stateNames[stateType] + " " + MainMenuState.modver, 16);
+		xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
+		xieneDevWatermark.scrollFactor.set();
+		add(xieneDevWatermark);
 	    xieneDevWatermark.cameras = [camHUD];
 
 

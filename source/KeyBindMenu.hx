@@ -89,7 +89,7 @@ class KeyBindMenu extends FlxSubState
 
         keyTextDisplay = new FlxText(-10, 0, 1280, "", 72);
         keyTextDisplay.scrollFactor.set(0, 0);
-        keyTextDisplay.setFormat(CoolUtil.font, 42, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        keyTextDisplay.setFormat(CoolUtil.font, 24, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         keyTextDisplay.borderSize = 2;
         keyTextDisplay.borderQuality = 3;
 

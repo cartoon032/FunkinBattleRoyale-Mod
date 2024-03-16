@@ -13,25 +13,27 @@ import sys.io.File;
 import sys.FileSystem;
 import flash.display.BitmapData;
 import Xml;
-import flash.media.Sound;
+import openfl.media.Sound;
 import flixel.FlxG;
 import flixel.system.FlxSound;
 import flixel.util.typeLimit.OneOfTwo;
 import lime.media.AudioBuffer;
+import haxe.io.Bytes;
 // import vlc.VLCSound;
 using StringTools;
 
 class SELoader {
 
- 	static public var cache:InternalCache = new InternalCache();
- 	public static var PATH(default,set):String = '';
- 	public static function set_PATH(_path:String):String{
- 		if(!_path.endsWith('/')) _path = _path + "/"; // SELoader expects the main path to have a / at the end
- 		_path = _path.replace('\\',"/"); // Unix styled paths, Windows \\ paths are weird and fucky and i hate it
- 		
- 		return PATH = _path.replace('//','/'); // Fixes paths having //'s in them 
- 	}
-
+	static public var cache:InternalCache = new InternalCache();
+	
+	public static var PATH(default,set):String = '';
+	public static function set_PATH(_path:String):String{
+		if(!_path.endsWith('/')) _path = _path + "/"; // SELoader expects the main path to have a / at the end
+		_path = _path.replace('\\',"/"); // Unix styled paths, Windows \\ paths are weird and fucky and i hate it
+		
+		return PATH = _path.replace('//','/'); // Fixes paths having //'s in them 
+	}
+	public static var rawMode = false;
 	public static var id = "SELoader";
 
 	inline public static function handleError(e:String){
@@ -41,20 +43,22 @@ class SELoader {
 	}
 	// Basically clenses paths and returns the base path with the requested one. Used heavily for the Android port
 	@:keep inline public static function getPath(path:String):String{
-			// Remove library from path
-			if(path.indexOf(":") > 3) path = path.substring(path.indexOf(":") + 1);
-			// Absolute paths should just return themselves without anything changed
-			if(
-				#if windows
-					path.substring(1,2) == ':' || 
-				#end
-					path.substring(0,1) == "/"){
+		// Remove library from path
+		if(path.indexOf(":") > 3) path = path.substring(path.indexOf(":") + 1);
+		// Absolute paths should just return themselves without anything changed
+		if(
+			#if windows
+				path.substring(1,2) == ':' || 
+			#end
+				path.substring(0,1) == "/" || rawMode){
+			rawMode = false;
+			return path.replace('//','/');
+		}
+		if(path.startsWith("assets/") && FileSystem.exists('${PATH}mods${path}')) path = 'mods/' + path; // Return modded assets before vanilla assets
 
-				return path.replace('//','/');
-			}else{
-				return (PATH + path).replace('//','/'); // Fixes paths having //'s in them
-			}
+		return (PATH + path).replace('//','/'); // Fixes paths having //'s in them
 	}
+	
 
 	public static function loadText(textPath:String,?useCache:Bool = false):String{
 		if(cache.textArray[textPath] != null || useCache){
@@ -75,7 +79,7 @@ class SELoader {
 	}
 
 
-	public static function loadFlxSprite(x:Int,y:Int,pngPath:String,?useCache:Bool = false):FlxSprite{
+	public static function loadFlxSprite(x:Int = 0,y:Int = 0,pngPath:String,?useCache:Bool = false):FlxSprite{
 		if(!FileSystem.exists('${pngPath}')){
 			handleError('${id}: Image "${pngPath}" doesn\'t exist!');
 			return new FlxSprite(x, y); // Prevents the script from throwing a null error or something
@@ -109,7 +113,7 @@ class SELoader {
 			handleError('${id}: SparrowFrame XML "${pngPath}.xml" doesn\'t exist!');
 			return new FlxAtlasFrames(FlxGraphic.fromRectangle(0,0,0)); // Prevents the script from throwing a null error or something
 		}
-		return FlxAtlasFrames.fromSparrow(loadGraphic(pngPath ),loadXML('${pngPath}.xml'));
+		return FlxAtlasFrames.fromSparrow(loadGraphic(pngPath),loadXML('${pngPath}.xml'));
 	}
 	public static function loadSparrowSprite(x:Int,y:Int,pngPath:String,?anim:String = "",?loop:Bool = false,?fps:Int = 24,?useCache:Bool = false):FlxSprite{
 		
@@ -133,9 +137,12 @@ class SELoader {
 	}
 	@:keep inline public static function getContent(textPath:String):String{return loadText(textPath,false);}
 	@:keep inline public static function saveContent(textPath:String,content:String):String{return saveText(textPath,content,false);}
-	@:keep inline public static function getBytes(textPath:String):haxe.io.Bytes{return loadBytes(textPath,false);}
+	@:keep inline public static function getBytes(textPath:String):Bytes{return loadBytes(textPath,false);}
+	@:keep inline public static function gc(){
+		openfl.system.System.gc();
+	}
 
-	public static function loadBytes(textPath:String,?useCache:Bool = false):haxe.io.Bytes{
+	public static function loadBytes(textPath:String,?useCache:Bool = false):Bytes{
 		// No cache support atm
 
 		// if(cache.textArray[textPath] != null || useCache){
@@ -147,20 +154,21 @@ class SELoader {
 		}
 		return File.getBytes(getPath(textPath));
 	}
-
+	public static function saveBytes(textPath:String,contents:Bytes){ // If there's an error, it'll return the error, else it'll return null
+		try{
+			File.saveBytes(getPath(textPath),contents);
+		}catch(e){ return e; }
+		return null;
+	}
 	public static function saveText(textPath:String,contents:String = "",?useCache:Bool = false):Dynamic{ // If there's an error, it'll return the error, else it'll return null
-
 		try{
 			File.saveContent(getPath(textPath),contents);
-		}catch(e){
-			return e;
-		}
+		}catch(e){ return e; }
 		if(cache.textArray[textPath] != null || useCache){
 			cache.textArray[textPath] = contents;
 		}
 		return null;
 	}
-
 	public static function loadSound(soundPath:String,?useCache:Bool = false):Null<Sound>{
 		if(cache.soundArray[soundPath] != null || useCache){
 			return cache.loadSound(soundPath);
@@ -170,8 +178,6 @@ class SELoader {
 			// return null;
 		}
 		return Sound.fromFile(getPath(soundPath));
-		
-
 	}
 	@:keep inline public static function loadFlxSound(soundPath:String):FlxSound{
 		return new FlxSound().loadEmbedded(loadSound(soundPath));
@@ -190,6 +196,10 @@ class SELoader {
 	}
 	public static function fullPath(path:String):String{
 		return FileSystem.fullPath(getPath(path));
+	}
+	public static function anyExists(paths:Array<String>):String{
+		for(i in paths) if(exists(i)) return i;
+		return null;
 	}
 	public static function exists(path:String):Bool{
 		return FileSystem.exists(getPath(path));
@@ -221,6 +231,7 @@ class InternalCache{
 	public var xmlArray:Map<String,String> = [];
 	public var textArray:Map<String,String> = [];
 	public var soundArray:Map<String,Sound> = [];
+	public var audioBufferArray:Map<String,AudioBuffer> = [];
 	// public var dumpGraphics:Bool = false; // If true, All FlxGraphics will be dumped upon creation, trades off bitmap editability for less memory usage
  
 	@:keep inline static function getPath(path):String{return SELoader.getPath(path);}
@@ -236,6 +247,10 @@ class InternalCache{
 				v.destroy();
 			}
 		}
+		bitmapArray = [];
+		xmlArray = [];
+		textArray = [];
+		soundArray = [];
 		openfl.system.System.gc();
 	}
 	inline function handleError(e:String){

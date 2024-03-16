@@ -34,8 +34,75 @@ class MusicBeatState extends FlxUIState
 	private var controls(get, never):Controls;
 	var forceQuit = true;
 	public static var instance:MusicBeatState;
+	public static var lastClassList:Array<Class<Dynamic>> = [];
+	public static var returningFromClass:Bool = false;
+
+	public function goToLastClass(?avoidType:Class<Any> = null){
+		try{
+			returningFromClass = true;
+			if(avoidType != null){
+				while(Std.isOfType(lastClassList[lastClassList.length - 1],avoidType) ){
+					lastClassList.pop();
+				}
+			}
+			FlxG.switchState(Type.createInstance(lastClassList.pop(),[]));
+		}catch(e){
+			FlxG.switchState(new MainMenuState());
+		}
+	}
+	public function new(){
+		if(returningFromClass){
+			returningFromClass = false;
+		}else{
+			lastClassList.push(Type.getClass(FlxG.state));
+		}
+		if(lastClassList.length > 10){
+			lastClassList.shift();
+		}
+		super();
+	}
+	public function addBelow(OldObject:FlxObject, NewObject:FlxObject):FlxObject{
+		var index:Int = members.indexOf(OldObject);
+
+		if (index < 0) return null;
+
+		members.insert(index-1,NewObject);
+
+		if (_memberAdded != null)
+			_memberAdded.dispatch(NewObject);
+
+		return NewObject;
+	}
+	public function addAfter(OldObject:FlxObject, NewObject:FlxObject):FlxObject{
+		var index:Int = members.indexOf(OldObject);
+
+		if (index < 0) return null;
+
+		members.insert(index+1,NewObject);
+
+		if (_memberAdded != null)
+			_memberAdded.dispatch(NewObject);
+
+		return NewObject;
+	}
 
 	var loading = true;
+	public function addObject(object:FlxBasic) { add(object); }
+	public function removeObject(object:FlxBasic) { remove(object); }
+	public function errorHandle(?error:String = "No error passed!",?forced:Bool = false){
+		try{
+
+			trace('Error!\n ${error}');
+			FlxTimer.globalManager.clear();
+			FlxTween.globalManager.clear();
+			// updateTime = false;
+			persistentUpdate = false;
+			persistentDraw = true;
+
+			Main.game.blockUpdate = Main.game.blockDraw = false;
+			openSubState(new ErrorSubState(0,0,error));
+		}catch(e){trace('${e.message}\n${e.stack}');MainMenuState.handleError(error);}
+	}
 	public function onFileDrop(file:String):Null<Bool>{
 		return true;
 	}
@@ -63,23 +130,20 @@ class MusicBeatState extends FlxUIState
 		tranIn();
 	}
 	
-	var tempMessBacking:FlxSprite;
-	var tempMessage:FlxText;
-	var tempMessTimer:FlxTimer;
-	public function showTempmessage(str:String,?color:FlxColor = FlxColor.LIME,?time = 5,?center:Bool = true,?trac:Bool = true){
-		if (tempMessage != null){
-			remove(tempMessage);
-			tempMessage.destroy();
+	// var tempMessBacking:FlxSprite;
+	// var tempMessage:FlxText;
+	// var tempMessTimer:FlxTimer;
+	var tempMessages:Array<Array<Dynamic>> = [];
+	public function showTempmessage(str:String,?color:FlxColor = FlxColor.LIME,?time:Float = 5,?center:Bool = true,?trac:Bool = true){
+		var moveDown = false;
+		var lastBacking = null;
+		if (tempMessages.length > 0){
+			moveDown = true;
+			lastBacking = tempMessages[tempMessages.length - 1][2];
+		}
 
-		}
-		if (tempMessage != null && tempMessTimer != null){
-			tempMessTimer.cancel();}
-		if(tempMessBacking != null){
-			remove(tempMessBacking);
-			tempMessBacking.destroy();
-		}
 		if(trac) trace(str);
-		tempMessage = new FlxText(40,60,1000,str,24);
+		var tempMessage = new FlxText(40,60,1000,str,24);
 		tempMessage.setFormat(CoolUtil.font, 24, color, LEFT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 		tempMessage.scrollFactor.set();
 		tempMessage.autoSize = false;
@@ -92,24 +156,32 @@ class MusicBeatState extends FlxUIState
 			tempMessage.screenCenter(X);
 		}
 		// tempMessage.wordWrap = false;
-		tempMessBacking = new FlxSprite(tempMessage.x - 2,tempMessage.y - 2).loadGraphic(FlxGraphic.fromRectangle(Std.int(tempMessage.width + 4),Std.int(tempMessage.height + 4),0xaa000000));
+		var tempMessBacking = new FlxSprite(tempMessage.x - 2,tempMessage.y - 2).loadGraphic(FlxGraphic.fromRectangle(Std.int(tempMessage.width + 4),Std.int(tempMessage.height + 4),0xaa000000));
 		tempMessBacking.scrollFactor.set();
 		if(FlxG.cameras.list[FlxG.cameras.list.length - 1] != null){
 			tempMessBacking.cameras = tempMessage.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 		}
-		add(tempMessBacking);
-		add(tempMessage);
-		tempMessTimer = new FlxTimer().start(time, function(tmr:FlxTimer)
-		{
-			if (tempMessage != null) tempMessage.destroy();
-			if (tempMessBacking != null) tempMessBacking.destroy();
-		},1);
+		// add(tempMessBacking);
+		// add(tempMessage);
+		if(moveDown){
+			tempMessBacking.y = lastBacking.y + lastBacking.height;
+			tempMessage.y = tempMessBacking.y + 2;
+		};
+		tempMessages.push([time,tempMessage,tempMessBacking]);
+	}
+	public function showTempBanner(str:String,?color:FlxColor = FlxColor.LIME,?time:Float = 5,?center:Bool = true,?trac:Bool = true){
+		while(tempMessages.length > 0){
+			var e = tempMessages.pop();
+			e[2].destroy();
+			e[1].destroy();
+		}
+		showTempmessage(str,color,time,center,trac);
 	}
 
 	var skippedFrames = 0;
 	var checkInputFocus:Bool = true;
 	var hasTextInputFocus = false;
-	public var toggleVolKeys:Bool = true; 
+	public var toggleVolKeys:Bool = true;
 	public function onTextInputFocus(object:Dynamic){
 		if(toggleVolKeys) CoolUtil.toggleVolKeys(false);
 	}
@@ -130,6 +202,21 @@ class MusicBeatState extends FlxUIState
 	var oldStep:Int = -10000;
 	override function update(elapsed:Float)
 	{
+		if(tempMessages[0] != null && (tempMessages[0][0] -= elapsed) < 0){
+			try{
+				var msg = tempMessages.shift();
+				remove(msg[1]);
+				remove(msg[2]);
+				msg[1].destroy();
+				msg[2].destroy();
+				if(tempMessages[0] != null){
+					for (_ => msg in tempMessages){
+						msg[1].y -= Std.int(msg[2].height);
+						msg[2].y -= Std.int(msg[2].height);
+					}
+				}
+			}catch(e){}
+		}
 		updateCurStep();
 		updateBeat();
 		if(FlxG.keys.justPressed.F3){
@@ -229,7 +316,7 @@ class MusicBeatState extends FlxUIState
 	{
 		//do literally nothing dumbass
 	}
-	
+
 	public function fancyOpenURL(schmancy:String)
 	{
 		#if linux
@@ -299,6 +386,14 @@ class MusicBeatState extends FlxUIState
 	override function draw(){
 		super.draw();
 		if(debugMode) debugOverlay.draw();
+		if(tempMessages.length > 0){
+			var i = 0;
+			while (i < tempMessages.length){
+				tempMessages[i][2].draw();
+				tempMessages[i][1].draw();
+				i++;
+			}
+		}
 	}
 }
 

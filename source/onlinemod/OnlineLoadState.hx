@@ -42,21 +42,6 @@ class OnlineLoadState extends MusicBeatState
 		"bopeebo" => 1,
 		"fresh" => 1,
 		"dadbattle" => 1,
-		"spookeez" => 2,
-		"south" => 2,
-		"monster" => 2,
-		"pico" => 3,
-		"philly" => 3,
-		"blammed" => 3,
-		"satin-panties" => 4,
-		"high" => 4,
-		"milf" => 4,
-		"cocoa" => 5,
-		"eggnog" => 5,
-		"winter-horrorland" => 5,
-		"senpai" => 6,
-		"roses" => 6,
-		"thorns" => 6
 	];
 
 	public function new(jsonInput:String, folder:String)
@@ -111,7 +96,7 @@ class OnlineLoadState extends MusicBeatState
 			{
 				var fileSize:Int = OnlinePlayMenuState.receiver.varLength - 4;
 				var bytesReceived:Int = OnlinePlayMenuState.receiver.bufferedBytes - 5;
-				progress = Math.min(1, bytesReceived / fileSize);
+				progress = bytesReceived / fileSize;
 
 				if (fileSize > 1000000) //MB
 					fileSizeText.text = Std.int(bytesReceived/10000)/100 + "/" + Std.int(fileSize/10000)/100 + "MB" + " (" + FlxMath.roundDecimal(progress * 100, 2) + "%)";

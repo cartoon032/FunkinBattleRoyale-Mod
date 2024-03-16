@@ -19,7 +19,7 @@ import flixel.math.FlxMath;
 
 using StringTools;
 
-class SearchMenuState extends MusicBeatState
+class SearchMenuState extends ScriptMusicBeatState
 {
 	var curSelected:Int = 0;
 
@@ -93,6 +93,7 @@ class SearchMenuState extends MusicBeatState
 	static public function resetVars(){
 		LoadingScreen.loadingText = "Resetting Variables";
 		if (ChartingState.charting) ChartingState.charting = false;
+		if (ChartingState.lastPath != null) ChartingState.lastPath = null;
 		if (FlxG.save.data.songUnload && PlayState.SONG != null) {PlayState.SONG = null;} // I'm not even sure if this is needed but whatever
 		PlayState.nameSpace = "";/* PlayState.scripts = []; */PlayState.hsBrTools = null;onlinemod.OfflinePlayState.instFile = onlinemod.OfflinePlayState.voicesFile = "";
 		HSBrTools.shared = [];
@@ -119,6 +120,8 @@ class SearchMenuState extends MusicBeatState
 	}
 	public static var doReset:Bool = true;
 	public var blackBorder:FlxSprite;
+	public var scrollBar:FlxSprite;
+	public var scrollBarBG:FlxSprite;
 	public var infoTextBorder:FlxSprite;
 	override function create()
 	{try{
@@ -169,6 +172,15 @@ class SearchMenuState extends MusicBeatState
 		infoTextBorder.alpha = 0.5;
 		overLay.add(infoTextBorder);
 		overLay.add(infotext);
+		var _sbbgy:Int = Std.int(blackBorder == null ? 0 : blackBorder.y + blackBorder.height);
+		scrollBarBG = new FlxSprite(FlxG.width - 20,_sbbgy).makeGraphic(18,Std.int(FlxG.height) - _sbbgy,FlxColor.BLACK);
+		scrollBarBG.alpha = 0.5;
+		scrollBarBG.scrollFactor.set();
+		overLay.add(scrollBarBG);
+		scrollBar = new FlxSprite(scrollBarBG.x - 1,scrollBarBG.y + 12).makeGraphic(22,Std.int(scrollBarBG.width) + 2,FlxColor.WHITE);
+		scrollBar.alpha = 0.8;
+		scrollBar.scrollFactor.set();
+		overLay.add(scrollBar);
 		// add(overLay);
 		FlxG.autoPause = true;
 		try{if(onlinemod.OnlinePlayMenuState.socket != null) onlinemod.OnlinePlayMenuState.receiver.HandleData = HandleData;}catch(e){}
@@ -219,12 +231,43 @@ class SearchMenuState extends MusicBeatState
 			SetVolumeControls(true);
 			handleInput();
 		}
+		if (FlxG.keys.justPressed.GRAVEACCENT)
+			searchField.hasFocus = true;
+		if(FlxG.keys.justPressed.ESCAPE)
+			searchField.hasFocus = false;
 
 	}catch(e) MainMenuState.handleError('Error with searchmenu "update" ${e.message}');}
 	function select(sel:Int = 0){
 		trace("You forgot to replace the select function!");
 	}
 	var hoverColor = 0xffffff;
+	var idleColor = 0xff997799;
+	var scrollHover:Bool = false;
+	function handleScroll(){
+		var sbBGYOffset = scrollBarBG.y;
+		var sbBGHeight = sbBGYOffset + scrollBarBG.height - 20;
+		if(FlxG.mouse.x > scrollBar.x && FlxG.mouse.x < scrollBar.x + scrollBar.width || FlxG.mouse.pressedMiddle){
+			scrollBar.alpha = 1;
+			scrollHover = true;
+			if(FlxG.mouse.pressed || FlxG.mouse.pressedMiddle){
+				scrollBar.y = FlxG.mouse.y - (scrollBar.height * 0.5);
+				if(scrollBar.y < sbBGYOffset) scrollBar.y = sbBGYOffset;
+				if(scrollBar.y > sbBGHeight) scrollBar.y = sbBGHeight;
+				var sel = Std.int((grpSongs.length * ((scrollBar.y - sbBGYOffset) / (sbBGHeight - sbBGYOffset)) ));
+
+				if(curSelected != sel && sel > 0 && sel < grpSongs.length){
+					curSelected = 0;
+					changeSelection(sel);
+				}
+			}
+		}else{
+			scrollBar.alpha = 0.8;
+			scrollHover = false;
+		}
+		scrollBar.y = Std.int(sbBGYOffset - (scrollBar.height * 0.5) + ((scrollBarBG.height - 20) * (curSelected / grpSongs.length))) ;
+		if(scrollBar.y < sbBGYOffset) scrollBar.y = sbBGYOffset;
+		if(scrollBar.y > sbBGHeight) scrollBar.y = sbBGHeight;
+	}
 	function handleInput(){
 			if (controls.BACK || FlxG.keys.justPressed.ESCAPE)
 			{
@@ -236,6 +279,7 @@ class SearchMenuState extends MusicBeatState
 				else if (controls.UP_P || (controls.UP && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(-1);}
 				if (controls.DOWN_P && FlxG.keys.pressed.SHIFT){changeSelection(5);} 
 				else if (controls.DOWN_P || (controls.DOWN  && grpSongs.members[curSelected].y > FlxG.height * 0.46 && grpSongs.members[curSelected].y < FlxG.height * 0.50) ){changeSelection(1);}
+				handleScroll();
 			}
 			extraKeys();
 
@@ -244,12 +288,12 @@ class SearchMenuState extends MusicBeatState
 				select(curSelected);
 				if(retAfter) ret();
 			}
-			if(supportMouse){/* 
-				if(FlxG.mouse.justReleased){
+			// if(supportMouse){
+				if(!scrollHover && FlxG.mouse.justReleased){
 					if(titleText != null && FlxG.mouse.overlaps(titleText)){
 						ret();
 					}
-					if(!FlxG.mouse.overlaps(blackBorder) ){
+					if(blackBorder == null || !FlxG.mouse.overlaps(blackBorder) ){
 						var curSel= grpSongs.members[curSelected];
 						for (i in -2 ... 2) {
 							var member = grpSongs.members[curSelected + i];
@@ -263,7 +307,7 @@ class SearchMenuState extends MusicBeatState
 							}
 						}
 					}
-				} */
+				}
 				#if android
 					if(FlxG.swipes[0] != null){
 						var swipe = FlxG.swipes[0];
@@ -277,7 +321,7 @@ class SearchMenuState extends MusicBeatState
 					var move = -FlxG.mouse.wheel;
 					changeSelection(Std.int(move));
 				}
-			}
+			// }
 	}
 	function extraKeys(){
 		return;
@@ -313,7 +357,7 @@ class SearchMenuState extends MusicBeatState
 		var bullShit:Int = 0;
 
 
-			for (item in grpSongs.members)
+		for (item in grpSongs.members)
 			{
 				var onScreen = ((item.y > 0 && item.y < FlxG.height) || (bullShit - curSelected < 10 &&  bullShit - curSelected > -10));
 				if (onScreen){ // If item is onscreen, then actually move and such
@@ -324,14 +368,14 @@ class SearchMenuState extends MusicBeatState
 					item.targetY = bullShit - curSelected;
 
 					if(item.adjustAlpha){
-						item.alpha = 0.8;
+						item.alpha = 0.6;
 
-						if(!useAlphabet) item.color = 0xbbbbbb;
+						if(!useAlphabet) item.color = idleColor;
 						if (item.targetY == 0)
 						{
 							item.alpha = 1;
 
-							if(!useAlphabet) item.color = 0xffffff;
+							if(!useAlphabet) item.color = hoverColor;
 						}
 					} 
 				}else{item.kill();} // Else, try to kill it to lower the amount of sprites loaded
@@ -355,7 +399,7 @@ class SearchMenuState extends MusicBeatState
 	}
 	function HandleData(packetId:Int, data:Array<Dynamic>)
 	{
-		onlinemod.OnlinePlayMenuState.RespondKeepAlive(packetId);
+		if(onlinemod.OnlinePlayMenuState.RespondKeepAlive(packetId)) return;
 		var Chat = onlinemod.Chat;
 		var Packets = onlinemod.Packets;
 		var OnlineLobbyState = onlinemod.OnlineLobbyState;
@@ -406,6 +450,17 @@ class SearchMenuState extends MusicBeatState
 			case Packets.DISCONNECT:
 				TitleState.p2canplay = false;
 				FlxG.switchState(new onlinemod.OnlinePlayMenuState("Disconnected from server"));
+			case Packets.CUSTOMPACKETSTRING:
+				switch (data[0]){
+					case "SetSong":
+						var dataarr:Array<String> = data[1].split(' ');
+						OnlineLobbyState.songText = dataarr[0] + "\n" + dataarr[1] + "\n";
+						OnlineLobbyState.songFolder = dataarr[0];
+						OnlineLobbyState.songChange = true;
+					case "Set_Status":
+						var dataarr:Array<String> = data[1].split('/*/');
+						OnlineLobbyState.clientsStatus[Std.parseInt(dataarr[0])] = dataarr[1];
+					}
 		}
 	}
 }

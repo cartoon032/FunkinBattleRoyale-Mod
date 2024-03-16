@@ -12,7 +12,7 @@ class KadeEngineData
 
 		if (FlxG.save.data.dfjk == null)
 			FlxG.save.data.dfjk = false;
-			
+
 		if (FlxG.save.data.accuracyDisplay == null)
 			FlxG.save.data.accuracyDisplay = true;
 
@@ -80,7 +80,6 @@ class KadeEngineData
 		if (FlxG.save.data.opponent == null)
 			FlxG.save.data.opponent = "bf";
 
-
 		if (FlxG.save.data.playerChar == null)
 			FlxG.save.data.playerChar = "bf";
 
@@ -105,6 +104,7 @@ class KadeEngineData
 		// View Character on Character Select
 		if (FlxG.save.data.charAuto == null) FlxG.save.data.charAuto = true;
 		if (FlxG.save.data.charAutoBF == null) FlxG.save.data.charAutoBF = false;
+		if (FlxG.save.data.stageAuto == null) FlxG.save.data.stageAuto = true;
 
 		if (FlxG.save.data.lastServer == null)
 			FlxG.save.data.lastServer = "";
@@ -145,10 +145,9 @@ class KadeEngineData
 		if (FlxG.save.data.altscoresystem == null) FlxG.save.data.altscoresystem = 0;
 		if (FlxG.save.data.popupscorelocation == null) FlxG.save.data.popupscorelocation = 0;
 		if (FlxG.save.data.popupscoreoffset == null) FlxG.save.data.popupscoreoffset = 0;
-		if (FlxG.save.data.FastSongScrollSpeed == null) FlxG.save.data.FastSongScrollSpeed = 1;
+		if (FlxG.save.data.MKScrollSpeed == null) FlxG.save.data.MKScrollSpeed = 1;
 		if (FlxG.save.data.allowServerScripts == null) FlxG.save.data.allowServerScripts = false;
 		if (FlxG.save.data.notefade == null) FlxG.save.data.notefade = 1;
-		if (FlxG.save.data.swapUpDown == null) FlxG.save.data.swapUpDown = false;
 		if (FlxG.save.data.ShowConnectedIP == null) FlxG.save.data.ShowConnectedIP = false;
 		if (FlxG.save.data.DiscordRPC == null) FlxG.save.data.DiscordRPC = true;
 		if (FlxG.save.data.logGameplay == null) FlxG.save.data.logGameplay = false;
@@ -159,7 +158,13 @@ class KadeEngineData
 		if (FlxG.save.data.OnlineEXCharLimit == null) FlxG.save.data.OnlineEXCharLimit = 5;
 		if (FlxG.save.data.accurateNoteSustain == null) FlxG.save.data.accurateNoteSustain = false;
 		if (FlxG.save.data.ReplaceDadWithGF == null) FlxG.save.data.ReplaceDadWithGF = true;
-		
+		if (FlxG.save.data.ShitCombo == null) FlxG.save.data.ShitCombo = false;
+		if (FlxG.save.data.keys == null) FlxG.save.data.keys = KeyBinds.defaultKeys;
+		if (FlxG.save.data.gfTitleShow == null) FlxG.save.data.gfTitleShow = true;
+		if (FlxG.save.data.AltMK == null)FlxG.save.data.AltMK = false;
+		if (FlxG.save.data.menuScripts == null)FlxG.save.data.menuScripts = true;
+		if (FlxG.save.data.UsingSystemMouse == null)FlxG.save.data.UsingSystemMouse = true;
+
 		if (FlxG.save.data.instVol == null) FlxG.save.data.instVol = 0.8;
 		if (FlxG.save.data.masterVol == null) FlxG.save.data.masterVol = 1;
 		if (FlxG.save.data.voicesVol == null) FlxG.save.data.voicesVol = 1;
@@ -178,8 +183,6 @@ class KadeEngineData
 			var lastVersionIdentifier = MainMenuState.lastVersionIdentifier;
 			if(lastVersionIdentifier < 1)
 				FlxG.save.data.inputEngine = 1; // Update to new input
-			
-
 		}
 
 		Conductor.recalculateTimings();

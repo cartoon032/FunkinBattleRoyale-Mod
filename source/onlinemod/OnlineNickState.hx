@@ -23,22 +23,19 @@ class OnlineNickState extends MusicBeatState
     bg.color = 0xFFFF6E6E;
 		add(bg);
 
-
     var topText = new FlxText(0, FlxG.height * 0.25, "Insert nickname");
     topText.setFormat(CoolUtil.font, 64, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     topText.screenCenter(FlxAxes.X);
     add(topText);
-  
-  
+
     errorText = new FlxText(0, FlxG.height * 0.375, FlxG.width, "");
     errorText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, CENTER);
     add(errorText);
-  
-  
+
     var nickText:FlxText = new FlxText(FlxG.width/2 - 250, FlxG.height * 0.5 - 40, "Nickname:");
     nickText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(nickText);
-  
+
     nickField = new FlxInputText(0, FlxG.height * 0.5, 500, 32);
     nickField.setFormat(32, FlxColor.BLACK, CENTER);
     nickField.screenCenter(FlxAxes.X);
@@ -46,8 +43,7 @@ class OnlineNickState extends MusicBeatState
     nickField.maxLength = 13;
     nickField.hasFocus = true;
     add(nickField);
-  
-  
+
     var confirmButton = new FlxUIButton(0, FlxG.height * 0.65, "Confirm", () -> {
       sendNick();
     });
@@ -55,20 +51,17 @@ class OnlineNickState extends MusicBeatState
     confirmButton.resize(300, FlxG.height * 0.1);
     confirmButton.screenCenter(FlxAxes.X);
     add(confirmButton);
-  
-  
+
     OnlinePlayMenuState.AddXieneText(this);
-  
-  
+
     FlxG.mouse.visible = true;
-  
-  
+
     OnlinePlayMenuState.receiver.HandleData = HandleData;
-  
+
     nickField.text = FlxG.save.data.nickname;
     super.create();
     }
-  
+
     function HandleData(packetId:Int, data:Array<Dynamic>)
     {
     switch (packetId)
@@ -90,7 +83,7 @@ class OnlineNickState extends MusicBeatState
       }
     }
     }
-  
+
     function sendNick(){
       if (OnlinePlayMenuState.socket != null && OnlinePlayMenuState.socket.connected){
         nickname = nickField.text;
@@ -100,7 +93,7 @@ class OnlineNickState extends MusicBeatState
         FlxG.switchState(new OnlinePlayMenuState('Socket closed unexpectedly?'));
       }
     }
-  
+
     override function update(elapsed:Float)
     {
       if (!nickField.hasFocus)
@@ -115,7 +108,7 @@ class OnlineNickState extends MusicBeatState
         sendNick();
       super.update(elapsed);
     }
-  
+
     function SetErrorText(text:String, color:FlxColor=FlxColor.RED)
     {
       errorText.text = text;
@@ -123,4 +116,3 @@ class OnlineNickState extends MusicBeatState
       errorText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     }
   }
-  

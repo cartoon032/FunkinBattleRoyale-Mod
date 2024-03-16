@@ -32,7 +32,7 @@ class Credits extends SearchMenuState
 * PhantomArcade3K - Art
 * Evilsk8r - Art
 * Kawai Sprite - Music
-"],["Kade Engine 1.4.2" , "The original engine. 
+"],["Kade Engine 1.4.2" , "The original engine.
 
 * KadeDeveloper - Maintainer and lead programmer
 "], ["Modding Plus" , "Several improvements and the original base for HScript
@@ -47,12 +47,12 @@ class Credits extends SearchMenuState
 * Axy - Poggers help
 "], ["TJSON","Library used for parsing JSON's quickly
 
-* JWambaugh - Making the library 
-"],["Shoutouts" , "Some general shoutouts
+* JWambaugh - Making the library
+"]/* ,["Shoutouts" , "Some general shoutouts
 
-* V.S. Ex Tabi - The arrow examples are from here
 * Anthonyjrvill - He makes Note Skins specially for SE-T. What a mad lad"
-]];
+] */
+];
 	override function reloadList(?reload:Bool = false,?search:String=""){try{
 			curSelected = 0;
 			if(reload){CoolUtil.clearFlxGroup(grpSongs);}
@@ -83,8 +83,7 @@ class Credits extends SearchMenuState
 		infoTextBorder.makeGraphic(500,720,FlxColor.BLACK);
 		infoTextBorder.setPosition(1280 - infoTextBorder.width,0);
 		infotext.fieldWidth = infoTextBorder.width - 20;
-		
-		
+
 		addTitleText('Credits');
 		titleText.screenCenter(X);
 
@@ -95,8 +94,8 @@ class Credits extends SearchMenuState
 		overLay.add(charNameText);
 		retAfter = false;
 
-		// FlxTween.angle(uiIcon, -40, 40, 1.12, {ease: FlxEase.quadInOut, type: PINGPONG});  
-		changeSelection(0); 
+		// FlxTween.angle(uiIcon, -40, 40, 1.12, {ease: FlxEase.quadInOut, type: PINGPONG});
+		changeSelection(0);
 
 	}catch(e) MainMenuState.handleError('Error with credits "create" ${e.message}');}
 

@@ -1,5 +1,6 @@
 package onlinemod;
 
+import haxe.display.Display.Package;
 import flixel.FlxG;
 import flixel.FlxBasic;
 import flixel.FlxSprite;
@@ -23,11 +24,10 @@ class OnlinePlayState extends PlayState
 	var clients:Map<Int, String> = [];
 	public static var clientScores:Map<Int, Int> = [];
 	public static var clientText:Map<Int, String> = [];
-	public static var lastPressed:Array<Bool> = [false,false,false,false];
 	public static var useSongChar:Array<String> = ["","",""];
 	public static var autoDetPlayer2:Bool = true;
 	var clientTexts:Map<Int, Int> = [];
-	var clientCharacters:Map<Int, Int> = [];
+	var clientCharacters:Map<Int, Array<Int>> = [];
 	var clientsGroup:FlxTypedGroup<FlxText>;
 
 	var CoolLeaderBoard:Array<Array<Dynamic>>;
@@ -37,6 +37,7 @@ class OnlinePlayState extends PlayState
 
 	var clientCount:Int = 1;
 
+	var xieneDevWatermark:FlxText;
 	var waitingBg:FlxSprite;
 	var waitingText:FlxText;
 
@@ -97,10 +98,10 @@ class OnlinePlayState extends PlayState
 
 		super.create();
 		ChatBGBox = new FlxSprite().makeGraphic(FlxG.width, 175, 0x7F3F3F3F); // #3F3F3F
-		ChatBGBox.setPosition(0, FlxG.height - 290);
+		ChatBGBox.setPosition(0, FlxG.height - 250);
 		ChatBGBox.cameras = [camHUD];
 		add(ChatBGBox);
-		Chat.createChat(this,false,camHUD);
+		Chat.createChat(this,false,camTOP);
 		clientScores = [];
 		clientText = [];
 		clientsGroup = new FlxTypedGroup<FlxText>();
@@ -122,7 +123,7 @@ class OnlinePlayState extends PlayState
 		CoolLeaderBoard[0].push(nametext);
 		nametext.cameras = [camHUD];
 		add(nametext);
-		var scoretext = new FlxText(Box2.x + Box2.width + 10, Box2.y + 5, '0\nn/a%  0x',16);
+		var scoretext = new FlxText(Box2.x + Box2.width + 10, Box2.y + 5, '0\nn/a%  0\n',16);
 		scoretext.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		CoolLeaderBoard[0].push(scoretext);
 		scoretext.cameras = [camHUD];
@@ -150,7 +151,7 @@ class OnlinePlayState extends PlayState
 			CoolLeaderBoard[CoolLeaderBoard.length - 1].push(nametext);
 			nametext.cameras = [camHUD];
 			add(nametext);
-			var scoretext = new FlxText(Box2.x + Box2.width + 10, Box2.y + 5, '0\nn/a%  0x',16);
+			var scoretext = new FlxText(Box2.x + Box2.width + 10, Box2.y + 5, '0\nn/a%  0\n',16);
 			scoretext.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			CoolLeaderBoard[CoolLeaderBoard.length - 1].push(scoretext);
 			scoretext.cameras = [camHUD];
@@ -158,7 +159,6 @@ class OnlinePlayState extends PlayState
 			clientTexts[i] = clientsGroup.length;
 			clientsGroup.add(scoretext);
 		}
-		scoreY -= scoreY/2;
 		for(i in 0...CoolLeaderBoard.length){
 				// Long Box
 				CoolLeaderBoard[i][0].y = scoreY + (CoolLeaderBoard[i][0].height * i) - (CoolLeaderBoard[i][0].height + (CoolLeaderBoard[i][0].height * ((CoolLeaderBoard.length * 0.5) - 1.5)));
@@ -176,7 +176,7 @@ class OnlinePlayState extends PlayState
 
 
 		// Add XieneDev watermark
-		var xieneDevWatermark:FlxText = new FlxText(-4, FlxG.height * 0.9 + 50, FlxG.width, 'SE-T-BattleRoyale ${MainMenuState.ver}-${MainMenuState.modver}', 16);
+		xieneDevWatermark = new FlxText(-4, FlxG.height * 0.9 + 50, FlxG.width, 'SE-T-BattleRoyale ${MainMenuState.modver}', 16);
 		xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 		xieneDevWatermark.scrollFactor.set();
 		xieneDevWatermark.cameras = [camHUD];
@@ -260,7 +260,7 @@ class OnlinePlayState extends PlayState
 	override function popUpScore(daNote:Note):Void
 	{
 		super.popUpScore(daNote);
-		clientsGroup.members[0].text = PlayState.songScore + "\n" + HelperFunctions.truncateFloat(PlayState.accuracy,2) + "%  " + PlayState.misses;
+		clientsGroup.members[0].text = PlayState.songScore + "\n" + HelperFunctions.truncateFloat(PlayState.accuracy,2) + "%  " + PlayState.misses + "\n";
 
 		SendScore();
 	}
@@ -268,7 +268,7 @@ class OnlinePlayState extends PlayState
 	override function noteMiss(direction:Int = 1, daNote:Note,?forced:Bool = false):Void
 	{
 		super.noteMiss(direction, daNote,forced);
-		clientsGroup.members[0].text = PlayState.songScore + "\n" + HelperFunctions.truncateFloat(PlayState.accuracy,2) + "%  " + PlayState.misses;
+		clientsGroup.members[0].text = PlayState.songScore + "\n" + HelperFunctions.truncateFloat(PlayState.accuracy,2) + "%  " + PlayState.misses + "\n";
 
 		SendScore();
 	}
@@ -286,7 +286,7 @@ class OnlinePlayState extends PlayState
 		CoolLeaderBoard.sort((a,b) -> Std.int(b[3].text.split(' ')[0]) - Std.int(a[3].text.split(' ')[0]));
 		var WhereME = 1;
 		for(Array in CoolLeaderBoard){
-			if(Array[2].text == OnlineNickState.nickname)
+			if(Array[3].text.split(' ')[0] == PlayState.songScore)
 				break;
 			else
 				WhereME++;
@@ -294,7 +294,11 @@ class OnlinePlayState extends PlayState
 		if(CoolLeaderBoard.length > 1){
 			for(i in 0...CoolLeaderBoard.length){
 					var YMove = scoreY + ((CoolLeaderBoard[i][0].height * (i - (WhereME - (CoolLeaderBoard.length * 0.5)))) - (CoolLeaderBoard[i][0].height + (CoolLeaderBoard[i][0].height * ((CoolLeaderBoard.length * 0.5) - 1.5))));
-					var XMove = (!PlayState.invertedChart ? 125 - (Math.abs((WhereME - 1) - i) * 10) : FlxG.width - 625 + (Math.abs((WhereME - 1) - i) * 10));
+					var XMove = (!PlayState.invertedChart ?
+						125 - (Math.abs((WhereME - 1) - i) * 10) :
+						(FlxG.width - 375) + (Math.abs((WhereME - 1) - i) * 10)
+						);
+					CoolLeaderBoard[i][2].text = XMove;
 					if(YMove - CoolLeaderBoard[i][0].y >= 20 || YMove - CoolLeaderBoard[i][0].y <= -20 || YMove - CoolLeaderBoard[i][1].y >= 20 || YMove - CoolLeaderBoard[i][1].y <= -20){
 						FlxTween.tween(CoolLeaderBoard[i][0],{y: YMove,x: XMove},0.1,{ease: FlxEase.quadInOut});
 						FlxTween.tween(CoolLeaderBoard[i][1],{y: YMove,x: XMove + 10},0.1,{ease: FlxEase.quadInOut});
@@ -310,7 +314,7 @@ class OnlinePlayState extends PlayState
 	{
 		clients[-1] = OnlineNickState.nickname;
 		clientScores[-1] = PlayState.songScore;
-		clientText[-1] = "S:" + PlayState.songScore + " M:" + PlayState.misses + " A:" + HelperFunctions.truncateFloat(PlayState.accuracy,2);
+		clientText[-1] = "S:" + PlayState.songScore + " M:" + PlayState.misses + " A:" + HelperFunctions.truncateFloat(PlayState.accuracy,2) + " " + Ratings.GenerateLetterRank(PlayState.accuracy);
 
 		canPause = false;
 		FlxG.sound.playMusic(loadedInst, FlxG.save.data.instVol, true);
@@ -374,12 +378,12 @@ class OnlinePlayState extends PlayState
 		lastPacketID = packetId;
 		lastPacket = data;
 
-		OnlinePlayMenuState.RespondKeepAlive(packetId);
-		callInterp("packetRecieve",[packetId,data]);
 		if(!handleNextPacket){
 			handleNextPacket = true;
 			return;
 		}
+		if(onlinemod.OnlinePlayMenuState.RespondKeepAlive(packetId)) return;
+		callInterp("packetRecieve",[packetId,data]);
 		switch (packetId)
 		{
 			case Packets.PLAYERS_READY:
@@ -438,7 +442,7 @@ class OnlinePlayState extends PlayState
 
 				clientScores[id] = score;
 				clientText[id] = "S:" + score+ " M:" + misses+ " A:" + accuracy;
-				clientsGroup.members[clientTexts[id]].text = score + "\n" + accuracy + "%  " + misses;
+				clientsGroup.members[clientTexts[id]].text = score + "\n" + accuracy + "%  " + misses + "\n";
 
 			case Packets.PLAYER_LEFT:
 				var id:Int = data[0];
@@ -487,22 +491,30 @@ class OnlinePlayState extends PlayState
 					var charID = data[2];
 					var Side = data[3];
 					if(Side != 0 && Side != 1) return; // gonna throw that away
-					if(charID >= 100) charID = clientCharacters[Std.int(charID/100)];
-					if(charID == 0 && PlayState.SONG.multichar == null) charID = PlayState.onlinecharacterID;
+					// if(charID >= 100) {
+					// 	Side = clientCharacters[Std.int(charID/100)][1];
+					// 	charID = clientCharacters[Std.int(charID/100)][0];
+					// 	if(Side == 0)
+					// 		PlayState.boyfriendArray[charID].visible = true;
+					// 	else
+					// 		PlayState.dadArray[charID].visible = true;
+					// }
+					// if(charID == 0 && PlayState.SONG.multichar == null) charID = PlayState.onlinecharacterID;
 
-					if(data[0] == -1 && data[1] != null && data[1] != 0 ){
-						PlayState.charAnim(Side,Note.noteAnims[Std.int(data[1] - 1)],true,charID);
-
+					if(data[0] == -1 && data[1] != null && data[1] != 0){
+						if(PlayState.invertedChart){if(Side == 0) Side = 1; else Side = 0;}
+						var anim = if(Side == 0) Note.playernoteAnims else Note.noteAnims;
+						PlayState.charAnim(Side,anim[Std.int(data[1] - 1)],true,charID);
 					}else{
-						var killedNote = false;
+						PlayState.instance.vocals.volume = FlxG.save.data.voicesVol;
 						if(noteData[data[0]] != null){
 							if(noteData[data[0]][0] != null){
 								var note = noteData[data[0]][0];
 								PlayState.ShouldAIPress[if(note.ourNote) 0 else 1][charID] = false;
 								if(data[1] != null && data[1] != 0 || note.shouldntBeHit){ // Miss
-									note.miss(if(note.ourNote) 0 else 1,note,false,charID);
+									note.miss(if(note.ourNote) 0 else 1,note,false,(if(PlayState.SONG.multichar == null)charID else null),if(note.ourNote && !PlayState.instance.COOPMode) false else true);
 								}else{
-									note.hit(if(note.ourNote) 0 else 1,note,false,charID);
+									note.hit(if(note.ourNote) 0 else 1,note,false,(if(PlayState.SONG.multichar == null)charID else null),if(note.ourNote && !PlayState.instance.COOPMode) false else true);
 								}
 								if(!note.mustPress){ // Oi, dumbass, don't delete notes from the player
 									note.kill();
@@ -511,19 +523,16 @@ class OnlinePlayState extends PlayState
 								}
 							}else{
 								var noteData:Int = noteData[data[0]][1];
-								switch (charID) {
-									case 0:PlayState.instance.BFStrumPlayAnim(noteData);
-									case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
-								}; // Strums
-								PlayState.charAnim(0,Note.noteAnims[noteData] = (if(data[1] != null && data[1] != 0 ) "miss" else ""),true,charID); // Play animation
+								var anim = if(Side == 0) Note.playernoteAnims else Note.noteAnims;
+								PlayState.charAnim(0,anim[noteData] = (if(data[1] != null && data[1] != 0 ) "miss" else ""),true,charID); // Play animation
 							}
 						}
 						for (i => note in notes.members){
 							if(note.noteID == data[0]){
 								if(data[1] != null && data[1] != 0 || note.shouldntBeHit){ // Miss
-									note.miss(if(note.ourNote) 0 else 1,note,false,charID);
+									note.miss(if(note.ourNote) 0 else 1,note,false,(if(PlayState.SONG.multichar == null)charID else null),if(note.ourNote && !PlayState.instance.COOPMode) false else true);
 								}else{
-									note.hit(if(note.ourNote) 0 else 1,note,false,charID);
+									note.hit(if(note.ourNote) 0 else 1,note,false,(if(PlayState.SONG.multichar == null)charID else null),if(note.ourNote && !PlayState.instance.COOPMode) false else true);
 								}
 								if(!note.mustPress){ // Oi, dumbass, don't delete notes from the player
 									note.kill();
@@ -576,6 +585,17 @@ class OnlinePlayState extends PlayState
 				var message:String = data[1];
 
 				Chat.MESSAGE(OnlineLobbyState.clients[id], message);
+			case Packets.CUSTOMPACKETSTRING:
+				switch (data[0]){
+					case "SetSong":
+						var dataarr:Array<String> = data[1].split(' ');
+						OnlineLobbyState.songText = dataarr[0] + "\n" + dataarr[1] + "\n";
+						OnlineLobbyState.songFolder = dataarr[0];
+						OnlineLobbyState.songChange = true;
+					case "Set_Status":
+						var dataarr:Array<String> = data[1].split('/*/');
+						OnlineLobbyState.clientsStatus[Std.parseInt(dataarr[0])] = dataarr[1];
+					}
 
 		}}catch(e){
 			var packetName = "Unknown";
@@ -589,7 +609,6 @@ class OnlinePlayState extends PlayState
 			var _e = "";
 			while ((_e = err.pop()) != null){
 				Chat.OutputChatMessage('||${_e}');
-
 			}
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			FlxG.switchState(new OnlineLobbyState(true));
@@ -604,7 +623,6 @@ class OnlinePlayState extends PlayState
 			Sender.SendPacket(Packets.SEND_CURRENT_INFO, [PlayState.songScore,PlayState.misses,Math.ceil(PlayState.accuracy * 100)], OnlinePlayMenuState.socket);
 		else
 			Sender.SendPacket(Packets.SEND_SCORE, [PlayState.songScore], OnlinePlayMenuState.socket);
-
 	}
 
 	override function update(elapsed:Float)
@@ -638,8 +656,8 @@ class OnlinePlayState extends PlayState
 			Chat.SendChatMessage();
 		Chat.update(elapsed);
 	}
-
-	override function addExtraCharacter(){
+/*
+	override function addExtraCharacter(){ // i will come back to this later
 		if(PlayState.SONG.multichar != null && PlayState.SONG.multichar != []){
 			super.addExtraCharacter();
 			return;
@@ -660,6 +678,7 @@ class OnlinePlayState extends PlayState
 				if(CurEXChar <= onlinemod.OnlineLobbyState.ExChar.length)CharInfo = onlinemod.OnlineLobbyState.ExChar[CurEXChar - 1];
 				var CharName = (if(TitleState.retChar(CharInfo.char) != "") CharInfo.char else "boyfriend");
 				var Char = (if((PlayState.bfShow && FlxG.save.data.bfShow && CharInfo.side == 0) || (PlayState.dadShow && FlxG.save.data.dadShow && CharInfo.side == 1)) new Character(0, 100, CharName,CharInfo.side == 1 ? false : true,CharInfo.side) else new EmptyCharacter(0,100));
+				Char.visible = false; // fuck you im spawning you invisible
 				if(CharInfo.side == 1){
 					Char.x = PlayState.dad.x + CharInfo.offset;
 					PlayState.dadArray.push(Char);
@@ -670,10 +689,11 @@ class OnlinePlayState extends PlayState
 				}
 				PlayState.ShouldAIPress[CharInfo.side].push(true);
 				CurEXChar++;
-				clientCharacters[i] = PlayState.boyfriendArray.length - 1;
+				clientCharacters[i] = [PlayState.boyfriendArray.length - 1,CharInfo.side];
+				offset += 250;
 		}
 	}
-
+ */
 	override function destroy()
 	{
 		// This function is called when the State changes. For example, when exiting via the pause menu.

@@ -1,1 +1,0 @@
-The camera movement from Forever Engine, ported over to SE

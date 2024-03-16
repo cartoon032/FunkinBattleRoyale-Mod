@@ -52,9 +52,9 @@ class NoteSplash extends FlxSprite
 		}catch(e){
 			MainMenuState.handleError('Error while loading NoteSplashes ${e.message}\n ${e.stack}');
 		}
-		
-
 	}
+	var targetX:Float = 0;
+	var targetY:Float = 0;
 
 	public function setupNoteSplash(?obj:FlxObject = null,?note:Int = 0)
 	{
@@ -63,7 +63,7 @@ class NoteSplash extends FlxSprite
 				PlayState.instance.callInterp("setupNoteSplash",[this]);
 			}
 			alpha = 0.6;
-			animation.play(Note.noteNames[note], true);
+			animation.play(Note.playernoteNames[note], true);
 			animation.finishCallback = finished;
 			animation.curAnim.frameRate = 24;
 			data = note;
@@ -77,22 +77,11 @@ class NoteSplash extends FlxSprite
 					cameras = obj.cameras;
 				}
 				scrollFactor.set(obj.scrollFactor.x,obj.scrollFactor.y);
-				x=(obj.x);
-				y=(obj.y);
+				screenCenter();
+				targetX=(obj.x);
+				targetY=(obj.y + (obj.height * 0.5));
 			}
-			// animation.play(anim, true);
-			switch (NoteAssets.splashType.toLowerCase()) {
-				case "psych":
-					setPosition(x - Note.swagWidth[0] * 0.95, y - Note.swagWidth[0]);
-					offset.set(10, 10);
-				case "vanilla": // From DotEngine
-					offset.set(width * 0.3, height * 0.3);
-				case "custom":
-					// Do nothing
-				default:
-					setPosition(x - Note.swagWidth[0] * 0.95, y - Note.swagWidth[0]);
-					offset.set(-40, -40);
-			}
+			setGraphicSize(Std.int(284 * Note.splashScales[PlayState.playermania]),Std.int(288 * Note.splashScales[PlayState.playermania]));
 
 			if(PlayState.instance != null){
 				PlayState.instance.callInterp("setupNoteSplashAfter",[this]);
@@ -101,6 +90,11 @@ class NoteSplash extends FlxSprite
 			// MainMenuState.handleError(e,'Error while setting up a NoteSplash ${e.message}');// i rather have it not doing anything if error
 		}
 		// offset.set(-0.5 * -width, 0.5 * -height);
+	}
+	override function draw(){
+		x = targetX - width * 0.25;
+		y = targetY - height * 0.5;
+		super.draw();
 	}
 	function finished(name:String){
 		kill();

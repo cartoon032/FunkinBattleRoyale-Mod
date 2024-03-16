@@ -81,11 +81,6 @@ class SongScores {
 }
 class Highscore
 {
-	// #if (haxe >= "4.0.0")
-	// public static var songScores:Map<String, Int> = new Map();
-	// #else
-	// public static var songScores:Map<String, Int> = new Map<String, Int>();
-	// #end
 	public static var songScores:SongScores;
 
 	public static inline function GETSCOREPATH():String{
@@ -104,25 +99,11 @@ class Highscore
 	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0):Void
 	{
 		var daSong:String = formatSong(song, diff);
-
-
-
-		// if(!FlxG.save.data.botplay)
-		// {
-			// if (songScores.exists(daSong))
-			// {
-				// if (songScores.get(daSong) < score)
 		setScore(daSong, score);
-			// }
-			// else
-			// 	setScore(daSong, score);
-		// }else trace('BotPlay detected. Score saving is disabled.');
 	}
 
 	public static function saveWeekScore(week:Dynamic = 1, score:Int = 0, ?diff:Int = 0):Void
 	{
-
-
 
 		if(!FlxG.save.data.botplay)
 		{
@@ -177,8 +158,7 @@ class Highscore
 
 	public static function getWeekScore(week:Dynamic, diff:Int):Int
 	{
-		if (!songScores.exists(formatSong('week-' + week, diff)))
-			setScore(formatSong('week-' + week, diff), 0);
+		if (!songScores.exists(formatSong('week-' + week, diff))) setScore(formatSong('week-' + week, diff), 0);
 
 		return songScores.get(formatSong('week-' + week, diff));
 	}

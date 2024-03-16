@@ -62,9 +62,6 @@ class NineKeyBindMenu extends FlxSubState
 
     var state:String = "select";
     public static function getKeyBindsString():String{
-        if (KeyBinds.gamepad) {
-            return '${FlxG.save.data.gpleftBind}-${FlxG.save.data.gpdownBind}-${FlxG.save.data.gpupBind}-${FlxG.save.data.gprightBind}';
-        }
         return '${FlxG.save.data.N0Bind}-${FlxG.save.data.N1Bind}-${FlxG.save.data.N2Bind}-${FlxG.save.data.N3Bind}-${FlxG.save.data.N4Bind}-${FlxG.save.data.N5Bind}-${FlxG.save.data.N6Bind}-${FlxG.save.data.N7Bind}-${FlxG.save.data.N8Bind}';
     }
 

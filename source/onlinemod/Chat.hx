@@ -13,7 +13,7 @@ class Chat
 {
   public static var chatField:FlxInputText;
   public static var chatMessagesList:FlxUIList;
-  public static var chatSendButton:FlxUIButton;
+//   public static var chatSendButton:FlxUIButton;
   public static var chatMessages:Array<Array<Dynamic>>;
   public static var chatId:Int = 0;
   
@@ -63,33 +63,33 @@ class Chat
   {
 	Chat.created = true;
 
-	Chat.chatMessagesList = new FlxUIList(10, FlxG.height - 120, FlxG.width, 175);
+	Chat.chatMessagesList = new FlxUIList(10, FlxG.height - 80, FlxG.width, 175);
 	state.add(Chat.chatMessagesList);
 	for (chatMessage in Chat.chatMessages)
 	{
 	  Chat.OutputChatMessage(chatMessage[0], chatMessage[1], false);
 	}
 
-	Chat.chatField = new FlxInputText(10, FlxG.height - 70, 1152, 20);
+	Chat.chatField = new FlxInputText(10, 650, 1260, 20);
 	chatField.maxLength = 81;
 	state.add(Chat.chatField);
 
-	Chat.chatSendButton = new FlxUIButton(1171, FlxG.height - 70, "Send", () -> {
-	  Chat.SendChatMessage();
-	  Chat.chatField.hasFocus = true;
-	});
-	Chat.chatSendButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
-	Chat.chatSendButton.resize(100, Chat.chatField.height);
-	state.add(Chat.chatSendButton);
+	// Chat.chatSendButton = new FlxUIButton(1170, Chat.chatField.y, "Send", () -> {
+	//   Chat.SendChatMessage();
+	//   Chat.chatField.hasFocus = true;
+	// });
+	// Chat.chatSendButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
+	// Chat.chatSendButton.resize(100, Chat.chatField.height);
+	// state.add(Chat.chatSendButton);
 
 	hidechat = Hide;
 	chatField.visible = Hide;
 	Chat.chatAlpha = (hidechat ? 1 : 0);
-	chatSendButton.visible = Hide;
+	// chatSendButton.visible = Hide;
 	if(Cam != null){
 		chatField.cameras = [Cam];
 		chatMessagesList.cameras = [Cam];
-		chatSendButton.cameras = [Cam];
+		// chatSendButton.cameras = [Cam];
 	}
   }
 
@@ -105,7 +105,7 @@ class Chat
 	Chat.hidechat = !Chat.hidechat;
 	Chat.chatField.visible = Chat.hidechat;
 	Chat.chatAlpha = (Chat.hidechat ? 1 : 0);
-	Chat.chatSendButton.visible = Chat.hidechat;
+	// Chat.chatSendButton.visible = Chat.hidechat;
   }
 
   public static function update(elapsed:Float){
@@ -151,18 +151,17 @@ class Chat
 
   public static function SendChatMessage()
   {
-	if (chatField.text.length > 0)
-	{
-	  if (!StringTools.startsWith(chatField.text, " "))
-	  {
-		Sender.SendPacket(Packets.SEND_CHAT_MESSAGE, [Chat.chatId, chatField.text], OnlinePlayMenuState.socket);
-		Chat.chatId++;
+	if (chatField.text.length > 0){
+		if (!StringTools.startsWith(chatField.text, " "))
+		{
+			Sender.SendPacket(Packets.SEND_CHAT_MESSAGE, [Chat.chatId, chatField.text], OnlinePlayMenuState.socket);
+			Chat.chatId++;
 
-		OutputChatMessage('<${OnlineNickState.nickname}> ${chatField.text}');
-	  }
+			OutputChatMessage('<${OnlineNickState.nickname}> ${chatField.text}');
+		}
 
-	  chatField.text = "";
-	  chatField.caretIndex = 0;
+		chatField.text = "";
+		chatField.caretIndex = 0;
 	}
   }
 }

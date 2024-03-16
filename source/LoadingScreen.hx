@@ -13,14 +13,14 @@ import flixel.text.FlxText;
 
 class LoadingScreen extends Sprite{
 	public static var object:LoadingScreen;
+	public static var isVisible = false;
 
 	public static var loadingText(default,set):String = "";
 	public static function set_loadingText(val:String):String{
-		loadingText = val;
 		// Main.game.blockUpdate = Main.game.blockDraw = true;
 		// lime.app.Application.current.draw();
 		// Main.game.blockUpdate = Main.game.blockDraw = false;
-		return loadingText;
+		return loadingText = val;
 	}
 	// var _loadingText:String = "";
 	var funni = false;
@@ -29,7 +29,7 @@ class LoadingScreen extends Sprite{
 	var loadingIcon:Sprite;
 	var vel:Float = 0;
 
-	public override function new(?txt = "loading..."){
+	public override function new(?txt = "loading"){
 		super();
 
 		width = 1280;
@@ -40,11 +40,11 @@ class LoadingScreen extends Sprite{
 		// graphics.beginFill(0x110011);
 		// graphics.drawRect(0,0, 1280, 720);
 		// graphics.endFill();
-		var loadingText = new Alphabet(0,0,txt,true,false);
+		var loadingText = new Alphabet(0,0,txt,true);
 		loadingText.isMenuItem = false;
 		loadingText.visible = true;
-/* 
-		if(FlxG.save.data.doCoolLoading){
+/*
+		if(FlxG.save.data.doCoolLoading){ // nah xd
 			loadingIcon = new Sprite();
 			loadingIcon.x = 640;
 			loadingIcon.y = 300;
@@ -54,12 +54,12 @@ class LoadingScreen extends Sprite{
 			note.draw();
 			loadingIcon.graphics.beginBitmapFill(note.framePixels,false,true);
 			// loadingIcon.graphics.moveTo();
-			// 
+			//
 			loadingIcon.graphics.drawRect(0,0, note.framePixels.width, note.framePixels.height);
 			loadingIcon.graphics.endFill();
 			loadingIcon.scaleX = loadingIcon.scaleY= 0.5;
-		} */
-
+		}
+*/
 		var funniBitmap = new BitmapData(1290,730,false,0x100010);
 		var x = 1200;
 		var y = 600;
@@ -119,8 +119,6 @@ class LoadingScreen extends Sprite{
 		// },1);
 		// loadingText.update(0);
 		// loadingText.draw();
-		
-		
 		// super.addChild(loadingText);
 	}
 
@@ -162,8 +160,8 @@ class LoadingScreen extends Sprite{
 		catch(e){
 			trace(e);
 
-		}	
-	} 
+		}
+	}
 	function updateText(){
 		textField.htmlText = loadingText;
 		if(loadingIcon != null) vel += 0.15;
@@ -176,7 +174,7 @@ class LoadingScreen extends Sprite{
 		}
 		// object.alpha = 1;
 		if(tween != null){tween.cancel();}
-		object.funni = true;
+		isVisible = object.funni = true;
 		object.elapsed = 0;
 		object.scaleX = lime.app.Application.current.window.width / 1280;
 		object.scaleY = lime.app.Application.current.window.height / 720;
@@ -192,7 +190,7 @@ class LoadingScreen extends Sprite{
 			return;
 		}
 		if(tween != null){tween.cancel();}
-		object.funni = false;
+		isVisible = object.funni = false;
 		object.alpha = 0;
 		try{
 			Main.funniSprite.removeChild(object);}catch(e){}
@@ -212,6 +210,21 @@ class LoadingScreen extends Sprite{
 			}catch(e){
 				object.alpha = 0;
 			}
-		
+
+	}
+
+	@:keep inline static public function loadAndSwitchState(target:flixel.FlxState, stopMusic = false)
+	{
+		LoadingScreen.show();
+		Paths.setCurrentLevel("week" + PlayState.storyWeek);
+		if (stopMusic && FlxG.sound.music != null){
+			if(SickMenuState.chgTime){
+				SickMenuState.curSongTime = FlxG.sound.music.time;
+				SickMenuState.chgTime = false;
+			}
+			FlxG.sound.music.stop();
+
+		}
+		FlxG.switchState(target);
 	}
 }

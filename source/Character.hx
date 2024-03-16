@@ -27,8 +27,6 @@ import flixel.system.FlxSound;
 
 import hscript.Expr;
 import hscript.Interp;
-import hscript.InterpEx;
-import hscript.ParserEx;
 
 using StringTools;
 
@@ -159,6 +157,10 @@ class Character extends FlxSprite
 		"dodgeRight" => 10,
 		"dodgeUp" => 10,
 		"dodgeDown" => 10,
+		"dodgeLEFT" => 10,
+		"dodgeRIGHT" => 10,
+		"dodgeUP" => 10,
+		"dodgeDOWN" => 10,
 		"dodgeleft" =>10,
 		"dodgeright" => 10,
 		"dodgeup" => 10,
@@ -554,57 +556,6 @@ class Character extends FlxSprite
 
 
 		if (charProperties == null) trace("No charProperites?");
-		// spriteArr = [this];
-		// animArr = [animation];
-		// if(charProperties.sprites != null && charProperties.sprites[0] != null){
-		// 	{
-		// 	var oldXML = charXml;
-		// 	charXml = '<?xml version="1.0" encoding="utf-8"?><TextureAtlas imagePath="yeth.png">';
-		// 		var regTP:EReg = (~/<SubTexture name="([A-z0-9\-_ .,\\\|]+)[0-9][0-9][0-9][0-9]" .*\/>/gm);
-		// 		var input:String = oldXML;
-		// 		while (regTP.match(input)) {
-		// 			input=regTP.matchedRight();
-		// 			// trace(regTP.matched(1).toLowerCase());
-		// 			charXml += regTP.matched(0);
-		// 		}
-		// 	}
-		// 	for (it => i in charProperties.sprites) {
-		// 		if(!(FileSystem.exists('${charLoc}/$curCharacter/${i}.xml') && FileSystem.exists('${charLoc}/$curCharacter/${i}.png'))){
-		// 			MainMenuState.handleError('Invalid sprite $curCharacter/${i}');
-		// 			break;
-		// 		}
-		// 		var xml = File.getContent('${charLoc}/$curCharacter/${i}.xml');
-		// 		var animCount = 0;
-		// 		var regTP:EReg = (~/<SubTexture name="([A-z0-9\-_ .,\\\|]+)[0-9][0-9][0-9][0-9]" .*\/>/gm);
-		// 		var input:String = xml;
-		// 		while (regTP.match(input)) {
-		// 			input=regTP.matchedRight();
-		// 			// trace(regTP.matched(1).toLowerCase());
-		// 			if (xmlMap[regTP.matched(1).toLowerCase()] == null){
-		// 				xmlMap[regTP.matched(1).toLowerCase()] = spriteArr.length;
-		// 				trace('Registered ${regTP.matched(1).toLowerCase()}');
-		// 				animCount++;
-		// 			}
-		// 			charXml += regTP.matched(0);
-		// 		}
-
-		// 		var spr = new FlxSprite(0,0); 
-		// 		spr.frames = FlxAtlasFrames.fromSparrow(FlxGraphic.fromBitmapData(BitmapData.fromFile('${charLoc}/$curCharacter/${i}.png')),xml);
-		// 		// graphicsArr.push(frames);
-		// 		// animArr.push(animation);
-		// 		spriteArr.push(spr);
-		// 		setSprite(spriteArr.length - 1);
-		// 		trace('Registered extra sprite "${charLoc}/$curCharacter/${i}.png" with ${animCount}');
-		// 		// for (i => v in e.framesHash) {
-		// 		// 	frames.framesHash[i] = v;
-		// 		// }
-		// 	}
-		// 	charXml += "\n</TextureAtlas>";
-		// // 	// File.saveContent("/tmp/test.xml",charXml);
-		// // 	File.saveBytes("/tmp/test.png",newImg.image.encode(PNG,100));
-		// 	frames = FlxAtlasFrames.fromSparrow(frames.parent, charXml);
-		// }
-
 
 		loadJSONChar(charProperties);
 		// Custom misses

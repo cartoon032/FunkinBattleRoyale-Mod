@@ -20,15 +20,14 @@ typedef OsuTimingPoint = {
 
 class OsuBeatMap{
 	static var beatmap:String = "";
-	static function getSetting(str:String):String{	
+	static function getSetting(str:String):String{
 		var e:EReg = new EReg('${str}:([^\n]*)','ig');
 		e.match(beatmap);
 		return e.matched(1).trim();
 	}
 	static var bmTypes = ["All","Taiko","Catch","Mania"];
-	static function getType():String{	
+	static function getType():String{
 		var type = Std.parseInt(getSetting("Mode"));
-		// 
 		return (if(bmTypes[type] == null) "" else if(type == 3) " " + getSetting("CircleSize") + "k Mania" else " " + bmTypes[type]);
 	}
 	public static function getSettingBM(str:String,map:String):String{
@@ -52,9 +51,9 @@ class OsuBeatMap{
 					notes: [],
 					bpm: 120,
 					needsVoices: false,
-					player1: 'bf',
+					player1: FlxG.save.data.playerChar,
 					player2: '',
-					gfVersion: 'gf',
+					gfVersion: FlxG.save.data.gfChar,
 					noteStyle: 'normal',
 					stage: 'stage',
 					speed: if(QuickOptionsSubState.osuSettings['Scroll speed'].value > 0) QuickOptionsSubState.osuSettings['Scroll speed'].value else FlxG.save.data.scrollOSUSpeed,
@@ -65,10 +64,11 @@ class OsuBeatMap{
 					noteMetadata:Song.defNoteMetadata,
 					difficultyString: '[${getSetting("Version")}]',
 					mania: 0,
-					keyCount: QuickOptionsSubState.osuSettings["Key Count"].value
+					keyCount: QuickOptionsSubState.osuSettings["Key Count"].value,
+					playerKeyCount: QuickOptionsSubState.osuSettings["Key Count"].value
 				};
 				if(getSetting("Mode") == "3")
-					song.keyCount = int(getSetting("CircleSize"));
+					song.keyCount = song.playerKeyCount = int(getSetting("CircleSize"));
 				var hitobjsre:EReg = (~/\[HitObjects\]/gi);
 				hitobjsre.match(bm);
 

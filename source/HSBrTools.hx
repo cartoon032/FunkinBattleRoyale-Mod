@@ -7,12 +7,14 @@ import flixel.animation.FlxBaseAnimation;
 import flixel.animation.FlxAnimation;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxG;
-import flash.media.Sound;
+import openfl.media.Sound;
 import sys.io.File;
 import flash.display.BitmapData;
 import Xml;
 import sys.FileSystem;
+#if FLXRUNTIMESHADER
 import flixel.addons.display.FlxRuntimeShader;
+#end
 import flixel.system.FlxAssets;
 
 // import flxanimate.FlxAnimate;
@@ -50,7 +52,6 @@ class HSBrTools {
 			if(scriptJson != null) optionsMap = scriptJson;
 			this.id = id;
 		}
-		trace('HSBrTools initialised in ${path}');
 	}
 
 	public function getSetting(setting:String,?defValue:Dynamic = false):Dynamic{
@@ -71,7 +72,7 @@ class HSBrTools {
 	public function getPath(?str:String = ""){
 		return SELoader.getPath(path + str);
 	}
-	public function loadFlxSprite(x:Int,y:Int,pngPath:String):FlxSprite{
+	public function loadFlxSprite(x:Float,y:Float,pngPath:String):FlxSprite{
 		// if(!SELoader.exists('${path}${pngPath}')){
 		// 	handleError('${id}: Image "${path}${pngPath}" doesn\'t exist!');
 		// 	return new FlxSprite(x, y); // Prevents the script from throwing a null error or something
@@ -83,7 +84,7 @@ class HSBrTools {
 			handleError('${id}: "${path}${pngPath}" doesn\'t exist!');
 			return FlxGraphic.fromRectangle(0,0,0); // Prevents the script from throwing a null error or something
 		}
-		if(spriteArray[pngPath] == null) cacheGraphic('${pngPath}');
+		if(spriteArray[pngPath] == null) cacheGraphic(pngPath);
 		return spriteArray[pngPath];
 	}
 
@@ -121,18 +122,16 @@ class HSBrTools {
 		for(graphic in spriteArray){
 			try{
 				graphic.destroy();
-			}catch(e){
-
-			}
+			}catch(e){}
 		}
 		spriteArray.clear();
 		bitmapArray.clear();
-		// spriteArray = [];
-		xmlArray.clear();
-		// bitmapArray = [];
-		textArray.clear();
-		// xmlArray = [];
 		soundArray.clear();
+		textArray.clear();
+		xmlArray.clear();
+		// spriteArray = [];
+		// bitmapArray = [];
+		// xmlArray = [];
 		// textArray = [];
 		// soundArray = [];
 	}
@@ -149,20 +148,25 @@ class HSBrTools {
 		if(xmlArray[textPath] == null) xmlArray[textPath] = SELoader.loadXML('${path}${textPath}');
 		return xmlArray[textPath];
 	}
-	public function loadShader(textPath:String,?glslVersion:Dynamic = 120):Null<FlxRuntimeShader>{
-		if(textArray[textPath + ".vert"] == null && SELoader.exists('${path}${textPath}.vert')) textArray[textPath + ".vert"] = SELoader.loadText('${path}${textPath}.vert');
-		if(textArray[textPath + ".frag"] == null && SELoader.exists('${path}${textPath}.frag')) textArray[textPath + ".frag"] = SELoader.loadText('${path}${textPath}.frag');
-		try{
-			var shader = new FlxRuntimeShader(textArray[textPath + ".vert"],textArray[textPath + ".frag"],glslVersion);
-			// if(init) shader.initialise(); // If the shader uses custom variables, this can prevent loading a broken shader
-			return shader;
+	public function loadShader(textPath:String,?glslVersion:Dynamic = 120)#if(FLXRUNTIMESHADER) :Null<FlxRuntimeShader> #end{
+		#if !FLXRUNTIMESHADER
 
-		}catch(e){
-			handleError('${id}: Unable to load shader "${textPath}": ${e.message}');
-			trace(e.message);
-		}
-		return null;
+			handleError('Shaders aren\'t supported enabled on this build of the game!');
+			return null;
+		#else
+			if(textArray[textPath + ".vert"] == null && SELoader.exists('${path}${textPath}.vert')) textArray[textPath + ".vert"] = SELoader.loadText('${path}${textPath}.vert');
+			if(textArray[textPath + ".frag"] == null && SELoader.exists('${path}${textPath}.frag')) textArray[textPath + ".frag"] = SELoader.loadText('${path}${textPath}.frag');
+			try{
+				var shader = new FlxRuntimeShader(textArray[textPath + ".vert"],textArray[textPath + ".frag"],Std.string(glslVersion));
+				// if(init) shader.initialise(); // If the shader uses custom variables, this can prevent loading a broken shader
+				return shader;
 
+			}catch(e){
+				handleError('${id}: Unable to load shader "${textPath}": ${e.message}');
+				trace(e.message);
+			}
+			return null;
+		#end
 	}
 	// public function saveText(textPath:String,text:String):Bool{
 	// 	File.saveContent('${path}${textPath}',text);

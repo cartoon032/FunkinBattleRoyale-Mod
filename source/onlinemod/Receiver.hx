@@ -52,7 +52,6 @@ class Receiver
           try{
           	Chat.OutputChatMessage('Recieved abnormal packet with id $packetId?');
           }catch(e){
-
           }
           trace('Recieved abnormal packet with id $packetId?');
           return;
@@ -107,7 +106,7 @@ class Receiver
         else
           result = buf.readUnsignedInt();
         buf.position = 0;
-        trace(result);
+        // trace(result);
 
         return result;
       }

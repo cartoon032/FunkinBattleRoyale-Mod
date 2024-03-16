@@ -53,10 +53,93 @@ class Note extends FlxSprite
 	public static var mania:Int = 0;
 	public var inCharter:Bool = false;
 
-	public static var swagWidth:Array<Float> = [160 * 0.7,120 * 0.7,110 * 0.7,95 * 0.7,130 * 0.7,100 * 0.7,200 * 0.7,180 * 0.7,170 * 0.7,70 * 0.7,70 * 0.7,70 * 0.7,70 * 0.7,40 * 0.7,40 * 0.7,40 * 0.7,40 * 0.7,40 * 0.7,40 * 0.7];
-	public static var noteScale:Array<Float> = [0.7,0.6,0.58,0.5,0.65,0.55,0.7,0.7,0.7,0.35,0.35,0.35,0.35,0.2,0.18,0.18,0.18,0.18,0.18];
-	public static var longnoteScale:Array<Float> = [1.5,1.75,2,2.25,1.625,2.125,1.5,1.5,1.5,2.9,2.9,2.9,2.9,2.9,4.75,4.75,4.75,4.75,4.75];
+	public static var swagWidth:Array<Float> = [
+		160 * 0.7,		// 4k
+		120 * 0.7,		// 6k
+		110 * 0.7,		// 7k
+		95 * 0.7,		// 9k
+		130 * 0.7,		// 5k
+		100 * 0.7,		// 8k
+		200 * 0.7,		// 1k
+		180 * 0.7,		// 2k
+		170 * 0.7,		// 3k
+		80 * 0.7,		// 10k
+		80 * 0.7,		// 11k
+		70 * 0.7,		// 12k
+		67.5 * 0.7,		// 13k
+		62.5 * 0.7,		// 14k
+		57.5 * 0.7,		// 15k
+		52.5 * 0.7,		// 16k
+		50 * 0.7,		// 17k
+		50 * 0.7,		// 18k
+		45 * 0.7		// 21k
+	];
+	public static var noteScale:Array<Float> = [
+		0.7,		// 4k
+		0.6,		// 6k
+		0.58,		// 7k
+		0.5,		// 9k
+		0.65,		// 5k
+		0.55,		// 8k
+		0.7,		// 1k
+		0.7,		// 2k
+		0.7,		// 3k
+		0.39,		// 10k
+		0.36,		// 11k
+		0.32,		// 12k
+		0.31,		// 13k
+		0.31,		// 14k
+		0.3,		// 15k
+		0.26,		// 16k
+		0.26,		// 17k
+		0.22,		// 18k
+		0.20		// 21k
+	];
+	public static var longnoteScale:Array<Float> = [
+		1.5,		// 4k
+		1.75,		// 6k
+		2,		// 7k
+		2.25,		// 9k
+		1.625,		// 5k
+		2.125,		// 8k
+		1.5,		// 1k
+		1.5,		// 2k
+		1.5,		// 3k
+		3.5,		// 10k
+		3.2,		// 11k
+		3.25,		// 12k
+		3.25,		// 13k
+		3.5,		// 14k
+		3.75,		// 15k
+		3.75,		// 16k
+		4,		// 17k
+		4,		// 18k
+		4.5		// 21k
+	];
+    public static var splashScales:Array<Float> = [
+		1,		// 4k
+		0.9,		// 6k
+		0.8,		// 7k
+		0.6,		// 9k
+		0.95,		// 5k
+		0.7,		// 8k
+		1,		// 1k
+		1,		// 2k
+		1,		// 3k
+		0.6,		// 10k
+		0.6,		// 11k
+		0.5,		// 12k
+		0.5,		// 13k
+		0.5,		// 14k
+		0.4,		// 15k
+		0.3,		// 16k
+		0.3,		// 17k
+		0.2,		// 18k
+		0.2		// 21k
+    ];
+	
 	public static var noteNames:Array<String> = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
+	public static var playernoteNames:Array<String> = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
 	public var skipNote:Bool = true;
 	public var childNotes:Array<Note> = [];
 	public var parentNote:Note = null;
@@ -89,11 +172,19 @@ class Note extends FlxSprite
 				}
 			}
 		}
-
+	}
+	public function loadNoteAnimation(Color:Array<String>){
 		// The color is definitely lightblue atleast fucking ninja color bind or sth
 		animation.addByPrefix('aquaScroll', 'blue0');
 		animation.addByPrefix('aquaholdend', 'blue hold end');
 		animation.addByPrefix('aquahold', 'blue hold piece');
+
+		animation.addByPrefix(Color[noteData] + 'Scroll', Color[noteData] +'0');
+		animation.addByPrefix(Color[noteData] + 'holdend', Color[noteData] +' end hold');// why
+		animation.addByPrefix(Color[noteData] + 'holdend', Color[noteData] +' hold end');
+		animation.addByPrefix(Color[noteData] + 'hold', Color[noteData] +' hold piece');
+
+		if(inCharter || (animation.getByName(Color[noteData]+ "Scroll") != null && animation.getByName(Color[noteData]+ "holdend") != null && animation.getByName(Color[noteData]+ "hold") != null)) return; //the old way of load everycolor for somereason
 
 		if(PlayState.mania != 0){// For when playing MultiKey and custom note don't exist
 			animation.addByPrefix('whiteScroll', 'green0');
@@ -136,6 +227,7 @@ class Note extends FlxSprite
 		animation.addByPrefix('violetScroll', 'violet0');
 		animation.addByPrefix('erinScroll', 'erin0');
 
+		if(inCharter) return; // you don't need to load hold note
 		animation.addByPrefix('purpleholdend', 'pruple end hold'); // Fucking default names
 		animation.addByPrefix('purpleholdend', 'purple end hold');
 		animation.addByPrefix('aquaholdend', 'aqua hold end');
@@ -176,12 +268,14 @@ class Note extends FlxSprite
 		animation.addByPrefix('erinhold', 'erin hold piece');
 
 	}
-	dynamic public function hit(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int){
-		switch (charID) {
-			case 0:PlayState.instance.BFStrumPlayAnim(noteData);
-			case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
-		}; // Strums
-		var anim = if(useAlt) noteAnimsAlt else noteAnims;
+	dynamic public function hit(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
+		if(PlayHit){
+			switch (charID) {
+				case 0:PlayState.instance.BFStrumPlayAnim(noteData);
+				case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
+			}; // Strums
+		}
+		var anim = if(useAlt) noteAnimsAlt else if(charID == 0) playernoteAnims else noteAnims;
 		if(!shouldntBeHit)PlayState.charAnim(charID,anim[noteData],true); // Play animation
 	}
 	dynamic public function susHit(?charID:Int = 0,note:Note){ // Played every update instead of every time the strumnote is hit
@@ -191,13 +285,14 @@ class Note extends FlxSprite
 		}; // Strums
 	}
 
-	dynamic public function miss(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int){
-		var anim = if(useAlt) noteAnimsAlt else noteAnims;
+	dynamic public function miss(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
+		var anim = if(useAlt) noteAnimsAlt else if(charID == 0) playernoteAnims else noteAnims;
 		PlayState.charAnim(charID,anim[noteData] + "miss",true);// Play animation
 	}
 	// Array of animations, to be used above
-	public static var noteAnims:Array<String> = ['singLEFT','singDOWN','singUP','singRIGHT']; 
-	public static var noteAnimsAlt:Array<String> = noteAnims; 
+	public static var noteAnims:Array<String> = ['singLEFT','singDOWN','singUP','singRIGHT'];
+	public static var playernoteAnims:Array<String> = ['singLEFT','singDOWN','singUP','singRIGHT'];
+	public static var noteAnimsAlt:Array<String> = noteAnims;
 	public var killNote = false;
 
 	inline function callInterp(func:String,?args:Array<Dynamic>){
@@ -206,52 +301,60 @@ class Note extends FlxSprite
 
 	static var psychChars:Array<Int> = [1,0,2]; // Psych uses different character ID's than SE
 
-	public function new(strumTime:Float, _noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inCharter:Bool = false,?_type:Dynamic = 0,?_rawNote:Array<Dynamic> = null,?playerNote:Bool = false)
+	public function new(strumTime:Float, _noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inCharter:Bool = false,?_type:Dynamic = 0,?_rawNote:Array<Dynamic> = null,?playerNote:Bool = false,?section:Int = 0)
 		{try{
 		if(!inCharter)
 		{
-			switch(PlayState.SONG.mania)
+			var _noteAnims = [];
+			mania = (playerNote ? PlayState.playermania : PlayState.mania);
+			switch(mania)
 			{
 				default:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT'];
 				case 1:
-					if(FlxG.save.data.swapUpDown) noteAnims = ['singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT'];
-					else noteAnims = ['singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT'];
 				case 2:
-					if(FlxG.save.data.swapUpDown) noteAnims = ['singLEFT','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singRIGHT'];
-					else noteAnims = ['singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT'];
 				case 3:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 4:
-					noteAnims = ['singLEFT','singDOWN','singSPACE','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singSPACE','singUP','singRIGHT'];
 				case 5:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 6:
-					noteAnims = ['singSPACE'];
+					_noteAnims = ['singSPACE'];
 				case 7:
-					noteAnims = ['singLEFT','singRIGHT'];
+					_noteAnims = ['singLEFT','singRIGHT'];
 				case 8:
-					noteAnims = ['singLEFT','singSPACE','singRIGHT'];
+					_noteAnims = ['singLEFT','singSPACE','singRIGHT'];
 				case 9:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singUP','singDOWN','singLEFT','singDOWN','singUP','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 10:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singSPACE','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singUP','singSPACE','singDOWN','singLEFT','singDOWN','singUP','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singSPACE','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 11:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 12:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singRIGHT','singSPACE','singLEFT','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 13:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singRIGHT','singSPACE','singSPACE','singLEFT','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 14:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singRIGHT','singUP','singSPACE','singUP','singLEFT','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 15:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 16:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					if(FlxG.save.data.AltMK) _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singSPACE','singDOWN','singSPACE','singUP','singSPACE','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT'];
+					else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 17:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				case 18:
-					noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+					_noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 			}
 			if (PlayState.instance.ADOFAIMode)
 			{
@@ -260,10 +363,10 @@ class Note extends FlxSprite
 					default:
 						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT'];
 					case 1:
-						if(FlxG.save.data.swapUpDown) noteAnims = ['singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT'];
 						else noteAnims = ['singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT'];
 					case 2:
-						if(FlxG.save.data.swapUpDown) noteAnims = ['singLEFT','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singRIGHT'];
 						else noteAnims = ['singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT'];
 					case 3:
 						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT'];
@@ -278,74 +381,99 @@ class Note extends FlxSprite
 					case 8:
 						noteAnims = ['singLEFT','singSPACE','singRIGHT'];
 					case 9:
-						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singUP','singDOWN','singLEFT','singDOWN','singUP','singRIGHT'];
+						else noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 10:
-						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singSPACE','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singUP','singSPACE','singDOWN','singLEFT','singDOWN','singUP','singRIGHT'];
+						else _noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singDOWN','singSPACE','singUP','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 11:
 						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 12:
-						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singRIGHT','singSPACE','singLEFT','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						else noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 13:
-						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singRIGHT','singSPACE','singSPACE','singLEFT','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						else noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 14:
-						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singRIGHT','singUP','singSPACE','singUP','singLEFT','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						else noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singRIGHT','singSPACE','singLEFT','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 15:
 						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 16:
-						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
+						if(FlxG.save.data.AltMK) noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singSPACE','singDOWN','singSPACE','singUP','singSPACE','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT'];
+						else noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 17:
 						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singSPACE','singSPACE','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 					case 18:
 						noteAnims = ['singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singSPACE','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT','singLEFT','singDOWN','singUP','singRIGHT'];
 				}
 			}
-			mania = PlayState.SONG.mania;
+			for(i in 0...Conductor.ManiaChangeMap.length){
+				if (section >= Conductor.ManiaChangeMap[i].Section){
+					mania = Conductor.ManiaChangeMap[i].Mania;
+				}else break;
+			}
+			if(playerNote)
+				playernoteAnims = _noteAnims;
+			else
+				noteAnims = _noteAnims;
 			noteAnimsAlt = noteAnims;
 		}
 		var nameMania = if(inCharter) ChartingState.tempMania else mania;
+		var _noteNames = [];
 		switch (nameMania)
 		{
 			case 0:
-				noteNames = ['purple','aqua','green','red'];
-			case 1: 
-				if(FlxG.save.data.swapUpDown) noteNames = ['purple','green','red','yellow','aqua','orange'];
-				else noteNames = ['purple','aqua','red','yellow','green','orange'];
-			case 2: 
-				if(FlxG.save.data.swapUpDown) noteNames = ['purple','green','red','white','yellow','aqua','orange'];
-				else noteNames = ['purple','aqua','red','white','yellow','green','orange'];
-			case 3: 
-				noteNames = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
+				_noteNames = ['purple','aqua','green','red'];
+			case 1:
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','green','red','yellow','aqua','orange'];
+				else _noteNames = ['purple','aqua','red','yellow','green','orange'];
+			case 2:
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','green','red','white','yellow','aqua','orange'];
+				else _noteNames = ['purple','aqua','red','white','yellow','green','orange'];
+			case 3:
+				_noteNames = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
 			case 4:
-				noteNames = ['purple','aqua','white','green','red'];
+				_noteNames = ['purple','aqua','white','green','red'];
 			case 5:
-				noteNames = ['purple','aqua','green','red','yellow','pink','blue','orange'];
+				_noteNames = ['purple','aqua','green','red','yellow','pink','blue','orange'];
 			case 6:
-				noteNames = ['white'];
+				_noteNames = ['white'];
 			case 7:
-				noteNames = ['purple','red'];
+				_noteNames = ['purple','red'];
 			case 8:
-				noteNames = ['purple','white','red'];
+				_noteNames = ['purple','white','red'];
 			case 9:
-				noteNames = ['purple','aqua','green','red','cyan','magenta','yellow','pink','blue','orange'];
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','aqua','green','red','magenta','cyan','yellow','pink','blue','orange'];
+				else _noteNames = ['purple','aqua','green','red','cyan','magenta','yellow','pink','blue','orange'];
 			case 10:
-				noteNames = ['purple','aqua','green','red','cyan','white','magenta','yellow','pink','blue','orange'];
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','aqua','green','red','magenta','wintergreen','cyan','yellow','pink','blue','orange'];
+				else _noteNames = ['purple','aqua','green','red','cyan','white','magenta','yellow','pink','blue','orange'];
 			case 11:
-				noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','yellow','pink','blue','orange'];
+				_noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','yellow','pink','blue','orange'];
 			case 12:
-				noteNames = ['purple','aqua','green','red','lime','cyan','wintergreen','magenta','tango','yellow','pink','blue','orange'];
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','aqua','green','red','lime','tango','wintergreen','canary','erin','yellow','pink','blue','orange'];
+				else _noteNames = ['purple','aqua','green','red','lime','cyan','wintergreen','magenta','tango','yellow','pink','blue','orange'];
 			case 13:
-				noteNames = ['purple','aqua','green','red','lime','cyan','tango','canary','magenta','tango','yellow','pink','blue','orange'];
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','aqua','green','red','lime','tango','white','wintergreen','canary','erin','yellow','pink','blue','orange'];
+				else _noteNames = ['purple','aqua','green','red','lime','cyan','tango','canary','magenta','tango','yellow','pink','blue','orange'];
 			case 14:
-				noteNames = ['purple','aqua','green','red','lime','cyan','tango','wintergreen','canary','magenta','tango','yellow','pink','blue','orange'];
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','aqua','green','red','lime','tango','magenta','wintergreen','violet','canary','erin','yellow','pink','blue','orange'];
+				else _noteNames = ['purple','aqua','green','red','lime','cyan','tango','wintergreen','canary','magenta','tango','yellow','pink','blue','orange'];
 			case 15:
-				noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+				_noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
 			case 16:
-				noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','wintergreen','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+				if(FlxG.save.data.AltMK) _noteNames = ['purple','aqua','green','red','wintergreen','lime','white','cyan','wintergreen','magenta','white','tango','wintergreen','yellow','pink','blue','orange'];
+				else _noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','wintergreen','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
 			case 17:
-				noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','white','wintergreen','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+				_noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','white','wintergreen','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
 			case 18: // 21K
-				noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','lime','cyan','wintergreen','violet','erin','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
+				_noteNames = ['purple','aqua','green','red','lime','cyan','magenta','tango','lime','cyan','wintergreen','violet','erin','canary','scarlet','violet','erin','yellow','pink','blue','orange'];
 		}
+		if(playerNote)
+			playernoteNames = _noteNames;
+		else
+			noteNames = _noteNames;
 		super();
 
 		if(inCharter)
@@ -357,7 +485,7 @@ class Note extends FlxSprite
 			prevNote = this;
 		this.prevNote = prevNote;
 		isSustainNote = sustainNote;
-		mustPress = ourNote = playerNote; 
+		mustPress = ourNote = playerNote;
 		type = _type;
 		this.inCharter = inCharter;
 		if(_rawNote == null){
@@ -368,7 +496,7 @@ class Note extends FlxSprite
 
 		if(Std.isOfType(_type,String)) _type = _type.toLowerCase();
 
-		this.noteData = _noteData % noteNames.length;
+		this.noteData = _noteData % _noteNames.length;
 		shouldntBeHit = (isSustainNote && prevNote.shouldntBeHit || rawNote[4] == "death" || (PlayState.SONG.multichar == null && (_type == 1 || _type == "hurt note" || _type == "hurt" || _type == true)));
 		
 		if(inCharter){
@@ -379,21 +507,23 @@ class Note extends FlxSprite
 
 			if(PlayState.ExtraChar != [] || PlayState.stateType == 3){
 				updateAIPress = true;
-				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int){
+				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
 					var ThatGuy:Dynamic = if(ArrayID != null) ArrayID else type;
-					switch (charID) {
-						case 0:PlayState.instance.BFStrumPlayAnim(noteData);
-						case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
-					}; // Strums
-					var anim = if(useAlt) noteAnimsAlt else noteAnims;
+					if(PlayHit){
+						switch (charID) {
+							case 0:PlayState.instance.BFStrumPlayAnim(noteData);
+							case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
+						}; // Strums
+					}
+					var anim = if(useAlt) noteAnimsAlt else if(charID == 0) playernoteAnims else noteAnims;
 					if(Std.isOfType(type,Array))
 						for(i in 0...type.length){if(!shouldntBeHit)PlayState.charAnim(charID,anim[noteData],true,Std.int(ThatGuy[i]));} // Play animation
 					else
 						if(!shouldntBeHit)PlayState.charAnim(charID,anim[noteData],true,Std.int(ThatGuy)); // Play animation
 				}
-				miss = function(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int){
+				miss = function(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
 					var ThatGuy:Dynamic = if(ArrayID != null) ArrayID else type;
-					var anim = if(useAlt) noteAnimsAlt else noteAnims;
+					var anim = if(useAlt) noteAnimsAlt else if(charID == 0) playernoteAnims else noteAnims;
 					if(Std.isOfType(type,Array))
 						for(i in 0...type.length){PlayState.charAnim(charID,anim[noteData] + "miss",true,Std.int(ThatGuy[i]));} // Play animation
 					else
@@ -409,20 +539,38 @@ class Note extends FlxSprite
 				}
 			}
 			else if(PlayState.instance.ADOFAIMode){
-				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int){
-					switch (charID) {
-						case 0:PlayState.instance.BFStrumPlayAnim(noteData);
-						case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
-					}; // Strums
+				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
+					if(PlayHit){
+						switch (charID) {
+							case 0:PlayState.instance.BFStrumPlayAnim(noteData);
+							case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
+						}; // Strums
+					}
 					PlayState.charAnim(charID,noteAnims[Std.int(rawNote[1] % noteAnims.length)],true); // Play animation
 				}
-				miss = function(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int){
+				miss = function(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
 					PlayState.charAnim(charID,noteAnims[Std.int(rawNote[1] % noteAnims.length)] + "miss",true); // Play animation
 				}
 			}
 
 			showNote = !(!playerNote && !FlxG.save.data.oppStrumLine);
-			if((rawNote[1] == -1 || rawNote[2] == "eventNote")){ // Psych event notes, These should not be shown, and should not appear on the player's side
+			if(_type == "gf sing" || (PlayState.SONG.notes[section].gfSection && rawNote[1] < PlayState.keyAmmo[mania])){
+				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
+					if(PlayHit){
+						switch (charID) {
+							case 0:PlayState.instance.BFStrumPlayAnim(noteData);
+							case 1:if (FlxG.save.data.cpuStrums) {PlayState.instance.DadStrumPlayAnim(noteData);}
+						}; // Strums
+					}
+					var anim = if(useAlt) noteAnimsAlt else if(charID == 0) playernoteAnims else noteAnims;
+					if(!shouldntBeHit)PlayState.charAnim(2,anim[noteData],true); // Play animation
+				}
+				miss = function(?charID:Int = 0,?note:Null<Note> = null,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
+					var anim = if(useAlt) noteAnimsAlt else if(charID == 0) playernoteAnims else noteAnims;
+					PlayState.charAnim(2,anim[noteData] + "miss",true);// Play animation
+				}
+			}
+			if(rawNote[1] == -1 || rawNote[2] == "eventNote"){ // Psych event notes, These should not be shown, and should not appear on the player's side
 				
 				if(rawNote[2] == "eventNote")rawNote.remove(2);
 				callInterp("eventNoteCheckType",[this,rawNote]);
@@ -449,7 +597,7 @@ class Note extends FlxSprite
 							]; 
 						}catch(e){info = [rawNote[3],0];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){trace('Playing ${info[0]} for ${info[1]}');PlayState.charAnim(info[1],info[0],true);}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){trace('Playing ${info[0]} for ${info[1]}');PlayState.charAnim(info[1],info[0],true);}; 
 					}
 					case "hey","hey!": {
 						try{
@@ -461,16 +609,16 @@ class Note extends FlxSprite
 									case "gf","girlfriend","2":2;
 									default:0;
 								}
-							]; 
+							];
 						}catch(e){info = [rawNote[3]];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){PlayState.charAnim(info[0],(if(info[0] == 2) "cheer" else "hey"),true);}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){PlayState.charAnim(info[0],(if(info[0] == 2) "cheer" else "hey"),true);}; 
 					}
 					case "changebpm" | "bgm change": {
 						try{
 							info = [(if(rawNote[4] != "" && !Math.isNaN(Std.parseFloat(rawNote[4])))Std.parseFloat(rawNote[4]) else Std.parseFloat(rawNote[3]))]; 
 						}catch(e){info = [120,0];}
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){Conductor.changeBPM(info[0]);}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){Conductor.changeBPM(info[0]);}; 
 						trace('BPM note processed');
 					}/* 
 					case "changecharacter" | "change character" | "changechar" | "change char": {
@@ -517,7 +665,7 @@ class Note extends FlxSprite
 							info = [Std.parseFloat(rawNote[3]),(if( Math.isNaN(Std.parseInt(rawNote[4]))) 0xFFFFFF else Std.parseInt(rawNote[4]))]; 
 						}catch(e){info = [1];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){if(FlxG.save.data.distractions && FlxG.save.data.flashingLights) FlxG.camera.flash(info[2],info[1]);}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){if(FlxG.save.data.distractions && FlxG.save.data.flashingLights) FlxG.camera.flash(info[2],info[1]);}; 
 
 					}
 					case "set camzoom" | "setcamzoom" | "camzoom": {
@@ -526,7 +674,7 @@ class Note extends FlxSprite
 							if(Math.isNaN(info[0])) info[0] = 0.7;
 						}catch(e){info = [0.7];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){PlayState.instance.defaultCamZoom = info[0];}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){PlayState.instance.defaultCamZoom = info[0];}; 
 
 					}
 					case "addcamerazoom" | "add camera zoom" | "add cam zoom" | "addcamzoom": {
@@ -535,7 +683,7 @@ class Note extends FlxSprite
 							if(Math.isNaN(info[0])) info[0] = 0.05;
 						}catch(e){info = [0.05];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){PlayState.instance.defaultCamZoom += info[0];}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){PlayState.instance.defaultCamZoom += info[0];}; 
 
 					}
 					case "screenshake" | "screen shake" | "shake screen": {
@@ -545,7 +693,7 @@ class Note extends FlxSprite
 							if(Math.isNaN(info[1])) info[1] = 0; 
 						}catch(e){info = [0.7];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){if(FlxG.save.data.distractions) FlxG.camera.shake(info[0],info[1]);}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){if(FlxG.save.data.distractions) FlxG.camera.shake(info[0],info[1]);}; 
 						trace('BPM note processed');
 					}
 					case "camera follow pos" | "camfollowpos" | "cam follow" | "cam follow position": {
@@ -555,7 +703,7 @@ class Note extends FlxSprite
 							if(Math.isNaN(info[1])) info[1] = 0; 
 						}catch(e){info = [0,0];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
 							
 							PlayState.instance.moveCamera = (info[0] == 0 && info[1] == 0);
 							if(info[0] != 0 )PlayState.instance.camFollow.x = info[0];
@@ -568,15 +716,15 @@ class Note extends FlxSprite
 							info = [Std.parseFloat(rawNote[4])]; 
 						}catch(e){info = [2,0];}
 						// Replaces hit func
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){PlayState.SONG.speed = info[0];}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){PlayState.SONG.speed = info[0];}; 
 						trace('BPM note processed');
 					}
 					case 'script','hscript':{
 						info = [rawNote[4]]; 
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){PlayState.instance.parseRun(rawNote[4]);}; 
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){PlayState.instance.parseRun(rawNote[4]);}; 
 					}
 					default:{ // Don't trigger hit animation
-						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int){trace('Hit an empty event note ${note.type}.');return;};
+						hit = function(?charID:Int = 0,note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){trace('Hit an empty event note ${note.type}.');return;};
 					}
 				}
 			}
@@ -605,9 +753,10 @@ class Note extends FlxSprite
 		updateHitbox();
 		antialiasing = true;
 
-		var noteName = noteNames[noteData];
+		var noteName = _noteNames[noteData];
 		if(eventNote || noteData == -1) noteName = "white";
 		x+= swagWidth[mania] * noteData;
+		loadNoteAnimation(_noteNames);
 		animation.play(noteName + "Scroll");
 
 		// trace(prevNote);
@@ -665,13 +814,15 @@ class Note extends FlxSprite
 	{
 		super.update(elapsed);
 		switch(inCharter){
-			case true:
-				wasGoodHit = (strumTime <= Conductor.songPosition);
-				alpha = (wasGoodHit ? 0.7 : 1);
-				visible = true;
-				skipNote = false;
-				if(type != ntText.text)ntText.text = type;
-				if(Std.isOfType(type,Array)) ntText.color = 0x00FFFF; else if(Std.isOfType(type,Int)) ntText.color = 0x00FF00; else ntText.color = 0xFFFFFF;
+			case true:if(isOnScreen()){
+					wasGoodHit = (strumTime <= Conductor.songPosition);
+					alpha = (wasGoodHit ? 0.7 : 1);
+					visible = true;
+					if(type != ntText.text){
+						ntText.text = type;
+						if(Std.isOfType(type,Array)) ntText.color = 0x00FFFF; else if(Std.isOfType(type,Int)) ntText.color = 0x00FF00; else ntText.color = 0xFFFFFF;
+					}
+				}
 			case false: if (!skipNote || isOnScreen()){ // doesn't calculate anything until they're on screen
 				skipNote = false;
 				visible = (!eventNote && showNote);
@@ -721,10 +872,12 @@ class Note extends FlxSprite
 					callInterp("noteHitDad",[PlayState.dad,this]);
 					PlayState.dad.holdTimer = 0;
 
-					if(PlayState.instance.dadhitSound && !shouldntBeHit){
-						if(isSustainNoteStart) FlxG.sound.play(PlayState.holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
-						else if(!isSustainNote) FlxG.sound.play(PlayState.hitSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
-					}
+						try{
+							if(PlayState.instance.dadhitSound && !shouldntBeHit){
+							if(isSustainNoteStart) FlxG.sound.play(PlayState.holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
+							else if(!isSustainNote) FlxG.sound.play(PlayState.hitSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
+						}
+					}catch(e){}
 					if (PlayState.dad.useVoices){PlayState.dad.voiceSounds[noteData].play(1);PlayState.dad.voiceSounds[noteData].time = 0;PlayState.instance.vocals.volume = 0;}else if (PlayState.SONG.needsVoices) PlayState.instance.vocals.volume = FlxG.save.data.voicesVol;
 
 					PlayState.instance.notes.remove(this, true);

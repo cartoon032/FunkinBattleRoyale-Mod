@@ -59,9 +59,6 @@ class SixKeyBindMenu extends FlxSubState
 
     var state:String = "select";
     public static function getKeyBindsString():String{
-        if (KeyBinds.gamepad) {
-            return '${FlxG.save.data.gpleftBind}-${FlxG.save.data.gpdownBind}-${FlxG.save.data.gpupBind}-${FlxG.save.data.gprightBind}';
-        }
         return '${FlxG.save.data.L1Bind}-${FlxG.save.data.D1Bind}-${FlxG.save.data.R1Bind}-{${FlxG.save.data.N4Bind}// for 7K}-${FlxG.save.data.L2Bind}-${FlxG.save.data.U1Bind}-${FlxG.save.data.R2Bind}';
     }
 

@@ -16,9 +16,12 @@ import sys.io.File;
 class StrumArrow extends FlxSprite{
 	public static var defColor:FlxColor = 0xFFFFFFFF;
 	var noteColor:FlxColor = 0xFFFFFFFF; 
-	var KeyReminder:FlxText = new FlxText(0, 0, Note.swagWidth[PlayState.mania], "A", 20);
-	var keyTween:FlxTween;
+	var KeyReminder:FlxText = new FlxText(0, 0, Note.swagWidth[PlayState.playermania], "A", 20);
+	var keyTween1:FlxTween;
+	var keyTween2:FlxTween;
+	var keyTween3:FlxTween;
 	var ShowKey:Bool;
+	public static var confirmArrowOffset:Int = 0;
 	public var id:Int = 0; 
 	static var path_:String = "mods/noteassets";
 	override public function new(nid:Int = 0,?x:Float = 0,?y:Float = 0){
@@ -49,8 +52,8 @@ class StrumArrow extends FlxSprite{
 		}
 	}
 
-	public function RefreshSprite(){
-		var curAnim = animation.curAnim.name;
+	public function RefreshSprite(mania:Int){
+		setArrowName(mania);
 		// for 4k
 		animation.addByPrefix('static', 'arrow' + arrowIDsBackup[id] + '0');
 		animation.addByPrefix('pressed', arrowIDsBackup[id].toLowerCase() + ' press', 24, false);
@@ -60,8 +63,7 @@ class StrumArrow extends FlxSprite{
 		animation.addByPrefix('static', 'arrow' + Note.noteNames[id].toUpperCase() + '0'); // for when second static note exist
 		animation.addByPrefix('pressed', Note.noteNames[id] + ' press', 24, false);
 		animation.addByPrefix('confirm', Note.noteNames[id] + ' confirm', 24, false);
-		animation.play(curAnim);
-		centerOffsets();
+		playStatic();
 	}
 
 	public static var arrowIDs:Array<String> = ['LEFT','DOWN','UP',"RIGHT"];
@@ -71,156 +73,43 @@ class StrumArrow extends FlxSprite{
 		if (frames == null) frames = FlxAtlasFrames.fromSparrow(NoteAssets.image,NoteAssets.xml);
 
 		antialiasing = true;
-		switch (PlayState.mania)
-		{
-			case 0:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT'];
-			case 1:
-				if(FlxG.save.data.swapUpDown){
-					arrowIDs = ['LEFT','UP','RIGHT','LEFT','DOWN','RIGHT'];
-					arrowIDsBackup = ['LEFT','UP','RIGHT','LEFT','DOWN','RIGHT'];
-				}
-				else{
-					arrowIDs = ['LEFT','DOWN','RIGHT','LEFT','UP','RIGHT'];
-					arrowIDsBackup = ['LEFT','DOWN','RIGHT','LEFT','UP','RIGHT'];
-				}
-			case 2:
-				if(FlxG.save.data.swapUpDown){
-					arrowIDs = ['LEFT','UP','RIGHT','SPACE','LEFT','DOWN','RIGHT'];
-					arrowIDsBackup = ['LEFT','UP','RIGHT','UP','LEFT','DOWN','RIGHT'];
-				}
-				else{
-					arrowIDs = ['LEFT','DOWN','RIGHT','SPACE','LEFT','UP','RIGHT'];
-					arrowIDsBackup = ['LEFT','DOWN','RIGHT','UP','LEFT','UP','RIGHT'];
-				}
-			case 3:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','SPACE','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','UP','LEFT','DOWN','UP','RIGHT'];
-			case 4:
-				arrowIDs = ['LEFT','DOWN','SPACE','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','UP','RIGHT'];
-			case 5:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 6:
-				arrowIDs = ['SPACE'];
-				arrowIDsBackup = ['UP'];
-			case 7:
-				arrowIDs = ['LEFT','RIGHT'];
-				arrowIDsBackup = ['LEFT','RIGHT'];
-			case 8:
-				arrowIDs = ['LEFT','SPACE','RIGHT'];
-				arrowIDsBackup = ['LEFT','UP','RIGHT'];
-			case 9:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','EDOWN','EUP','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','DOWN','UP','LEFT','DOWN','UP','RIGHT'];
-			case 10:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','EDOWN','ESPACE','EUP','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','DOWN','UP','UP','LEFT','DOWN','UP','RIGHT'];
-			case 11:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 12:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','ESPACE','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 13:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','ERIGHT','ELEFT','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','RIGHT','LEFT','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 14:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','ERIGHT','ESPACE','ELEFT','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','RIGHT','UP','LEFT','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 15:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 16:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','ESPACE','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','UP','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 17:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','SPACE','ESPACE','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','UP','UP','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-			case 18:
-				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','ELEFT','EDOWN','ESPACE','EUP','ERIGHT','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
-				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
-		}
-		setGraphicSize(Std.int(width * Note.noteScale[PlayState.mania]));
+		var _mania = (showkey == 1 ? PlayState.playermania : PlayState.mania);
+		var _NoteNames = (showkey == 1 ? Note.playernoteNames : Note.noteNames);
+		setArrowName(_mania);
+		// setGraphicSize(Std.int(width * Note.noteScale[_mania]));
+		scale.x = scale.y = Note.noteScale[_mania];
 		// for 4k
 		animation.addByPrefix('static', 'arrow' + arrowIDsBackup[id] + '0');
 		animation.addByPrefix('pressed', arrowIDsBackup[id].toLowerCase() + ' press', 24, false);
 		animation.addByPrefix('confirm', arrowIDsBackup[id].toLowerCase() + ' confirm', 24, false);
 
 		animation.addByPrefix('static', 'arrow' + arrowIDs[id] + '0');
-		animation.addByPrefix('static', 'arrow' + Note.noteNames[id].toUpperCase() + '0'); // for when second static note exist
-		animation.addByPrefix('pressed', Note.noteNames[id] + ' press', 24, false);
-		animation.addByPrefix('confirm', Note.noteNames[id] + ' confirm', 24, false);
+		animation.addByPrefix('static', 'arrow' + _NoteNames[id].toUpperCase() + '0'); // for when second static note exist
+		animation.addByPrefix('pressed', _NoteNames[id] + ' press', 24, false);
+		animation.addByPrefix('confirm', _NoteNames[id] + ' confirm', 24, false);
 
-		KeyReminder.setFormat(CoolUtil.font, 20, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		KeyReminder.borderSize = 2;
-		KeyReminder.borderQuality = 2;
-		KeyReminder.scrollFactor.set();
-		if(PlayState.instance.playerNoteCamera != null)KeyReminder.cameras = [PlayState.instance.playerNoteCamera];
 		if(showkey == 1){
+			if(PlayState.instance.playerNoteCamera != null)KeyReminder.cameras = [PlayState.instance.playerNoteCamera];
+			KeyReminder.alpha = 0;
+
 			ShowKey = true;
 			ShowKeyReminder();
 		}
 	}
 	public function playStatic(){
-		// color = defColor;
 		animation.play("static");
 		centerOffsets();
 	}
 	public function press(){
-		// if (color != noteColor) color = noteColor;
 		animation.play("pressed");
 		centerOffsets();
 	}
 	public function confirm(){
-		// if (color != noteColor) color = noteColor;
 		animation.play("confirm");
 
 		centerOffsets();
-		switch(PlayState.mania)
-		{
-			case 0: 
-				offset.x -= 13;
-				offset.y -= 13;
-			case 1: 
-				offset.x -= 16;
-				offset.y -= 16;
-			case 2: 
-				offset.x -= 15;
-				offset.y -= 15;
-			case 3: 
-				offset.x -= 22;
-				offset.y -= 22;
-			case 4: 
-				offset.x -= 18;
-				offset.y -= 18;
-			case 5: 
-				offset.x -= 20;
-				offset.y -= 20;
-			case 6: 
-				offset.x -= 13;
-				offset.y -= 13;
-			case 7: 
-				offset.x -= 13;
-				offset.y -= 13;
-			case 8:
-				offset.x -= 13;
-				offset.y -= 13;
-			case 9:
-				offset.x -= 22;
-				offset.y -= 22;
-			case 10:
-				offset.x -= 22;
-				offset.y -= 22;
-			case 11:
-				offset.x -= 22;
-				offset.y -= 22;
-			case 12:
-				offset.x -= 22;
-				offset.y -= 22;
-		}
+		offset.x -= confirmArrowOffset;
+		offset.y -= confirmArrowOffset;
 	}
 	override function draw(){
 		super.draw();
@@ -230,26 +119,161 @@ class StrumArrow extends FlxSprite{
 		}
 	}
 	public function ShowKeyReminder(){
-		KeyReminder.alpha = 1;
+		KeyReminder.angle = -45;
 		KeyReminder.y = this.y;
 		KeyReminder.text = GetKey(id);
-		if(keyTween != null) keyTween.cancel();
-		if(PlayState.instance.downscroll)keyTween = FlxTween.tween(KeyReminder, {alpha: 0,y:this.y + 200}, 1, {startDelay: 4 + (0.05 * id),ease: FlxEase.quadInOut});
-		else keyTween = FlxTween.tween(KeyReminder, {alpha: 0,y:this.y - 200}, 1, {startDelay: 4 + (0.05 * id),ease: FlxEase.quadInOut});
+		KeyReminder.setFormat(CoolUtil.font, Std.int(30 * (1 - (KeyReminder.text.length * 0.05)) ), FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		if(keyTween1 != null) keyTween1.cancel();
+		if(keyTween2 != null) keyTween2.cancel();
+		if(keyTween3 != null) keyTween3.cancel();
+		keyTween1 = FlxTween.tween(KeyReminder, {alpha: 1,angle:0}, 1, {ease: FlxEase.circOut, startDelay: 0.25 + (0.05 * id)});
+		keyTween2 = FlxTween.tween(KeyReminder, {y: KeyReminder.y + 40}, 4, {ease: FlxEase.circOut, startDelay: 0.25 + (0.05 * id),onComplete:function(_){
+			if(PlayState.instance.downscroll)keyTween3 = FlxTween.tween(KeyReminder, {alpha: 0,y:KeyReminder.y + 200}, 0.5);
+			else keyTween3 = FlxTween.tween(KeyReminder, {alpha: 0,y:KeyReminder.y - 200}, 0.5);
+		}});
+	}
+	public function setArrowName(mania:Int) {
+		switch (mania)
+		{
+			case 0:
+				confirmArrowOffset = 13;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT'];
+			case 1:
+				confirmArrowOffset = 16;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','UP','RIGHT','LEFT','DOWN','RIGHT'];
+					arrowIDsBackup = ['LEFT','UP','RIGHT','LEFT','DOWN','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','RIGHT','LEFT','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','RIGHT','LEFT','UP','RIGHT'];
+				}
+			case 2:
+				confirmArrowOffset = 15;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','UP','RIGHT','SPACE','LEFT','DOWN','RIGHT'];
+					arrowIDsBackup = ['LEFT','UP','RIGHT','UP','LEFT','DOWN','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','RIGHT','SPACE','LEFT','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','RIGHT','UP','LEFT','UP','RIGHT'];
+				}
+			case 3:
+				confirmArrowOffset = 22;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT','SPACE','LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','UP','LEFT','DOWN','UP','RIGHT'];
+			case 4:
+				confirmArrowOffset = 18;
+				arrowIDs = ['LEFT','DOWN','SPACE','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','UP','RIGHT'];
+			case 5:
+				confirmArrowOffset = 20;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+			case 6:
+				confirmArrowOffset = 13;
+				arrowIDs = ['SPACE'];
+				arrowIDsBackup = ['UP'];
+			case 7:
+				confirmArrowOffset = 13;
+				arrowIDs = ['LEFT','RIGHT'];
+				arrowIDsBackup = ['LEFT','RIGHT'];
+			case 8:
+				confirmArrowOffset = 13;
+				arrowIDs = ['LEFT','SPACE','RIGHT'];
+				arrowIDsBackup = ['LEFT','UP','RIGHT'];
+			case 9:
+				confirmArrowOffset = 22;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','EUP','EDOWN','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','UP','DOWN','LEFT','DOWN','UP','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','EDOWN','EUP','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','DOWN','UP','LEFT','DOWN','UP','RIGHT'];
+				}
+			case 10:
+				confirmArrowOffset = 22;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','EUP','ESPACE','EDOWN','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','UP','UP','DOWN','LEFT','DOWN','UP','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','EDOWN','ESPACE','EUP','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','DOWN','UP','UP','LEFT','DOWN','UP','RIGHT'];
+				}
+			case 11:
+				confirmArrowOffset = 22;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+			case 12:
+				confirmArrowOffset = 26;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','ERIGHT','ESPACE','ELEFT','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','RIGHT','UP','LEFT','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','ESPACE','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+			case 13:
+				confirmArrowOffset = 30;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','ERIGHT','SPACE','ESPACE','ELEFT','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','RIGHT','UP','UP','LEFT','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','ERIGHT','ELEFT','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','RIGHT','LEFT','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+			case 14:
+				confirmArrowOffset = 30;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','ERIGHT','EUP','ESPACE','EUP','ELEFT','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','RIGHT','UP','UP','UP','LEFT','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','ERIGHT','ESPACE','ELEFT','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','RIGHT','UP','LEFT','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+			case 15:
+				confirmArrowOffset = 30;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+			case 16:
+				confirmArrowOffset = 30;
+				if(FlxG.save.data.AltMK){
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ESPACE','ELEFT','SPACE','EDOWN','ESPACE','EUP','SPACE','ERIGHT','ESPACE','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','UP','LEFT','UP','DOWN','UP','UP','UP','RIGHT','UP','LEFT','DOWN','UP','RIGHT'];
+				}
+				else{
+					arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','ESPACE','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+					arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','UP','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+				}
+			case 17:
+				confirmArrowOffset = 30;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','SPACE','ESPACE','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','UP','UP','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+			case 18:
+				confirmArrowOffset = 30;
+				arrowIDs = ['LEFT','DOWN','UP','RIGHT','ELEFT','EDOWN','EUP','ERIGHT','ELEFT','EDOWN','ESPACE','EUP','ERIGHT','ELEFT','EDOWN','EUP','ERIGHT','LEFT','DOWN','UP','RIGHT'];
+				arrowIDsBackup = ['LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','UP','RIGHT','LEFT','DOWN','UP','RIGHT','LEFT','DOWN','UP','RIGHT'];
+		}
 	}
 	function GetKey(Number:Int){
 		var keylist:Array<String> = ["A","S","W","D"];
 		var keylistAlt:Array<String> = [];
-		switch(PlayState.mania)
+		switch(PlayState.playermania)
 		{
-			case 0: 
+			case 0:
 				keylist = [FlxG.save.data.leftBind, FlxG.save.data.downBind, FlxG.save.data.upBind, FlxG.save.data.rightBind];
 				keylistAlt = [FlxG.save.data.AltleftBind, FlxG.save.data.AltdownBind, FlxG.save.data.AltupBind, FlxG.save.data.AltrightBind];
-			case 1: 
+			case 1:
 				keylist = [FlxG.save.data.L1Bind, FlxG.save.data.D1Bind, FlxG.save.data.R1Bind, FlxG.save.data.L2Bind, FlxG.save.data.U1Bind, FlxG.save.data.R2Bind];
-			case 2: 
+			case 2:
 				keylist = [FlxG.save.data.L1Bind, FlxG.save.data.D1Bind, FlxG.save.data.R1Bind, FlxG.save.data.N4Bind, FlxG.save.data.L2Bind, FlxG.save.data.U1Bind, FlxG.save.data.R2Bind];
-			case 3: 
+			case 3:
 				keylist = [FlxG.save.data.N0Bind, FlxG.save.data.N1Bind, FlxG.save.data.N2Bind, FlxG.save.data.N3Bind, FlxG.save.data.N4Bind, FlxG.save.data.N5Bind, FlxG.save.data.N6Bind, FlxG.save.data.N7Bind, FlxG.save.data.N8Bind];
 			case 4:
 				keylist = [FlxG.save.data.leftBind, FlxG.save.data.downBind, FlxG.save.data.N4Bind ,FlxG.save.data.upBind, FlxG.save.data.rightBind];
@@ -262,26 +286,8 @@ class StrumArrow extends FlxSprite{
 				keylist = [FlxG.save.data.leftBind, FlxG.save.data.rightBind];
 			case 8:
 				keylist = [FlxG.save.data.leftBind, FlxG.save.data.N4Bind, FlxG.save.data.rightBind];
-			case 9:
-				keylist = [FlxG.save.data.EX0Bind, FlxG.save.data.EX1Bind, FlxG.save.data.EX2Bind, FlxG.save.data.EX3Bind, FlxG.save.data.EX5Bind, FlxG.save.data.EX6Bind, FlxG.save.data.EX8Bind, FlxG.save.data.EX9Bind, FlxG.save.data.EX10Bind, FlxG.save.data.EX11Bind];
-			case 10:
-				keylist = [FlxG.save.data.EX0Bind, FlxG.save.data.EX1Bind, FlxG.save.data.EX2Bind, FlxG.save.data.EX3Bind, FlxG.save.data.EX5Bind, FlxG.save.data.N4Bind, FlxG.save.data.EX6Bind, FlxG.save.data.EX8Bind, FlxG.save.data.EX9Bind, FlxG.save.data.EX10Bind, FlxG.save.data.EX11Bind];
-			case 11:
-				keylist = [FlxG.save.data.EX0Bind, FlxG.save.data.EX1Bind, FlxG.save.data.EX2Bind, FlxG.save.data.EX3Bind, FlxG.save.data.EX4Bind, FlxG.save.data.EX5Bind, FlxG.save.data.EX6Bind, FlxG.save.data.EX7Bind, FlxG.save.data.EX8Bind, FlxG.save.data.EX9Bind, FlxG.save.data.EX10Bind, FlxG.save.data.EX11Bind];
-			case 12:
-				keylist = [FlxG.save.data.EX0Bind, FlxG.save.data.EX1Bind, FlxG.save.data.EX2Bind, FlxG.save.data.EX3Bind, FlxG.save.data.EX4Bind, FlxG.save.data.EX5Bind, FlxG.save.data.N4Bind, FlxG.save.data.EX6Bind, FlxG.save.data.EX7Bind, FlxG.save.data.EX8Bind, FlxG.save.data.EX9Bind, FlxG.save.data.EX10Bind, FlxG.save.data.EX11Bind];
-			case 13:
-				keylist = ["Q","W","E","R","S","D","F","J","K","L","U","I","O","P"];
-			case 14:
-				keylist = ['Q','W','E','R','S','D','F','SPACE','J','K','L','U','I','O','P'];
-			case 15:
-				keylist = ['Q','W','E','R','A','S','D','F','J','K','L','SEMICOLON','U','I','O','P'];
-			case 16:
-				keylist = ['Q','W','E','R','A','S','D','F','SPACE','J','K','L','SEMICOLON','U','I','O','P'];
-			case 17:
-				keylist = ['Q','W','E','R','A','S','D','F','V','N','J','K','L','SEMICOLON','U','I','O','P'];
-			case 18:
-				keylist = ['Q','W','E','R','A','S','D','F','C','V','SPACE','N','M','J','K','L','SEMICOLON','U','I','O','P'];
+			default:
+				keylist = FlxG.save.data.keys[PlayState.playermania - 9];
 		}
 		return (keylist[Number] != null ? keylist[Number] : "WTF!?") + (keylistAlt[Number] != null ? "\n" + keylistAlt[Number] : "");
 	}

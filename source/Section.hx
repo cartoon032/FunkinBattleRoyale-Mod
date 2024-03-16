@@ -10,7 +10,9 @@ typedef SwagSection =
 	var changeBPM:Bool;
 	var altAnim:Bool;
 	var ?changeMania:Int;
+	var ?centerCamera:Bool;
 	var ?sectionBeats:Int; // psych thing
+	var ?gfSection:Bool; // more psych shit
 }
 
 class Section

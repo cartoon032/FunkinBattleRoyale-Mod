@@ -44,6 +44,11 @@ class OfflineMenuState extends SearchMenuState
   override function create()
   {
     DiscordClient.changePresence('Browsing Offline Menu',null);
+    PlayState.sectionStart = false;
+    scriptSubDirectory = "/offlinemenu/";
+    useNormalCallbacks = true;
+    loadScripts(true);
+		PlayState.hsBrToolsPath = "assets/";
     super.create();
     optionsButton = new FlxUIButton(1120, 30, "Options", goOptions);
     optionsButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
@@ -53,7 +58,7 @@ class OfflineMenuState extends SearchMenuState
     sideButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
     sideButton.resize(250, 30);
     add(sideButton);
-		SpeedText = new FlxText(0, 65, 0, "Song Speed : " + rate + "x", 24);
+		SpeedText = new FlxText(0, 5, 0, "Song Speed : " + rate + "x", 24);
 		SpeedText.font = CoolUtil.font;
     SpeedText.setFormat(CoolUtil.font, 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		SpeedText.borderSize = 1;
@@ -169,7 +174,7 @@ class OfflineMenuState extends SearchMenuState
 		@:privateAccess
 		{
 			if (FlxG.sound.music.playing)
-				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, rate);
+				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.PITCH, rate);
 		}
   }
 }

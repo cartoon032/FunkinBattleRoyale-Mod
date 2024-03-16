@@ -28,18 +28,20 @@ class OnlineResultState extends MusicBeatState
     bg.color = 0xF1A0B1;
 		add(bg);
 
-
-    var topText:FlxText = new FlxText(0, FlxG.height * 0.05, "Results");
-    topText.setFormat(CoolUtil.font, 64, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    var topBox = new FlxSprite().makeGraphic(FlxG.width, 64, 0x7F3F3F3F); // #3F3F3F
+    add(topBox);
+  
+    var topText:FlxText = new FlxText(0, 0, "Results");
+    topText.setFormat(CoolUtil.font, 48, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     topText.screenCenter(FlxAxes.X);
     add(topText);
 
 
-    var backButton = new FlxUIButton(10, 10, "Back to Lobby", () -> {
+    var backButton = new FlxUIButton(10, 15, "Back to Lobby", () -> {
       FlxG.switchState(new OnlineLobbyState(true));
     });
-    backButton.setLabelFormat(28, FlxColor.BLACK, CENTER);
-    backButton.resize(300, FlxG.height * 0.1);
+    backButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
+    backButton.resize(1240 * 0.25, 30);	
     add(backButton);
 
 
@@ -53,7 +55,7 @@ class OnlineResultState extends MusicBeatState
       var score = OnlinePlayState.clientText[i];
       if (score == null) score = "N/A";
       if (name == null) name = "N/A";
-      var text:FlxText = new FlxText(0, FlxG.height*0.2 + 30*x, '${x+1}. $name: $score');
+      var text:FlxText = new FlxText(0, FlxG.height*0.1 + 30*x, '${x+1}. $name: $score');
 
       if (i == -1)
         text.text += " (YOU)";
@@ -69,7 +71,7 @@ class OnlineResultState extends MusicBeatState
     }
 
     ChatBGBox = new FlxSprite().makeGraphic(FlxG.width, 175, 0x7F3F3F3F); // #3F3F3F
-    ChatBGBox.setPosition(0, FlxG.height - 290);
+    ChatBGBox.setPosition(0, FlxG.height - 250);
     add(ChatBGBox);
     Chat.createChat(this,true);
     Chat.CreateHideButton(this);
@@ -88,7 +90,7 @@ class OnlineResultState extends MusicBeatState
 
   function HandleData(packetId:Int, data:Array<Dynamic>)
   {
-    OnlinePlayMenuState.RespondKeepAlive(packetId);
+    if(onlinemod.OnlinePlayMenuState.RespondKeepAlive(packetId)) return;
     switch (packetId)
     {
       case Packets.BROADCAST_NEW_PLAYER:
@@ -125,6 +127,17 @@ class OnlineResultState extends MusicBeatState
 
       case Packets.DISCONNECT:
         FlxG.switchState(new OnlinePlayMenuState("Disconnected from server"));
+      case Packets.CUSTOMPACKETSTRING:
+				switch (data[0]){
+					case "SetSong":
+						var dataarr:Array<String> = data[1].split(' ');
+						OnlineLobbyState.songText = dataarr[0] + "\n" + dataarr[1] + "\n";
+            OnlineLobbyState.songFolder = dataarr[0];
+						OnlineLobbyState.songChange = true;
+					case "Set_Status":
+						var dataarr:Array<String> = data[1].split('/*/');
+						OnlineLobbyState.clientsStatus[Std.parseInt(dataarr[0])] = dataarr[1];
+					}
     }
   }
 
@@ -133,8 +146,12 @@ class OnlineResultState extends MusicBeatState
 		@:privateAccess
 		{
 			if (FlxG.sound.music.playing)
-				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__source.__backend.handle, lime.media.openal.AL.PITCH, onlinemod.OnlineLobbyState.Speed);
+				lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.PITCH, onlinemod.OnlineLobbyState.Speed);
 		}
+    if(FlxG.mouse.wheel != 0){
+      var wheel:Int = ((Chat.chatMessagesList.amountNext > 0 && FlxG.mouse.wheel < 0) || (Chat.chatMessagesList.amountPrevious > 0 && FlxG.mouse.wheel > 0) ? FlxG.mouse.wheel : 0);
+      Chat.chatMessagesList.scrollIndex += -wheel;
+    }
     if (Chat.chatField.hasFocus && FlxG.keys.justPressed.ENTER)
       Chat.SendChatMessage();
     Chat.update(elapsed);

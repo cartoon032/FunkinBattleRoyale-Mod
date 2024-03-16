@@ -1,5 +1,6 @@
 package;
 
+import haxe.macro.Expr.Catch;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
@@ -32,7 +33,9 @@ import flash.Lib;
 import SickMenuState;
 import flash.media.Sound;
 import flixel.FlxCamera;
+import sys.thread.Thread;
 
+import Shaders;
 import Discord.DiscordClient;
 
 using StringTools;
@@ -72,8 +75,6 @@ class TitleState extends MusicBeatState
 	var ngSpr:FlxSprite;
 	public static var p2canplay = true;
 	public static var choosableCharacters:Array<String> = [];
-	// public static var choosableStages:Array<String> = ["default","stage"];
-	// public static var choosableStagesLower:Map<String,String> = [];
 	public static var stages:Array<StageInfo> = [];
 	public static var choosableCharactersLower:Map<String,String> = [];
 	public static var weekChars:Map<String,Array<String>> = [];
@@ -420,6 +421,8 @@ class TitleState extends MusicBeatState
 
 		osuBeatmapLoc = loc;
 	}
+	var halloweenEffect:VHSEffect = new VHSEffect();
+	var halloween:Bool = false;
 	override public function create():Void
 	{
 		Assets.loadLibrary("shared");
@@ -427,14 +430,16 @@ class TitleState extends MusicBeatState
 		{
 			trace("Loaded " + openfl.Assets.getLibrary("default").assetsLoaded + " assets (DEFAULT)");
 		}
-		
+
 		PlayerSettings.init();
 
 		DiscordClient.initialize();
 
 		Application.current.onExit.add (function (exitCode) {
 			DiscordClient.shutdown();
-		 });
+		});
+
+		halloween = (Date.now().getHours() == 2);
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
@@ -442,27 +447,12 @@ class TitleState extends MusicBeatState
 
 		super.create();
 
-		
 		if(CoolUtil.font != Paths.font("vcr.ttf")) flixel.system.FlxAssets.FONT_DEFAULT = CoolUtil.font;
 		KadeEngineData.initSave();
 
 		Highscore.load();
 		checkCharacters();			
 
-
-		if (FlxG.save.data.weekUnlocked != null)
-		{
-			// FIX LATER!!!
-			// WEEK UNLOCK PROGRESSION!!
-			// StoryMenuState.weekUnlocked = FlxG.save.data.weekUnlocked;
-
-			if (StoryMenuState.weekUnlocked.length < 4)
-				StoryMenuState.weekUnlocked.insert(0, true);
-
-			// QUICK PATCH OOPS!
-			if (!StoryMenuState.weekUnlocked[0])
-				StoryMenuState.weekUnlocked[0] = true;
-		}
 		// loadScores();
 		pauseMenuMusic = Sound.fromFile((if (FileSystem.exists('mods/pauseMenu.ogg')) 'mods/pauseMenu.ogg' else if (FileSystem.exists('assets/music/breakfast.ogg')) 'assets/music/breakfast.ogg' else "assets/shared/music/breakfast.ogg"));
 
@@ -473,9 +463,9 @@ class TitleState extends MusicBeatState
 	}
 
 	var logoBl:FlxSprite;
-	var gfDance:FlxSprite;
-	var danceLeft:Bool = false;
-	var titleText:FlxSprite;
+	var gf:Character;
+	var gf2:Character;
+	var titleText:Alphabet;
 	override function tranOut(){return;}
 	function startIntro()
 	{
@@ -513,7 +503,8 @@ class TitleState extends MusicBeatState
 			Conductor.changeBPM(70);
 			persistentUpdate = true;
 			FlxG.fixedTimestep = false; // Makes the game not be based on FPS for things, thank you Forever Engine for doing this
-			FlxG.mouse.useSystemCursor = true; // Uses system cursor, did not know this was a thing until Forever Engine
+			// make this toggleable cause fucking windows 11 fullscreen bug
+			FlxG.mouse.useSystemCursor = FlxG.save.data.UsingSystemMouse; // Uses system cursor, did not know this was a thing until Forever Engine
 			if(!FileSystem.exists("mods/menuTimes.json")){ // Causes crashes if done while game is running, unknown why
 				File.saveContent("mods/menuTimes.json",Json.stringify(SickMenuState.musicList));
 			}else{
@@ -524,11 +515,7 @@ class TitleState extends MusicBeatState
 					MusicBeatState.instance.showTempmessage("Unable to load Music Timing: " + e.message,FlxColor.RED);
 				}
 			}
-
-
 		}
-
-
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		add(bg);
 
@@ -538,23 +525,27 @@ class TitleState extends MusicBeatState
 		logoBl.animation.addByPrefix('bump', 'logo bumpin', 24);
 		logoBl.animation.play('bump');
 		logoBl.updateHitbox();
-
-		gfDance = new FlxSprite(FlxG.width, FlxG.height * 0.07);
-		gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
-		gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
-		gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
-		gfDance.antialiasing = true;
-		add(gfDance);
+		try{
+			if(FlxG.save.data.gfTitleShow){
+				gf = new Character(FlxG.width, FlxG.height * 0.07, FlxG.save.data.gfChar,false,2,true,null,null,false);
+				gf2 = new Character(FlxG.width, FlxG.height * 0.07, FlxG.save.data.gfChar,false,2,true,null,null,false);
+				var shader:ChromAbEffect = new ChromAbEffect();
+				gf2.shader = shader.shader;
+				shader.strength = -0.0015;
+				shader.update(0);
+				add(gf2);
+				add(gf);
+			}
+		}catch(e){
+			trace("There a problem try to load GF for title screen. Disable to pervert more problem");
+			FlxG.save.data.gfTitleShow = false;
+		}
 		add(logoBl);
 
-		titleText = new FlxSprite(100, FlxG.height * 0.8);
-		titleText.frames = Paths.getSparrowAtlas('titleEnter');
-		titleText.animation.addByPrefix('idle', "Press Enter to Begin", 24);
-		titleText.animation.addByPrefix('press', "ENTER PRESSED", 24);
-		titleText.antialiasing = true;
-		titleText.animation.play('idle');
-		titleText.updateHitbox();
-		// titleText.screenCenter(X);
+		titleText = new Alphabet(0, 0,"PRESS ENTER TO BEGIN",true,false);
+		titleText.x = 100;
+		titleText.y = FlxG.height * 0.8;
+		titleText.screenCenter(X);
 		add(titleText);
 
 		var logo:FlxSprite = new FlxSprite().loadGraphic(Paths.image('logo'));
@@ -625,6 +616,7 @@ class TitleState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
+		halloweenEffect.update(elapsed);
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
 		// FlxG.watch.addQuick('amp', FlxG.sound.music.amplitude);
@@ -648,29 +640,31 @@ class TitleState extends MusicBeatState
 		if (pressedEnter && !transitioning && skippedIntro)
 		{
 			if (FlxG.save.data.flashing)
-				titleText.animation.play('press');
+				FlxTween.tween(titleText,{alpha:0},0.1,{type:PINGPONG,ease:FlxEase.cubeInOut});
 
-			// FlxG.camera.flash(FlxColor.WHITE, 1);
 			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
+			if(FlxG.save.data.gfTitleShow){
+				var Anim:Array<String> = (halloween ? ["scared","cheer","hey","singUP"] : ["cheer","hey","singUP"]);
+				gf.playAnimAvailable(Anim,true);
+				gf2.playAnimAvailable(Anim,true);
+			}
 
 			transitioning = true;
-			// FlxG.sound.music.stop();
-			
+
 			#if !debug
 			if (FlxG.keys.pressed.SHIFT || FileSystem.exists(Sys.getCwd() + "/noUpdates") || checkedUpdate || !FlxG.save.data.updateCheck)
 				FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 			else
 			{
+				showTempmessage("Checking for updates..",FlxColor.WHITE);
+				#if (target.threaded)
+				Thread.create(function(){
+				#end
+					// Get current version of FNFBR, Uses kade's update checker
 
-				showTempmessage("Not Checking for updates..",FlxColor.WHITE);
-				tempMessage.screenCenter(X);
-				new FlxTimer().start(2, function(tmr:FlxTimer)
-				{
-					// Get current version of FNFBR, Uses kade's update checker 
-	
-					var http = new haxe.Http("https://raw.githubusercontent.com/cartoon032/Super-Engine-T-Mod/" + (if(MainMenuState.nightly == "") "master" else "nightly") + "/version.downloadMe"); // It's recommended to change this if forking
+					var http = new haxe.Http("https://pastebin.com/raw/ni6wc8bK"); // It's recommended to change this if forking
 					var returnedData:Array<String> = [];
-					
+
 					http.onData = function (data:String)
 					{
 						checkedUpdate = true;
@@ -679,21 +673,21 @@ class TitleState extends MusicBeatState
 						updatedVer = returnedData[0];
 						OutdatedSubState.needVer = updatedVer;
 						OutdatedSubState.currChanges = returnedData[1];
-						// if (!MainMenuState.ver.contains(updatedVer.trim()) || (MainMenuState.nightly != "")) // nah
-						// {
-						// 	// trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
-						// 	outdated = true;
-							
-						// }
+						if (!MainMenuState.modver.contains(updatedVer.trim()) || (MainMenuState.nightly != ""))
+						{
+							// trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
+							outdated = true;
+						}
 						FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 					}
 					http.onError = function (error) {
-					  trace('error: $error');
-					  FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState()); // fail but we go anyway
+						trace('error: $error');
+						FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 					}
-					
 					http.request();
+				#if (target.threaded)
 				});
+				#end
 			}
 			#else
 				FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
@@ -744,12 +738,10 @@ class TitleState extends MusicBeatState
 		super.beatHit();
 
 		if (logoBl != null) logoBl.animation.play('bump');
-		danceLeft = !danceLeft;
-
-		if (danceLeft)
-			gfDance.animation.play('danceRight');
-		else
-			gfDance.animation.play('danceLeft');
+		if(FlxG.save.data.gfTitleShow && !transitioning){
+			gf.dance(curBeat % 2 == 0);
+			gf2.dance(curBeat % 2 == 0);
+		}
 
 		switch (curBeat)
 		{
@@ -796,9 +788,6 @@ class TitleState extends MusicBeatState
 
 			// credTextShit.text = 'Shoutouts Tom Fulp';
 			// credTextShit.screenCenter();
-
-
-
 			case 9:
 				createCoolText([curWacky[0]]);
 			// credTextShit.visible = true;
@@ -839,13 +828,27 @@ class TitleState extends MusicBeatState
 			FlxG.camera.flash(FlxColor.WHITE, 4);
 			remove(credGroup);
 			skippedIntro = true;
-			var _x = logoBl.x;
-			logoBl.x = -100;
-			var _y = titleText.y;
-			titleText.y = FlxG.height;
-			FlxTween.tween(gfDance,{x: FlxG.width * 0.4},0.4);
-			FlxTween.tween(logoBl,{x: _x},0.5);
-			FlxTween.tween(titleText,{y: _y},0.5);
+
+			if(halloween){ // lmao
+				logoBl.angle = FlxG.random.int(0,360);
+				logoBl.x = FlxG.random.int(-100,100);
+				logoBl.y = FlxG.random.int(-100,100);
+				FlxG.camera.setFilters([new openfl.filters.ShaderFilter(halloweenEffect.shader)]);
+				titleText.color=0xffff8b0f;
+			}
+
+			if(FlxG.save.data.gfTitleShow){
+				var _x = logoBl.x;
+				logoBl.x = -100;
+				FlxTween.tween(gf,{x: FlxG.width * 0.4},0.4);
+				FlxTween.tween(gf2,{x: FlxG.width * 0.4},0.4);
+				FlxTween.tween(logoBl,{x: _x},0.5);
+			}else{
+				FlxG.camera.scroll.x += 100;
+				FlxG.camera.scroll.y += 100;
+				logoBl.screenCenter(X);
+				FlxTween.tween(FlxG.camera.scroll,{x: 0,y:0},1,{ease:FlxEase.cubeOut});
+			}
 		}
 	}
 
@@ -896,7 +899,7 @@ class TitleState extends MusicBeatState
 		if(_sound != null){
 			_sound.pause();
 			_sound.destroy();
-		} 
+		}
 		flixel.util.FlxTimer.globalManager.clear();
 		FlxG.stage.removeChild(_sprite);
 		_sprite = null;

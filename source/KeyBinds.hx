@@ -13,6 +13,18 @@ class KeyBinds
 {
 
     public static var gamepad:Bool = false;
+	public static var defaultKeys:Array<Array<String>> = [
+		["Q","W","E","R","V","N","U","I","O","P"],
+		["Q","W","E","R","V","Space","N","U","I","O","P"],
+		["A","S","D","F","C","V","N","M","J","K","L","SEMICOLON"],
+		["A","S","D","F","C","V","SPACE","N","M","J","K","L","SEMICOLON"],
+		["Q","W","E","R","S","D","F","J","K","L","U","I","O","P"],
+		["Q","W","E","R","S","D","F","SPACE","J","K","L","U","I","O","P"],
+		["Q","W","E","R","A","S","D","F","H","J","K","L","U","I","O","P"],
+		["Q","W","E","R","A","S","D","F","SPACE","H","J","K","L","U","I","O","P"],
+		["Q","W","E","R","A","S","D","F","V","B","H","J","K","L","U","I","O","P"],
+		["Q","W","E","R","A","S","D","F","C","V","SPACE","N","M","H","J","K","L","U","I","O","P"]
+	];
 
     public static function resetBinds():Void{
 
@@ -45,19 +57,6 @@ class KeyBinds
         FlxG.save.data.L2Bind = "J";
         FlxG.save.data.U1Bind = "K";
         FlxG.save.data.R2Bind = "L";
-
-        FlxG.save.data.EX0Bind = "Q";
-        FlxG.save.data.EX1Bind = "W";
-        FlxG.save.data.EX2Bind = "E";
-        FlxG.save.data.EX3Bind = "R";
-        FlxG.save.data.EX4Bind = "C";
-        FlxG.save.data.EX5Bind = "V";
-        FlxG.save.data.EX6Bind = "N";
-        FlxG.save.data.EX7Bind = "M";
-        FlxG.save.data.EX8Bind = "U";
-        FlxG.save.data.EX9Bind = "I";
-        FlxG.save.data.EX10Bind = "O";
-        FlxG.save.data.EX11Bind = "P";
         PlayerSettings.player1.controls.loadKeyBinds();
 
     }
@@ -179,54 +178,5 @@ class KeyBinds
             FlxG.save.data.R2Bind = "L";
             trace("No R2");
         }
-        if(FlxG.save.data.EX0Bind == null){
-            FlxG.save.data.EX0Bind = "Q";
-            trace("No EX0");
-        }
-        if(FlxG.save.data.EX1Bind == null){
-            FlxG.save.data.EX1Bind = "W";
-            trace("No EX1");
-        }
-        if(FlxG.save.data.EX2Bind == null){
-            FlxG.save.data.EX2Bind = "E";
-            trace("No EX2");
-        }
-        if(FlxG.save.data.EX3Bind == null){
-            FlxG.save.data.EX3Bind = "R";
-            trace("No EX3");
-        }
-        if(FlxG.save.data.EX4Bind == null){
-            FlxG.save.data.EX4Bind = "C";
-            trace("No EX4");
-        }
-        if(FlxG.save.data.EX5Bind == null){
-            FlxG.save.data.EX5Bind = "V";
-            trace("No EX5");
-        }
-        if(FlxG.save.data.EX6Bind == null){
-            FlxG.save.data.EX6Bind = "N";
-            trace("No EX6");
-        }
-        if(FlxG.save.data.EX7Bind == null){
-            FlxG.save.data.EX7Bind = "M";
-            trace("No EX7");
-        }
-        if(FlxG.save.data.EX8Bind == null){
-            FlxG.save.data.EX8Bind = "U";
-            trace("No EX8");
-        }
-        if(FlxG.save.data.EX9Bind == null){
-            FlxG.save.data.EX9Bind = "I";
-            trace("No EX9");
-        }
-        if(FlxG.save.data.EX10Bind == null){
-            FlxG.save.data.EX10Bind = "O";
-            trace("No EX10");
-        }
-        if(FlxG.save.data.EX11Bind == null){
-            FlxG.save.data.EX11Bind = "P";
-            trace("No EX11");
-        }
     }
-
 }
