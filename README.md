@@ -3,17 +3,17 @@ Originally this mod was only for Pull requests to main but at some point, I add 
 so she asks me to maintain the mod myself
 some notable feature
 - Multi Key from 1K-18K + 21K
+- Better online mode
+- support for more chart type
 - (hopefully) a smoother Mid Song Mania Change.
 - support for Leather Engine multiple Characters with a bit of edit in the chart file.<br>
-    this doesn't mean multiple characters character it just allows the chart to load more character and using notetype to assign who sing what note
-- with my custom server code a better online
+    this doesn't mean multiple characters character it just allows the chart to load more characters and use notetype to assign who sings what note
 - a probably better Chart Editor
 - More customization Discord RPC
-- Song Speed
 - and a lot more
-<br>[Discord server](https://discord.gg/28GPGTRuuR) *This the same invite link to SE discord*
+<br>[Discord server](https://discord.gg/gBGDVpTBz8)
 
-<br><br> Usually I don't really commit anything here while still updating the code from time to time *look at me not posting anything for the past half year*
+<br><br> Usually I don't commit anything here while still updating the code from time to time
 <br><br>So if you want an update or have a suggestion DM me on Discord naytoon I'm up most of the time
 <br><br> Also I commit in one mega commit that got everything in it so it might look like I don't do much but I did a lot
 
