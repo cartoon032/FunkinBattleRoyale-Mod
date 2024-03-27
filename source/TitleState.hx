@@ -662,7 +662,7 @@ class TitleState extends MusicBeatState
 				#end
 					// Get current version of FNFBR, Uses kade's update checker
 
-					var http = new haxe.Http("https://pastebin.com/raw/ni6wc8bK"); // It's recommended to change this if forking
+					var http = new haxe.Http("https://raw.githubusercontent.com/cartoon032/Super-Engine-T-Mod/master/version.downloadMe");
 					var returnedData:Array<String> = [];
 
 					http.onData = function (data:String)
