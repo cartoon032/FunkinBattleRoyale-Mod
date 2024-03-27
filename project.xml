@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project>
+<project
+	xmlns="http://lime.openfl.org/project/1.0.4"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://lime.openfl.org/project/1.0.4 http://lime.openfl.org/xsd/project-1.0.4.xsd">
 	<!-- _________________________ Application Settings _________________________ -->
 
 	<app title="FNF: Super Engine T Mod" file="FNF Super Engine-T" packageName="com.fnfsuperengine" package="com.fnfsuperengine" main="Main" version="0.2.7.1" company="superpowers04" />
@@ -18,7 +21,7 @@
 	<!-- ____________________________ Window Settings ___________________________ -->
 
 	<!--These window settings apply to all targets-->
-	<window width="1280" height="720" fps="" background="#000000" hardware="true" vsync="false" />
+	<window width="1280" height="720" fps="" background="#100010" hardware="true" vsync="false" allowShaders="true" />
 
 	<!--HTML5-specific-->
 	<window if="html5" resizable="true" />
@@ -27,46 +30,42 @@
 	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" vsync="false"/>
 
 	<!--Mobile-specific-->
-	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" resizable="false"/>
+	<window if="mobile" orientation="landscape" fullscreen="true" resizable="false"/>
 
 	<!--Switch-specific-->
-	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
+	<window if="switch" orientation="landscape" fullscreen="true" resizable="true" />
 
 	<!-- _____________________________ Path Settings ____________________________ -->
 
 	<set name="BUILD_DIR" value="export/release" unless="debug ghaction"/>
 	<set name="BUILD_DIR" value="export/32bit" if="32bit" unless="ghaction"/>
-	<set name="BUILD_DIR" value="c:/fnfbrbin/" if="ghaction"/>
 	<set name="BUILD_DIR" value="export/debug" if="debug" />
 
 	<classpath name="source" />
 
 	<assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
-	<assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
+	<assets path="assets/preload" rename="assets" exclude="*.mp3" embed='false' unless="web"/>
 	
-	<!-- <define name="PRELOAD_ALL" /> -->
 	<define name="PRELOAD_ALL" unless="web" />
 	<define name="NO_PRELOAD_ALL" unless="PRELOAD_ALL"/>
 	
-	<section if="PRELOAD_ALL">
-		<library name="songs"    preload="true" />
+	<section if="EMBED_ALL">
 		<library name="shared"   preload="true" />
-		<!-- <library name="mods"    preload="true" /> -->
+	</section>
+	<section if="PRELOAD_ALL" unless="EMBED_ALL">
+		<library name="shared"   preload="true" />
 	</section>
 	
 	<section if="NO_PRELOAD_ALL">
-		<library name="songs"    preload="false" />
 		<library name="shared"   preload="false" />
-		<!-- <library name="mods"    preload="false" /> -->
 	</section>
+
+	<assets path="assets/shared"   library="shared"   exclude="*.mp3" />
 	
-	<assets path="assets/songs"    library="songs"    exclude="*.ogg" if="web"/>
-	<assets path="assets/songs"    library="songs"    exclude="*.mp3" unless="web"/>
-	<assets path="assets/shared"   library="shared"   exclude="*.ogg" if="web"/>
-	<assets path="assets/shared"   library="shared"   exclude="*.mp3" unless="web"/>
-	
+	<assets path="assets/fonts" embed='true'/>
 	<assets path='example_mods' rename='mods' embed='false'/>
 	<assets path='art/readme.txt' rename='do NOT readme.txt' />
+	<!-- <assets path='art/credits.md' rename='Credits.md' /> -->
 	<assets path='LICENSE' rename='LICENSE.txt' />
 	<!-- <template path='mods' /> -->
 	
@@ -80,24 +79,30 @@
 	<assets path="assets/fonts" embed='true'/>
 	<!-- _______________________________ Libraries ______________________________ -->
 
-	<haxelib name="flixel" />
 	<haxedev set='webgl' if="web"/>
 
 	<!--In case you want to use the addons package-->
-	<haxelib name="flixel-addons" />
+	<!-- Eric's versions of flixel/openfl -->
+	<haxelib name="openfl"/>
+	<haxelib name="flixel"/>
+	<haxelib name="flixel-addons"/>
+
+	<haxedef name='usingcppia' if='cppia'/>
+
+	<!-- <haxedef name='FLXRUNTIMESHADER' if='desktop'> -->
+
 	<haxelib name="hscript-improved" />
-	<haxedef name="hscriptPos"/>
 	<!-- Fuck Them FlxAnimate crash my compile don't know and don't care-->
 	<!-- <haxelib name="flxanimate"/> -->
+	<haxedef name="hscriptPos" />
 	<haxelib name="hxShaders"/>
+	<haxelib name="linc_luajit" if="cpp" />
+	<haxelib name="discord_rpc" if="desktop cpp" />
 
 	<!--In case you want to use the ui package-->
 	<haxelib name="flixel-ui" />
 	<!-- <haxelib name="newgrounds"/> -->
 	<haxelib name="faxe" if='switch'/>
-	<!-- <haxelib name="polymod"/> -->
-	<haxelib name="discord_rpc" if="windows"/>
-	<haxelib name="linc_luajit" if="cpp" />
 
 	<haxelib name="hxcpp-debug-server" if="debug"/>
 
@@ -121,7 +126,6 @@
 	<!--Optimise inputs, be careful you will get null errors if you don't use conditionals in your game-->
 	<!-- <haxedef name="FLX_NO_MOUSE" if="mobile" /> -->
 	<!-- <haxedef name="FLX_NO_KEYBOARD" if="mobile" /> -->
-	<!-- <haxedef name="FLX_NO_TOUCH" if="desktop" /> -->
 	<haxedef name="FLX_NO_GAMEPAD" />
 
 	<!--Disable the Flixel core sound tray-->
@@ -135,13 +139,16 @@
 
 	<!--Disable the Flixel core debugger. Automatically gets set whenever you compile in release mode!-->
 	<haxedef name="FLX_NO_DEBUG" unless="debug" />
+
 	<!-- <haxedef name="HXCPP_DEBUGGER"/> -->
 	<!-- This is to hopefully increase preformance on x64 systems, if it's not compiling to them already for some reason -->
 	<haxedef name="HXCPP_M64"/>
 	<haxedef name="HXCPP_CHECK_POINTER"/>
 	<haxedef name="HXCPP_STACK_LINE"/>
 	<haxedef name="HXCPP_STACK_TRACE"/>
+	<!-- I really wish i know why this just error out -->
 	<!-- <haxedef name="HXCPP_GC_GENERATIONAL"/> -->
+	<haxedef name="NO_PRECOMPILED_HEADERS"/>
 
 	<!--Enable this for Nape release builds for a serious peformance improvement-->
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />

@@ -286,7 +286,7 @@ class OnlinePlayState extends PlayState
 		CoolLeaderBoard.sort((a,b) -> Std.int(b[3].text.split(' ')[0]) - Std.int(a[3].text.split(' ')[0]));
 		var WhereME = 1;
 		for(Array in CoolLeaderBoard){
-			if(Array[3].text.split(' ')[0] == PlayState.songScore)
+			if(Array[1].text.contains(OnlineNickState.nickname))
 				break;
 			else
 				WhereME++;

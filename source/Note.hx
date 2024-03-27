@@ -140,7 +140,7 @@ class Note extends FlxSprite
 	
 	public static var noteNames:Array<String> = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
 	public static var playernoteNames:Array<String> = ['purple','aqua','green','red','white','yellow','pink','blue','orange'];
-	public var skipNote:Bool = true;
+	public var skipNote:Bool = false;
 	public var childNotes:Array<Note> = [];
 	public var parentNote:Note = null;
 	public var parentSprite:FlxSprite = null;
@@ -805,86 +805,83 @@ class Note extends FlxSprite
 
 	var missedNote:Bool = false;
 	override function draw(){
-		if(!(eventNote && !inCharter) && showNote){
-			super.draw();
-		}
+		if(!inCharter && (!showNote || !visible || eventNote)) return;
+		super.draw();
 		if(ntText != null && inCharter && FlxG.save.data.showNoteType){ntText.x = this.x;ntText.y = this.y;ntText.draw();}
 	}
-	override function update(elapsed:Float)
-	{
-		super.update(elapsed);
-		switch(inCharter){
-			case true:if(isOnScreen()){
-					wasGoodHit = (strumTime <= Conductor.songPosition);
-					alpha = (wasGoodHit ? 0.7 : 1);
-					visible = true;
-					if(type != ntText.text){
-						ntText.text = type;
-						if(Std.isOfType(type,Array)) ntText.color = 0x00FFFF; else if(Std.isOfType(type,Int)) ntText.color = 0x00FF00; else ntText.color = 0xFFFFFF;
-					}
-				}
-			case false: if (!skipNote || isOnScreen()){ // doesn't calculate anything until they're on screen
-				skipNote = false;
-				visible = (!eventNote && showNote);
-				callInterp("noteUpdate",[this]);
-				if(updateAIPress)
-					aiShouldPress = updateAIPress = PlayState.ShouldAIPress[if(ourNote) 0 else 1][ArrayType[0]];
-				if (mustPress && !eventNote)
-				{
-					// ass
-					if (shouldntBeHit)
-					{
-						if (strumTime - Conductor.songPosition <= (45 * Conductor.timeScale) && strumTime - Conductor.songPosition >= (-45 * Conductor.timeScale))
-							canBeHit = true;
-						else
-							canBeHit = false;
-					}else{
-						if ((isSustainNote && (strumTime > Conductor.songPosition - Conductor.safeZoneOffset && strumTime < Conductor.songPosition + (Conductor.safeZoneOffset * 0.5)) ) ||
-							strumTime > Conductor.songPosition - Conductor.safeZoneOffset && strumTime < Conductor.songPosition + Conductor.safeZoneOffset  )
-								canBeHit = true;
-
-						if (!wasGoodHit && strumTime < Conductor.songPosition - Conductor.safeZoneOffset * Conductor.timeScale){
-							canBeHit = false;
-							tooLate = true;
-							skipNote = true;
-							if (!shouldntBeHit)
-							{
-								PlayState.instance.health += PlayState.SONG.noteMetadata.tooLateHealth;
-								PlayState.instance.vocals.volume = 0;
-								PlayState.instance.noteMiss(noteData, this);
-							}
-							// FlxTween.tween(this,{alpha:0},0.2,{onComplete:(_)->{
-							PlayState.instance.notes.remove(this, true);
-							destroy();
-							// }});
-						}
-					}
-				}
-				else if(eventNote){
-					if (strumTime <= Conductor.songPosition){
-						this.hit(1,this);
-						this.destroy();
-					}
-				}
-				else if (aiShouldPress && PlayState.dadShow /* && !PlayState.p2canplay */ && strumTime <= Conductor.songPosition)
-				{
-					hit(if(ourNote) 0 else 1,this);
-					callInterp("noteHitDad",[PlayState.dad,this]);
-					PlayState.dad.holdTimer = 0;
-
-						try{
-							if(PlayState.instance.dadhitSound && !shouldntBeHit){
-							if(isSustainNoteStart) FlxG.sound.play(PlayState.holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
-							else if(!isSustainNote) FlxG.sound.play(PlayState.hitSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
-						}
-					}catch(e){}
-					if (PlayState.dad.useVoices){PlayState.dad.voiceSounds[noteData].play(1);PlayState.dad.voiceSounds[noteData].time = 0;PlayState.instance.vocals.volume = 0;}else if (PlayState.SONG.needsVoices) PlayState.instance.vocals.volume = FlxG.save.data.voicesVol;
-
-					PlayState.instance.notes.remove(this, true);
-					destroy();
-				}
-				callInterp("noteUpdateAfter",[this]);
-			}
+	override function destroy(){
+		if(PlayState.instance != null){
+			callInterp('noteDestroy',[this]);
+			if(PlayState.instance.cancelCurrentFunction) return;
 		}
+		super.destroy();
+	}
+	public function updateCanHit():Bool{
+		if(shouldntBeHit){
+			return canBeHit = (strumTime - Conductor.songPosition <= (45 * Conductor.timeScale) && strumTime - Conductor.songPosition >= (-45 * Conductor.timeScale));
+		}
+		return canBeHit = ((isSustainNote && (strumTime > Conductor.songPosition - Conductor.safeZoneOffset && strumTime < Conductor.songPosition + ((Conductor.safeZoneOffset * 0.5) * Conductor.timeScale)) ) ||
+				strumTime > Conductor.songPosition - (Conductor.safeZoneOffset * Conductor.timeScale) && strumTime < Conductor.songPosition + Conductor.safeZoneOffset  );
+	}
+	override function update(elapsed:Float) {
+		// super.update(elapsed);
+		animation.update(elapsed);
+		if(inCharter){
+			wasGoodHit = (strumTime <= Conductor.songPosition);
+			alpha = (wasGoodHit ? 0.7 : 1);
+			if(type != ntText.text){
+				ntText.text = type;
+				if(Std.isOfType(type,Array)) ntText.color = 0x00FFFF; else if(Std.isOfType(type,Int)) ntText.color = 0x00FF00; else ntText.color = 0xFFFFFF;
+			}
+			visible = true;
+			skipNote = false;
+			return;
+		}
+		callInterp("noteUpdate",[this]);
+		if(PlayState.instance.cancelCurrentFunction) return;
+		if(skipNote) return;
+		visible = showNote;
+		var dad = PlayState.dad;
+		if (mustPress) {
+			if (shouldntBeHit) {
+				updateCanHit();
+			}else{
+				updateCanHit();
+				if (!wasGoodHit && strumTime < Conductor.songPosition - (Conductor.safeZoneOffset * Conductor.timeScale)){
+					canBeHit = false;
+					tooLate = true;
+					skipNote = true;
+					if (!shouldntBeHit) {
+						PlayState.instance.health += PlayState.SONG.noteMetadata.tooLateHealth;
+						PlayState.instance.vocals.volume = 0;
+						PlayState.instance.noteMiss(noteData, this);
+					}
+					// FlxTween.tween(this,{alpha:0},0.2,{onComplete:(_)->{
+					PlayState.instance.notes.remove(this, true);
+
+					destroy();
+					// }});
+				}
+			}
+		}else if (aiShouldPress && (dad == null || !dad.isStunned) && PlayState.dadShow && !PlayState.p2canplay && strumTime <= Conductor.songPosition) {
+			hit(1,this);
+			callInterp("noteHitDad",[dad,this]);
+			dad.holdTimer = 0;
+			if (dad.useVoices){
+				dad.voiceSounds[noteData].play(1);
+				dad.voiceSounds[noteData].time = 0;
+				PlayState.instance.vocals.volume = 0;
+			}else if (PlayState.instance.vocals != null){
+				PlayState.instance.vocals.volume = FlxG.save.data.voicesVol;
+			}
+			if(PlayState.instance.dadhitSound && !shouldntBeHit){
+			if(isSustainNoteStart) FlxG.sound.play(PlayState.holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
+			else if(!isSustainNote) FlxG.sound.play(PlayState.hitSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
+			}
+
+			PlayState.instance.notes.remove(this, true);
+			destroy();
+		}
+		callInterp("noteUpdateAfter",[this]);
 	}
 }

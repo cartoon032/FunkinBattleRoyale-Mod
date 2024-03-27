@@ -441,7 +441,7 @@ class AnimationDebug extends MusicBeatState
 			case 2: 1;
 			default: 0;
 		};
-		FlxG.switchState(new AnimationDebug(daAnim,side == 0,side,charSel));
+		FlxG.switchState(new AnimationDebug(daAnim,side == 0,side,charSel,dragdrop));
 	}
 	function exit(){
 		FlxG.mouse.visible = false;
@@ -449,7 +449,6 @@ class AnimationDebug extends MusicBeatState
 			FlxG.switchState(new CharSelection()); 
 		}else if(dragdrop){
 			FlxG.switchState(new MainMenuState()); 
-
 		}
 		else switch(PlayState.stateType){
 			case 2: LoadingState.loadAndSwitchState(new onlinemod.OfflinePlayState()); 

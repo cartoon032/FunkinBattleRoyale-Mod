@@ -452,6 +452,9 @@ class PlayState extends ScriptMusicBeatState
 	public override function errorHandle(?error:String = "",?forced:Bool = false) handleError(error,forced);
 	public function handleError(?error:String = "",?forced:Bool = false){
 		SHUTUP();
+		DiscordClient.changePresence("Script Error -- "
+		+ PlayState.detailsText
+		, PlayState.iconRPC,false,null,"Error-PlayState");
 		generatedMusic = persistentUpdate = false;
 		canPause=true;
 		try{
@@ -2938,10 +2941,8 @@ class PlayState extends ScriptMusicBeatState
 			// we be men and actually calculate the time :)
 			if (daNote.tooLate)
 			{
-				daNote.active = false;
-				daNote.visible = false;
-				daNote.kill();
 				notes.remove(daNote, true);
+				daNote.destroy();
 			}
 			else
 			{
@@ -3012,9 +3013,8 @@ class PlayState extends ScriptMusicBeatState
 					noteMiss(daNote.noteData, daNote);
 				}
 
-				daNote.visible = false;
-				daNote.kill();
 				notes.remove(daNote, true);
+				daNote.destroy();
 			}
 		}
 	}
@@ -3604,11 +3604,9 @@ class PlayState extends ScriptMusicBeatState
 			note.wasGoodHit = true;
 			if (boyfriendArray[onlinecharacterID].useVoices){boyfriendArray[onlinecharacterID].voiceSounds[note.noteData].play(1);boyfriendArray[onlinecharacterID].voiceSounds[note.noteData].time = 0;vocals.volume = 0;}else vocals.volume = 1;
 			note.skipNote = true;
-			note.kill();
 			notes.remove(note, true);
-			note.destroy();
-			
 			updateAccuracy(note.isSustainNote);
+			note.destroy();
 		// }
 	}
 		
@@ -3632,7 +3630,6 @@ class PlayState extends ScriptMusicBeatState
 		
 		if(daNote != null && forced && daNote.shouldntBeHit){ // Only true on hurt arrows
 			FlxG.sound.play(hurtSoundEff, 1);
-			daNote.kill();
 			notes.remove(daNote, true);
 			daNote.destroy();
 
@@ -3787,7 +3784,7 @@ class PlayState extends ScriptMusicBeatState
 
 		if (generatedMusic && SONG.notes[Math.floor(curStep / 16)] != null)
 		{
-			curSection = Std.int(curStep / 16);
+			curSection = Math.floor(curStep / 16);
 			var sect = SONG.notes[curSection];
 			if (sect.changeBPM && !Math.isNaN(sect.bpm))
 				Conductor.changeBPM(sect.bpm * songspeed);

@@ -108,7 +108,6 @@ class Highscore
 		if(!FlxG.save.data.botplay)
 		{
 			var daWeek:String = formatSong('week$week', diff);
-
 			if (songScores.exists(daWeek))
 			{
 				if (songScores.get(daWeek) < score)

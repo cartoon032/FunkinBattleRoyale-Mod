@@ -891,7 +891,7 @@ class ChartingState extends MusicBeatState
 					updateHeads();
 				case 'Change BPM':
 					_song.notes[curSection].changeBPM = check.checked;
-					FlxG.log.add('changed bpm shit');
+					trace('changed bpm shit');
 				case "Alternate Animation":
 					_song.notes[curSection].altAnim = check.checked;
 				case "Show Note Type":
@@ -902,7 +902,7 @@ class ChartingState extends MusicBeatState
 		{
 			var nums:FlxUINumericStepper = cast sender;
 			var wname = nums.name;
-			FlxG.log.add(wname);
+			trace(wname);
 			if (wname == 'section_length')
 			{
 				if (nums.value <= 4)
@@ -1169,7 +1169,7 @@ class ChartingState extends MusicBeatState
 					&& FlxG.mouse.y < gridBGBelow.y + gridBGBelow.height
 					&& curSection + WhichSectionToPlace >= 0 && !FlxG.keys.pressed.SHIFT)
 				{
-					FlxG.log.add('added note');
+					trace('added note');
 					addNote();
 				}
 			}

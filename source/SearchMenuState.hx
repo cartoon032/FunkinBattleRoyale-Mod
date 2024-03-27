@@ -95,7 +95,7 @@ class SearchMenuState extends ScriptMusicBeatState
 		if (ChartingState.charting) ChartingState.charting = false;
 		if (ChartingState.lastPath != null) ChartingState.lastPath = null;
 		if (FlxG.save.data.songUnload && PlayState.SONG != null) {PlayState.SONG = null;} // I'm not even sure if this is needed but whatever
-		PlayState.nameSpace = "";/* PlayState.scripts = []; */PlayState.hsBrTools = null;onlinemod.OfflinePlayState.instFile = onlinemod.OfflinePlayState.voicesFile = "";
+		PlayState.nameSpace = "";/* PlayState.scripts = []; */PlayState.hsBrTools = null;onlinemod.OfflinePlayState.instFile = onlinemod.OfflinePlayState.voicesFile = "";PlayState.invertedChart = false;
 		HSBrTools.shared = [];
 		SickMenuState.chgTime = true;
 		// if(Note.noteNames[0] == null){Note.noteNames = ["purple","blue","green",'red'];}

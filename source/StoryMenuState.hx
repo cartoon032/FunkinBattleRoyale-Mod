@@ -18,6 +18,7 @@ import sys.FileSystem;
 import multi.MultiPlayState;
 import openfl.Assets;
 import tjson.Json;
+import Discord.DiscordClient;
 
 using StringTools;
 
@@ -371,6 +372,7 @@ class StoryMenuState extends MusicBeatState
 
 		changeWeek(0);
 		super.create();
+		DiscordClient.changePresence('Browsing Story Mode',null);
 		changeDifficulty(0);
 	}
 
