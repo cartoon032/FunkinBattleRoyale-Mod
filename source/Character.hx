@@ -347,9 +347,9 @@ class Character extends FlxSprite
 
 				}catch(e){handleError('${curCharacter} had an animation error ${e.message}');break;}
 				if(anima.priority != null && -1 < anima.priority )
-					animationPriorities[anima.name] = anima.priority;
-				if(animationPriorities[anima.name] == null)
-					animationPriorities[anima.name] = 1;
+					animationPriorities[anima.anim] = anima.priority;
+				if(animationPriorities[anima.anim] == null)
+					animationPriorities[anima.anim] = 1;
 				animCount++;
 			}
 		}
