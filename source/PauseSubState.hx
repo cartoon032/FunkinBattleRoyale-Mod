@@ -52,7 +52,7 @@ class PauseSubState extends MusicBeatSubstate
 	var currentChart = -1;
 	public function new(x:Float, y:Float){
 		if(FlxG.sound.music != null ) songLengthTxt = FlxStringUtil.formatTime(Math.floor((FlxG.sound.music.length) / 1000), false);
-		time = Conductor.songPosition;
+		time = Conductor.rawPosition;
 		menuItems = ['Resume', 'Restart Song',"Options Menu",'Exit to menu'];
 
 		#if !mobile
