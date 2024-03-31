@@ -144,8 +144,8 @@ class MainMenuState extends SickMenuState {
 
 			}else if (TitleState.outdated){
 				var broInFuture:Bool = (Std.parseInt(modver.substr(0,2)) > Std.parseInt(TitleState.updatedVer.substr(0,2)) || // year
-															Std.parseInt(modver.substr(3,5)) > Std.parseInt(TitleState.updatedVer.substr(3,5)) || // week
-															letterToVer[modver.charAt(modver.length - 1)] > letterToVer[TitleState.updatedVer.charAt(TitleState.updatedVer.length - 1)] // letter
+															(Std.parseInt(modver.substr(0,2)) == Std.parseInt(TitleState.updatedVer.substr(0,2)) && Std.parseInt(modver.substr(3,5)) > Std.parseInt(TitleState.updatedVer.substr(3,5))) || // week
+															(Std.parseInt(modver.substr(3,5)) == Std.parseInt(TitleState.updatedVer.substr(3,5)) && letterToVer[modver.charAt(modver.length - 1)] > letterToVer[TitleState.updatedVer.charAt(TitleState.updatedVer.length - 1)]) // letter
 															);
 
 				var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,(broInFuture ? 'you are running a Test Build of SE-T. Expect some problem!' : 'SE-T is outdated, Latest: ${TitleState.updatedVer}. You are on ${modver}'), 32);
