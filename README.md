@@ -13,9 +13,7 @@ some notable feature
 - and a lot more
 <br>[Discord server](https://discord.gg/gBGDVpTBz8)
 
-<br><br> Usually I don't commit anything here while still updating the code from time to time
-<br><br>So if you want an update or have a suggestion DM me on Discord naytoon I'm up most of the time
-<br><br> Also I commit in one mega commit that got everything in it so it might look like I don't do much but I did a lot
+I'm now trying to get into a habit of pushing a commit in a smaller chuck and more frequently[.](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
 ## Compiling
 - Follow the guide on the Funkin GitHub page [here](https://github.com/ninjamuffin99/Funkin#build-instructions), this should be completely compatible with that guide
