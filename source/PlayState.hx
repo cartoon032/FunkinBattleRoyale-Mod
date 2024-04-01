@@ -1315,8 +1315,8 @@ class PlayState extends ScriptMusicBeatState
 
 		hitSound = FlxG.save.data.hitSound;
 		dadhitSound = FlxG.save.data.dadhitSound;
-		if(FlxG.save.data.hitSound && hitSoundEff == null) hitSoundEff = Sound.fromFile(FileSystem.exists('mods/hitSound.ogg') ? 'mods/hitSound.ogg' : Paths.sound('Normal_Hit'));
-		if(FlxG.save.data.hitSound && holdSoundEff == null) holdSoundEff = Sound.fromFile(FileSystem.exists('mods/holdSound.ogg') ? 'mods/holdSound.ogg': FileSystem.exists('mods/hitSound.ogg') ? 'mods/hitSound.ogg' : Paths.sound('Normal_Hit'));
+		if((hitSound || dadhitSound) && hitSoundEff == null) hitSoundEff = Sound.fromFile(FileSystem.exists('mods/hitSound.ogg') ? 'mods/hitSound.ogg' : Paths.sound('Normal_Hit'));
+		if((hitSound || dadhitSound) && holdSoundEff == null) holdSoundEff = Sound.fromFile(FileSystem.exists('mods/holdSound.ogg') ? 'mods/holdSound.ogg': FileSystem.exists('mods/hitSound.ogg') ? 'mods/hitSound.ogg' : Paths.sound('Normal_Hit'));
 
 		if(hurtSoundEff == null) hurtSoundEff = ((SELoader.exists('mods/hurtSound.ogg') ? SELoader.loadSound('mods/hurtSound.ogg') : SELoader.loadSound('assets/shared/sounds/ANGRY.ogg',true)));
 		if(vanillaHurtSounds[0] == null && FlxG.save.data.playMisses) vanillaHurtSounds = [Sound.fromFile('assets/shared/sounds/missnote1.ogg'),Sound.fromFile('assets/shared/sounds/missnote2.ogg'),Sound.fromFile('assets/shared/sounds/missnote3.ogg')];

@@ -875,8 +875,8 @@ class Note extends FlxSprite
 				PlayState.instance.vocals.volume = FlxG.save.data.voicesVol;
 			}
 			if(PlayState.instance.dadhitSound && !shouldntBeHit){
-			if(isSustainNoteStart) FlxG.sound.play(PlayState.holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
-			else if(!isSustainNote) FlxG.sound.play(PlayState.hitSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
+				if(isSustainNoteStart) FlxG.sound.play(PlayState.holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
+				else if(!isSustainNote) FlxG.sound.play(PlayState.hitSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((noteData + 1) / PlayState.keyAmmo[PlayState.mania]));
 			}
 
 			PlayState.instance.notes.remove(this, true);

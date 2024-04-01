@@ -1217,14 +1217,14 @@ class DadHitSoundOption extends Option
 
 	public override function press():Bool
 	{
-		FlxG.save.data.DadhitSound = !FlxG.save.data.DadhitSound;
+		FlxG.save.data.dadhitSound = !FlxG.save.data.dadhitSound;
 		display = updateDisplay();
 		return true;
 	}
 
 	private override function updateDisplay():String
 	{
-		return "Opponent Note Hit Sound " + (!FlxG.save.data.DadhitSound ? "off" : "on");
+		return "Opponent Note Hit Sound " + (!FlxG.save.data.dadhitSound ? "off" : "on");
 	}
 }
 
