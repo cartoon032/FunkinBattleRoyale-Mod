@@ -1291,7 +1291,7 @@ class PlayState extends ScriptMusicBeatState
 			if(FlxG.save.data.aprilfools > 0)FlxG.save.data.aprilfools--;
 			if(onlinemod.OnlinePlayMenuState.socket == null){
 				practiceText.setFormat(CoolUtil.font, 42, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
-				practiceText.cameras = [camHUD];
+				practiceText.cameras = [camTOP];
 				practiceText.screenCenter(X);
 				if(downscroll) practiceText.y += 20;
 				insert(members.indexOf(healthBar),practiceText);
@@ -1418,7 +1418,7 @@ class PlayState extends ScriptMusicBeatState
 		FlxG.camera.zoom = FlxMath.lerp(0.90, FlxG.camera.zoom, 0.95);
 		camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, 0.95);
 		// camFollow.setPosition(720, 500);
-		NoteStuffExtra.CalculateNoteAmount(SONG,FlxG.sound.music.length / 1000);
+		NoteStuffExtra.CalculateNoteAmount(SONG,FlxG.sound.music.length);
 		bfnoteamount = bfnoteamountwithhurt = NoteStuffExtra.bfNotes.length;
 		dadnoteamount = dadnoteamountwithhurt = NoteStuffExtra.dadNotes.length;
 		for(note in unspawnNotes){
