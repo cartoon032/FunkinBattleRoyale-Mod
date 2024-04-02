@@ -174,6 +174,9 @@ class MainMenuState extends SickMenuState {
 			// 		if(char != null) add(char);
 			// 	}catch(e){MainMenuState.lastStack = e.stack;trace(e);char = null;}
 			// }
+		if(Date.now().getMonth() == 3 && Date.now().getDate() == 1 && firstStart){
+			FlxG.save.data.aprilfools = 1;
+		}
 			if(firstStart){
 				// FlxG.sound.volumeHandler = function(volume:Float){
 				// 	FlxG.save.data.masterVol = volume;
@@ -237,9 +240,6 @@ class MainMenuState extends SickMenuState {
 				FlxTween.color(bg,10,FlxColor.fromString("#aa3333"),FlxColor.fromString("#33aa33"),{type:FlxTweenType.PINGPONG});
 			}
 			return;
-		}
-		if(date.getMonth() == 3 && date.getDate() == 1 && firstStart){
-			FlxG.save.data.aprilfools = 1;
 		}
 	}
 
