@@ -164,6 +164,7 @@ class KadeEngineData
 		if (FlxG.save.data.AltMK == null)FlxG.save.data.AltMK = false;
 		if (FlxG.save.data.menuScripts == null)FlxG.save.data.menuScripts = true;
 		if (FlxG.save.data.UsingSystemMouse == null)FlxG.save.data.UsingSystemMouse = true;
+		if (FlxG.save.data.luaScripts == null)FlxG.save.data.luaScripts = true;
 
 		if (FlxG.save.data.instVol == null) FlxG.save.data.instVol = 0.8;
 		if (FlxG.save.data.masterVol == null) FlxG.save.data.masterVol = 1;
