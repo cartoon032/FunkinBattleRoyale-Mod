@@ -91,9 +91,10 @@
 
 	<!-- <haxedef name='FLXRUNTIMESHADER' if='desktop'> -->
 
-	<haxelib name="hscript-improved" />
+	<!-- <haxelib name="hscript-improved" /> -->
 	<!-- Fuck Them FlxAnimate crash my compile don't know and don't care-->
 	<!-- <haxelib name="flxanimate"/> -->
+	<haxedef name="hscript-improved" />
 	<haxedef name="hscriptPos" />
 	<haxelib name="hxShaders"/>
 	<haxelib name="linc_luajit" if="cpp" />
