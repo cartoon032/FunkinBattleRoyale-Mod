@@ -286,11 +286,11 @@ class FinishSubState extends MusicBeatSubstate
 				for(combo in 1...PlayState.bfnoteamount + 1){
 					switch(FlxG.save.data.scoresystem)
 					{
-						case 0: MaxScore += noteratingscore[0] * PlayState.songspeed; //FNF
+						case 0: MaxScore = noteratingscore[0] * PlayState.songspeed * PlayState.bfnoteamount; break; //FNF
 						case 1: MaxScore += noteratingscore[0] + (noteratingscore[0] * ((combo * PlayState.songspeed) / 25)); //Osu!
-						case 2: MaxScore += (1000000 / PlayState.bfnoteamount) * (noteratingscore[0] / 350); //Osu!mania
-						case 3: MaxScore += noteratingscore[0] * PlayState.ScoreMultiplier * PlayState.songspeed; //Bal
-						case 4: MaxScore += noteratingscore[0] * PlayState.ScoreDivider * PlayState.songspeed; //Bal invert
+						case 2: MaxScore = 1000000; break; //Osu!mania
+						case 3: MaxScore = noteratingscore[0] * PlayState.ScoreMultiplier * PlayState.songspeed * PlayState.bfnoteamount; break; //Bal
+						case 4: MaxScore = noteratingscore[0] * PlayState.ScoreDivider * PlayState.songspeed * PlayState.bfnoteamount; break; //Bal invert
 						case 5: MaxScore += Math.floor(noteratingscore[0] * Math.min(5,Math.ceil(combo / 10))); //Voiid
 						case 6: MaxScore += Math.floor(noteratingscore[0] * Math.ceil(combo / 10) * PlayState.songspeed); //Voiid Uncap
 						case 7: MaxScore = 0; break; //Stupid
@@ -460,8 +460,10 @@ class FinishSubState extends MusicBeatSubstate
 					else restart();
 				}
 			if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S){
-				if(saveScore(true))
+				if(saveScore(true)){
 					FlxG.sound.play(Paths.sound('confirmMenu'));
+					showTempmessage('Your PB have been overwrite!');
+				}
 			}
 			if (!FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S && !isError){
 				if(!canSendEmbed){
@@ -484,7 +486,7 @@ class FinishSubState extends MusicBeatSubstate
 				var Performance:String = _Performance.replace('[newline]','\\n'); // fuck you haxe
 				var Settings:String = _Settings.replace('[newline]','\\n'); // fuck you haxe
 
-				var http = new haxe.Http("https://canary.discord.com/api/webhooks/1194182726790676511/tiuC_k_k44wJVxcXA9Jk2l96QEEjj2QMcfYnZ9Fnetw7udNfygfgVD0yk3GG6PXdEmrG");
+				var http = new haxe.Http("https://canary.discord.com/api/webhooks/1194182726790676511/tiuC_k_k44wJVxcXA9Jk2l96QEEjj2QMcfYnZ9Fnetw7udNfygfgVD0yk3GG6PXdEmrG"); // please don't do anything stupid.
 				var data = '{
 					"content": null,
 					"embeds": [
