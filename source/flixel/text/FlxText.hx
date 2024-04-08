@@ -621,7 +621,7 @@ class FlxText extends FlxSprite
 
 	function set_text(Text:String):String
 	{
-		text = se.translation.Lang.get(Text);
+		text = Text;
 		if (textField != null)
 		{
 			var ot:String = textField.text;
