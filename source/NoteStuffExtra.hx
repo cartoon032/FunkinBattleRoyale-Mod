@@ -44,8 +44,8 @@ class NoteStuffExtra
 				var gottaHitNote:Bool = section.mustHitSection;
 				if(note[1] == -1)
 					eventNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
-				else if(note[1] >= song.playerKeyCount + song.keyCount && note[0] >= instLength)
-					shitNotes++;
+				// else if(note[1] >= song.playerKeyCount + song.keyCount || note[0] >= instLength)
+				// 	shitNotes++;
 				else if(gottaHitNote){
 					if(note[1] >= song.playerKeyCount)
 						dadNotes.push(new SmallNote(note[0] / onlinemod.OfflineMenuState.rate, note[1]));
@@ -80,7 +80,7 @@ class NoteStuffExtra
 					Notedata = dadNotes;
 					mania = PlayState.mania;
 				}
-			if(Notedata.length != 0)
+			if(Notedata.length > 10)
 		{
 			Notedata.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 

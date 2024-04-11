@@ -14,6 +14,8 @@ import openfl.display.FPS;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.UncaughtErrorEvent;
+import sys.thread.*;
+import se.objects.ToggleLock;
 // import crashdumper.CrashDumper;
 // import crashdumper.SessionData;
 import Overlay;
@@ -157,6 +159,30 @@ class Main extends Sprite
 	public function onCrash(e:haxe.Exception){
 		FuckState.FUCK(e);
 	}
+	public static var renderLock:ToggleLock = new ToggleLock();
+	#if(target.threaded)
+	override function __enterFrame(_){
+		try{
+			if(game != null){
+
+				if(FlxG.keys.justPressed.F1) throw('Manual error');
+				if(game.blockDraw || game.blockUpdate){
+					renderLock.wait();
+					renderLock.lock();
+					super.__enterFrame(_);
+					renderLock.release();
+				}else{
+					super.__enterFrame(_);
+				}
+			}else{
+				super.__enterFrame(_);
+				// trace('h');
+			}
+		}catch(e){
+			FuckState.FUCK(e,"Main.onEnterFrame");
+		}
+	}
+	#end
 }
 
 // Made specifically for Super Engine. Adds some extensions to FlxGame to allow it to handle errors

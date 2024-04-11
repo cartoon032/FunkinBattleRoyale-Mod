@@ -114,7 +114,7 @@ class OfflineMenuState extends SearchMenuState
   }
   override function extraKeys(){
     if (FlxG.keys.justPressed.R && !FlxG.keys.pressed.SHIFT){
-      changeSelection(FlxG.random.int(-curSelected,songs.length - curSelected));
+      changeSelection(FlxG.random.int(-curSelected,grpSongs.length - curSelected));
     }
 		if (FlxG.keys.pressed.SHIFT)
 		{

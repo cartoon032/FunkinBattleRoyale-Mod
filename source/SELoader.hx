@@ -19,8 +19,39 @@ import flixel.system.FlxSound;
 import flixel.util.typeLimit.OneOfTwo;
 import lime.media.AudioBuffer;
 import haxe.io.Bytes;
+import se.formats.SongInfo;
 // import vlc.VLCSound;
 using StringTools;
+
+@:publicFields class SEDirectory {
+	public var path = "";
+	function new(_path:String = ""){
+		path=SELoader.getPath(_path);
+		if(path.substring(-1) != "/") path+="/";
+	}
+	@:keep inline function appendPath(?part:String){
+		return part == null ? path : path + part;
+	}
+	function exists(?path:String){
+		SELoader.rawMode=true;
+		return SELoader.exists(appendPath(path));
+	}
+	function newDirectory(?path:String){
+		return new SEDirectory(appendPath(path));
+	}
+	function isDirectory(?path:String){
+		SELoader.rawMode=true;
+		return SELoader.isDirectory(appendPath(path));
+	}
+	function readDirectory(?path:String){
+		SELoader.rawMode=true;
+		return SELoader.readDirectory(appendPath(path));
+	}
+	function toString(){
+		return path;
+	}
+
+}
 
 class SELoader {
 
@@ -42,9 +73,7 @@ class SELoader {
 		
 	}
 	// Basically clenses paths and returns the base path with the requested one. Used heavily for the Android port
-	@:keep inline public static function getPath(path:String):String{
-		// Remove library from path
-		if(path.indexOf(":") > 3) path = path.substring(path.indexOf(":") + 1);
+	@:keep inline public static function getPath(path:String,allowModded:Bool = true):String{
 		// Absolute paths should just return themselves without anything changed
 		if(
 			#if windows
@@ -54,13 +83,16 @@ class SELoader {
 			rawMode = false;
 			return path.replace('//','/');
 		}
-		if(path.startsWith("assets/") && FileSystem.exists('${PATH}mods${path}')) path = 'mods/' + path; // Return modded assets before vanilla assets
+		// Remove library from path
+		if(path.indexOf(":") > 3) path = path.substring(path.indexOf(":") + 1);
+		if(allowModded && path.startsWith("assets/") && FileSystem.exists('${PATH}mods${path}')) path = 'mods/' + path; // Return modded assets before vanilla assets
 
 		return (PATH + path).replace('//','/'); // Fixes paths having //'s in them
 	}
 	
 
 	public static function loadText(textPath:String,?useCache:Bool = false):String{
+		textPath = getPath(textPath);
 		if(cache.textArray[textPath] != null || useCache){
 			return cache.loadText(textPath);
 		}
@@ -68,7 +100,7 @@ class SELoader {
 			handleError('${id}: Text "${textPath}" doesn\'t exist!');
 			return "";
 		}
-		return File.getContent(getPath(textPath));
+		return File.getContent(textPath);
 	}
 	public static function loadXML(textPath:String,?useCache:Bool = false):String{ // Automatically fixes UTF-16 encoded files
 		var text = loadText(textPath,useCache).replace("UTF-16","utf-8");
@@ -80,19 +112,20 @@ class SELoader {
 
 
 	public static function loadFlxSprite(x:Int = 0,y:Int = 0,pngPath:String,?useCache:Bool = false):FlxSprite{
-		if(!FileSystem.exists('${pngPath}')){
+		if(!SELoader.exists('${pngPath}')){
 			handleError('${id}: Image "${pngPath}" doesn\'t exist!');
 			return new FlxSprite(x, y); // Prevents the script from throwing a null error or something
 		}
 		return new FlxSprite(x, y).loadGraphic(loadGraphic(pngPath,useCache));
 	}
 	public static function loadGraphic(pngPath:String,?useCache:Bool = false):FlxGraphic{
-		if(cache.spriteArray[pngPath] != null || useCache){
-			return cache.loadGraphic(pngPath);
-		}
+		// if(cache.spriteArray[pngPath] != null || useCache){
+		// 	return cache.loadGraphic(pngPath);
+		// }
 		return FlxGraphic.fromBitmapData(loadBitmap(pngPath));
 	}
 	public static function loadBitmap(pngPath:String,?useCache:Bool = false):BitmapData{
+		pngPath = getPath(pngPath);
 		if(pngPath.substr(-4) != ".png") pngPath += '.png';
 		if(cache.bitmapArray[pngPath] != null || useCache){
 			return cache.loadBitmap(pngPath);
@@ -101,10 +134,11 @@ class SELoader {
 			handleError('${id}: "${pngPath}" doesn\'t exist!');
 			return new BitmapData(0,0,false,0xFF000000); // Prevents the script from throwing a null error or something
 		}
-		return BitmapData.fromFile(getPath(pngPath));
+		return BitmapData.fromFile(pngPath);
 	}
 
 	public static function loadSparrowFrames(pngPath:String):FlxAtlasFrames{
+		pngPath = getPath(pngPath);
 		if(!exists('${pngPath}.png')){
 			handleError('${id}: SparrowFrame PNG "${pngPath}.png" doesn\'t exist!');
 			return new FlxAtlasFrames(FlxGraphic.fromRectangle(0,0,0)); // Prevents the script from throwing a null error or something
@@ -116,7 +150,7 @@ class SELoader {
 		return FlxAtlasFrames.fromSparrow(loadGraphic(pngPath),loadXML('${pngPath}.xml'));
 	}
 	public static function loadSparrowSprite(x:Int,y:Int,pngPath:String,?anim:String = "",?loop:Bool = false,?fps:Int = 24,?useCache:Bool = false):FlxSprite{
-		
+		pngPath = getPath(pngPath);
 		var spr = new FlxSprite(x, y);
 		var _f = spr.frames;
 		try{
@@ -139,6 +173,7 @@ class SELoader {
 	@:keep inline public static function saveContent(textPath:String,content:String):String{return saveText(textPath,content,false);}
 	@:keep inline public static function getBytes(textPath:String):Bytes{return loadBytes(textPath,false);}
 	@:keep inline public static function gc(){
+		// FlxG.bitmap.clearUnused();
 		openfl.system.System.gc();
 	}
 
@@ -148,6 +183,7 @@ class SELoader {
 		// if(cache.textArray[textPath] != null || useCache){
 		// 	return cache.loadText(textPath);
 		// }
+		textPath = getPath(textPath);
 		if(!exists(textPath)){
 			handleError('${id}: Text "${textPath}" doesn\'t exist!');
 			return null;
@@ -161,8 +197,9 @@ class SELoader {
 		return null;
 	}
 	public static function saveText(textPath:String,contents:String = "",?useCache:Bool = false):Dynamic{ // If there's an error, it'll return the error, else it'll return null
+		textPath = getPath(textPath);
 		try{
-			File.saveContent(getPath(textPath),contents);
+			File.saveContent(textPath,contents);
 		}catch(e){ return e; }
 		if(cache.textArray[textPath] != null || useCache){
 			cache.textArray[textPath] = contents;
@@ -170,6 +207,7 @@ class SELoader {
 		return null;
 	}
 	public static function loadSound(soundPath:String,?useCache:Bool = false):Null<Sound>{
+		soundPath = getPath(soundPath);
 		if(cache.soundArray[soundPath] != null || useCache){
 			return cache.loadSound(soundPath);
 		}
@@ -197,15 +235,30 @@ class SELoader {
 	public static function fullPath(path:String):String{
 		return FileSystem.fullPath(getPath(path));
 	}
-	public static function anyExists(paths:Array<String>):String{
-		for(i in paths) if(exists(i)) return i;
-		return null;
+	public static function anyExists(paths:Array<String>,?returnOriginal:Bool = false,?defaultValue:String = null):String{
+		for(i in paths) {
+			var path = getPath(i);
+			if(exists(path)) return returnOriginal ? i : path;
+		}
+		return defaultValue;
 	}
 	public static function exists(path:String):Bool{
 		return FileSystem.exists(getPath(path));
 	}
 	public static function readDirectory(path:String):Array<String>{
 		return FileSystem.readDirectory(getPath(path));
+	}
+	public static function readDirectories(paths:Array<String>):Array<String>{
+		var ret = [];
+		for(path in paths){
+			var _path = getPath(path,false);
+			if(exists(_path) && isDirectory(_path)){
+				for(item in readDirectory(_path)){
+					ret.push('$path/$item');
+				}
+			}
+		}
+		return ret;
 	}
 	public static function isDirectory(path:String):Bool{
 		return FileSystem.isDirectory(getPath(path));
@@ -217,10 +270,112 @@ class SELoader {
 		return File.copy(getPath(from),getPath(to));
 	}
 	public static function importFile(from:String,to:String){
-		return File.copy(from,getPath(to));
+		var path = getPath(to);
+		FileSystem.createDirectory(path.substring(0,path.lastIndexOf('/')));
+		return File.copy(from,path);
 	}
 	public static function exportFile(from:String,to:String){
 		return File.copy(getPath(from),to);
+	}
+
+	static function orderList(list:Array<String>):Array<String>{
+		haxe.ds.ArraySort.sort(list, function(a, b) {
+			a=a.toLowerCase();
+			b=b.toLowerCase();
+			return (a<b) ? -1 : ((a>b) ? 1 : 0);
+		});
+		return list;
+	}
+	public static function getSongsFromFolder(path:String):Array<SongInfo>{
+		var path=new SEDirectory(path);
+		var returnArray:Array<SongInfo> = [];
+		if(!path.isDirectory()) return returnArray;
+		var blockedFiles = multi.MultiMenuState.blockedFiles;
+		if(path.isDirectory('assets/')){ // subfolder
+			var stuff:Array<SongInfo> = getSongsFromFolder(path.appendPath('assets/'));
+			if(stuff.length > 0){
+				for(i in stuff) returnArray.push(i);
+			}
+		}
+		if(path.isDirectory('mods/')){ // subfolder
+			var stuff:Array<SongInfo> = getSongsFromFolder(path.appendPath('mods/'));
+			if(stuff.length > 0){
+				for(i in stuff) returnArray.push(i);
+			}
+		}
+		if(path.isDirectory('charts/')){ // SE
+			for (folder in path.readDirectory('charts/')){
+				var path = path.newDirectory('charts/$folder');
+				if(!path.exists('Inst.ogg') && !path.exists('ignoreMissingInst')) continue;
+				var song:SongInfo = {
+					name:folder,
+					charts:[],
+					namespace:null,
+					path:path.toString()
+				};
+				for (file in orderList(path.readDirectory())){
+					if(file.substring(file.length-5) != ".json" || blockedFiles.contains(file.toLowerCase())) 
+						continue;
+					song.charts.push(file);
+				}
+				returnArray.push(song);
+			}
+		}
+		if(path.isDirectory('data/')){ // Normal FNF
+			var songsFolder = path.newDirectory('songs/');
+			for (folder in path.readDirectory('data/')){
+				var path = path.newDirectory('data/$folder');
+				if(!path.isDirectory() || !songsFolder.exists('$folder/Inst.ogg')) continue;
+				var song:SongInfo = {
+					name:folder,
+					charts:[],
+					namespace:null,
+
+					path:path.toString()
+				};
+				song.inst = songsFolder.appendPath('$folder/Inst.ogg');
+				song.voices = songsFolder.appendPath('$folder/Voices.ogg');
+				for (file in orderList(path.readDirectory())){
+					if(file.substring(file.length-5) != ".json" || blockedFiles.contains(file.toLowerCase())) 
+						continue;
+					song.charts.push(file);
+				}
+				returnArray.push(song);
+			}
+		}
+		if(path.isDirectory('songs/')){ // Codename :sob:
+			var path = path.newDirectory('songs/');
+			for (folder in path.readDirectory()){
+				if(!path.isDirectory('$folder/charts')) continue;
+				var path = path.newDirectory('$folder');
+				var song:SongInfo = {
+					name:folder,
+					charts:[],
+					namespace:null,
+
+					path:path.toString()
+				};
+				song.inst = path.appendPath('song/Inst.ogg');
+				song.voices = path.appendPath('song/Voices.ogg');
+				for (file in orderList(path.readDirectory('charts'))){
+					if(file.substring(file.length-5) != ".json" || blockedFiles.contains(file.toLowerCase())) 
+						continue;
+					song.charts.push('charts/$file');
+				}
+				returnArray.push(song);
+			}
+		}
+		if(returnArray.length < 0){
+			for (file in orderList(path.readDirectory())){
+				if(!path.isDirectory(file)) continue;
+				var songs = getSongsFromFolder(path.appendPath());
+				if(songs.length > 0){
+					for (song in songs) returnArray.push(song);
+				}
+			}
+		}
+		return returnArray;
+
 	}
 
 }

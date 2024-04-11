@@ -162,6 +162,9 @@ class SearchMenuState extends ScriptMusicBeatState
 				searchButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 				searchButton.resize(100, searchField.height);
 				add(searchButton);
+				searchField.callback = function(_:String,cb:String){
+					if(cb == "enter") findButton();
+				}
 			}
 
 		infotext = new FlxText(5, FlxG.height - (20 * infoTextBoxSize ), FlxG.width - 5, "Hold shift to scroll faster", 16);
@@ -227,10 +230,12 @@ class SearchMenuState extends ScriptMusicBeatState
 		super.update(elapsed);
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
-		if (toggleables['search'] && searchField.hasFocus){SetVolumeControls(false);if (FlxG.keys.pressed.ENTER) findButton();}else{
+		if (toggleables['search'] && searchField.hasFocus) SetVolumeControls(false);
+		else{
 			SetVolumeControls(true);
 			handleInput();
 		}
+		if(bg.height > 720) bg.y = FlxMath.lerp(bg.y,(curSelected / grpSongs.length) * -(bg.height - 720),elapsed);
 		if (FlxG.keys.justPressed.GRAVEACCENT)
 			searchField.hasFocus = true;
 		if(FlxG.keys.justPressed.ESCAPE)
@@ -243,28 +248,33 @@ class SearchMenuState extends ScriptMusicBeatState
 	var hoverColor = 0xffffff;
 	var idleColor = 0xff997799;
 	var scrollHover:Bool = false;
+	var scrollPressed:Bool = false;
 	function handleScroll(){
 		var sbBGYOffset = scrollBarBG.y;
 		var sbBGHeight = sbBGYOffset + scrollBarBG.height - 20;
-		if(FlxG.mouse.x > scrollBar.x && FlxG.mouse.x < scrollBar.x + scrollBar.width || FlxG.mouse.pressedMiddle){
+		var LENGTH = grpSongs.length - 1;
+		if(scrollPressed || FlxG.mouse.x > scrollBar.x && FlxG.mouse.x < scrollBar.x + scrollBar.width || FlxG.mouse.pressedMiddle){
 			scrollBar.alpha = 1;
 			scrollHover = true;
 			if(FlxG.mouse.pressed || FlxG.mouse.pressedMiddle){
+				scrollPressed = true;
 				scrollBar.y = FlxG.mouse.y - (scrollBar.height * 0.5);
 				if(scrollBar.y < sbBGYOffset) scrollBar.y = sbBGYOffset;
 				if(scrollBar.y > sbBGHeight) scrollBar.y = sbBGHeight;
-				var sel = Std.int((grpSongs.length * ((scrollBar.y - sbBGYOffset) / (sbBGHeight - sbBGYOffset)) ));
+				var sel = Math.round((LENGTH * ((scrollBar.y - sbBGYOffset) / (sbBGHeight - sbBGYOffset)) ));
 
-				if(curSelected != sel && sel > 0 && sel < grpSongs.length){
+				if(curSelected != sel && sel > 0 && sel < LENGTH){
 					curSelected = 0;
 					changeSelection(sel);
 				}
+			}else{
+				scrollPressed = false;
 			}
 		}else{
 			scrollBar.alpha = 0.8;
 			scrollHover = false;
 		}
-		scrollBar.y = Std.int(sbBGYOffset - (scrollBar.height * 0.5) + ((scrollBarBG.height - 20) * (curSelected / grpSongs.length))) ;
+		scrollBar.y = Std.int(sbBGYOffset - (scrollBar.height * 0.5) + ((scrollBarBG.height - 20) * (curSelected / LENGTH))) ;
 		if(scrollBar.y < sbBGYOffset) scrollBar.y = sbBGYOffset;
 		if(scrollBar.y > sbBGHeight) scrollBar.y = sbBGHeight;
 	}

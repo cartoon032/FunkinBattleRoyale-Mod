@@ -12,11 +12,22 @@ using StringTools;
 class CoolUtil
 {
 	public static var fontName:String = "vcr.ttf";
-	public static var font:String = if(FileSystem.exists('mods/font.otf')) 'mods/font.otf' else if(FileSystem.exists('mods/font.ttf')) 'mods/font.ttf' else Paths.font(fontName);
+	public static var font:String = (SELoader.anyExists(['mods/font.otf','mods/font.ttf']) ?? Paths.font(fontName));
 	public static var difficultyArray:Array<String> = ['EASY', "NORMAL", "HARD"];
 	public static var volKeys:Array<Array<Int>> = [];
 	public static var volKeysEnabled = true;
 	public static var Framerate:Int = 0;
+	public static var activeObject(default,set):Dynamic = null;
+	public static function set_activeObject(vari){
+		toggleVolKeys(FlxG.keys.enabled = (vari == null)); // Why the fuck do i need to do this, what
+		return activeObject = vari;
+	}
+	public static function updateActiveObject(vari){
+		try{
+			activeObject.hasFocus = false;
+		}catch(e){}
+		return activeObject = vari;
+	}
 	public static function setFramerate(?fps:Int = 0,?update:Bool = false,?temp:Bool = false){
 		if(!temp){
 			if(fps != 0 && !update){
