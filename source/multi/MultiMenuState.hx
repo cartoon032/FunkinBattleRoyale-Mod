@@ -444,11 +444,15 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			PlayState.hsBrToolsPath = selSong;
 			PlayState.scripts = [];
 
-			onlinemod.OfflinePlayState.instFile = ((FileSystem.exists('${chartFile}-Inst.ogg') ? '${chartFile}-Inst.ogg' 
-				: '${selSong}/Inst.ogg'));
-			onlinemod.OfflinePlayState.voicesFile = ((FileSystem.exists('${chartFile}-Voices.ogg') ? '${chartFile}-Voices.ogg' 
+			onlinemod.OfflinePlayState.instFile = (
+				FileSystem.exists('${chartFile}-Inst.ogg') ? '${chartFile}-Inst.ogg'
+				: instFile != "" ? instFile
+				: '${selSong}/Inst.ogg');
+			onlinemod.OfflinePlayState.voicesFile = (
+				FileSystem.exists('${chartFile}-Voices.ogg') ? '${chartFile}-Voices.ogg' 
+				: voicesFile != "" ? voicesFile
 				: (FileSystem.exists('${selSong}/Voices.ogg') ? '${selSong}/Voices.ogg'
-				: '')));
+				: ''));
 			loadScriptsFromSongPath(selSong);
 			// if (FileSystem.exists('${selSong}/script.hscript')) {
 			// 	trace("Song has script!");
