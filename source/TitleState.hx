@@ -34,6 +34,7 @@ import SickMenuState;
 import flash.media.Sound;
 import flixel.FlxCamera;
 import sys.thread.Thread;
+import Alphabet;
 
 import Shaders;
 import Discord.DiscordClient;
@@ -348,7 +349,6 @@ class TitleState extends MusicBeatState
 			return null;
 		}
 		return currentstage;
-
 	}
 	public static function checkStages(){
 
@@ -500,7 +500,7 @@ class TitleState extends MusicBeatState
 			// LoadingState.loadingText.setFormat();
 			findosuBeatmaps();
 			MainMenuState.firstStart = true;
-			Conductor.changeBPM(70);
+			Conductor.changeBPM(140);
 			persistentUpdate = true;
 			FlxG.fixedTimestep = false; // Makes the game not be based on FPS for things, thank you Forever Engine for doing this
 			// make this toggleable cause fucking windows 11 fullscreen bug
@@ -586,16 +586,19 @@ class TitleState extends MusicBeatState
 		if (initialized)
 			skipIntro();
 		else{
+			Assets.loadLibrary("shared").onComplete(function (_) {
+				
+				showHaxe();
+				LoadingScreen.hide();
+			});
 
-			createCoolText(['Powered by',"haxeflixel"]);
-			showHaxe();
-			LoadingScreen.hide();
 		}
 			// initialized = true;
 		// credGroup.add(credTextShit);
 	}
 	var shiftSkip:FlxText;
 	var isShift = false;
+	var forcedText:Bool = false;
 
 	function getIntroTextShit():Array<Array<String>>
 	{
@@ -712,10 +715,8 @@ class TitleState extends MusicBeatState
 			// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
 		}
 
-		if (pressedEnter && !skippedIntro && initialized)
-		{
+		if (pressedEnter && !skippedIntro  && (!forcedText || FlxG.save.data.seenForcedText))
 			skipIntro();
-		}
 
 		super.update(elapsed);
 	}
@@ -725,25 +726,28 @@ class TitleState extends MusicBeatState
 		FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 	}
 
-	function createCoolText(textArray:Array<String>)
+	function createCoolText(textArray:Array<String>,yOffset:Int = 200)
 	{
-		for (i in 0...textArray.length)
-		{
-			var money:Alphabet = new Alphabet(0, 0, textArray[i], true, false);
-			money.screenCenter(X);
-			money.y += (i * 60) + 200;
-			credGroup.add(money);
-			textGroup.add(money);
-		}
+		for (i in 0...textArray.length) addMoreText(textArray[i],yOffset);
+			// var money:Alphabet = new Alphabet(0, 0, textArray[i], true, false);
+			// money.screenCenter(X);
+			// money.y += (i * 70) + 100;
+			// money.scale.x = money.scale.y = 1.1;
+			// FlxTween.tween(money.scale,{x:1,y:1},0.2,{ease:FlxEase.expoOut});
+			// credGroup.add(money);
+			// textGroup.add(money);
+	
 	}
 
-	function addMoreText(text:String)
+	function addMoreText(text:String,yOffset:Int = 200):Alphabet
 	{
-		var coolText:Alphabet = new Alphabet(0, 0, text, true, false, false , 70, true);
+		var coolText:Alphabet = new Alphabet(0, 0, text, true, false);
 		coolText.screenCenter(X);
-		coolText.y += (textGroup.length * 60) + 200;
+		coolText.y += (70 * textGroup.length) + yOffset;
+		coolText.bounce();
 		credGroup.add(coolText);
 		textGroup.add(coolText);
+		return coolText;
 	}
 
 	function deleteCoolText()
@@ -767,71 +771,48 @@ class TitleState extends MusicBeatState
 
 		switch (curBeat)
 		{
-
-			// case 1:
-			// 	// if (Main.watermarks)  You're not more important than fucking newgrounds
-			// 	// 	createCoolText(['Kade Engine', 'by']);
-			// 	// else
-			// 	createCoolText(['Powered by',"haxeflixel"]);
-			// 	showHaxe();
 			case 0:
 				deleteCoolText();
-			// 	destHaxe();
+				destHaxe();
 			case 1:
-				createCoolText(['ninjamuffin99', 'phantomArcade', 'kawaisprite', 'evilsk8er']);
-			// credTextShit.visible = true;
+				createCoolText(['ninjamuffin99', 'phantomArcade', 'kawaisprite', 'evilsk8er'], 0);
+				credTextShit.x -= 130;
 			case 2:
-				addMoreText('present');
-			// credTextShit.text += '\npresent...';
-			// credTextShit.addText();
-			case 4:
-				deleteCoolText();
-			// credTextShit.visible = false;
-			// credTextShit.text = 'In association \nwith';
-			// credTextShit.screenCenter();
-			case 5:
-				// if (Main.watermarks)  You're not more important than fucking newgrounds
-				// 	createCoolText(['Kade Engine', 'by']);
-				// else
-					createCoolText(['In Partnership', 'with']);
+				addMoreText('do not present');
 			case 7:
-				// if (Main.watermarks)
-				// 	addMoreText('KadeDeveloper');
-				// else
-				// {
-					addMoreText('Newgrounds');
-					ngSpr.visible = true;
-				// }
-			// credTextShit.text += '\nNewgrounds';
-			case 8:
 				deleteCoolText();
-				ngSpr.visible = false;
-			// credTextShit.visible = false;
-
-			// credTextShit.text = 'Shoutouts Tom Fulp';
-			// credTextShit.screenCenter();
-			case 9:
-				createCoolText([curWacky[0]]);
-			// credTextShit.visible = true;
+			case 10:
+				deleteCoolText();
+				addMoreText('not partnered with').startTyping(0,Conductor.crochetSecs * 2);
 			case 11:
-				addMoreText(curWacky[1]);
-			// credTextShit.text += '\nlmao';
 			case 12:
-				deleteCoolText();
-			// credTextShit.visible = false;
-			// credTextShit.text = "Friday";
-			// credTextShit.screenCenter();
-			case 13:
-				addMoreText('Friday');
-			// credTextShit.visible = true;
-			case 14:
-				addMoreText('Night');
-			// credTextShit.text += '\nNight';
-			case 15:
-				addMoreText('Funkin'); // credTextShit.text += '\nFunkin';
-
+				addMoreText('Newgrounds');
+				ngSpr.scale.x = ngSpr.scale.y = 1.1;
+				FlxTween.tween(ngSpr.scale,{x:1,y:1},0.2);
+				ngSpr.visible = true;
 			case 16:
+				deleteCoolText();
+				credTextShit.y += 130;
+				ngSpr.visible = false;
+			case 18:
+				if(curWacky.length % 2 == 1){curWacky.push('');}// Hacky but fuck you
+				var max = Std.int(Math.floor(curWacky.length * 0.5));
+				createCoolText(curWacky.slice(0,max));
+			case 20:
+				var max = Std.int(Math.floor(curWacky.length * 0.5));
+				createCoolText(curWacky.slice(max));
+			case 24:
+				deleteCoolText();
+				if(forcedText) FlxG.save.data.seenForcedText = true;
+			case 26:
+				addMoreText('Friday Night Funkin\'');
+			case 28:
+				addMoreText('Super Engine');
+			case 30:
+				addMoreText('T mod');
+			case 32:
 				skipIntro();
+			default:
 		}
 	}
 
@@ -847,7 +828,7 @@ class TitleState extends MusicBeatState
 			}
 			remove(ngSpr);
 			destHaxe();
-			FlxG.camera.flash(FlxColor.WHITE, 4);
+			FlxG.camera.flash(FlxColor.WHITE, 2);
 			remove(credGroup);
 			skippedIntro = true;
 
@@ -858,6 +839,8 @@ class TitleState extends MusicBeatState
 				FlxG.camera.setFilters([new openfl.filters.ShaderFilter(halloweenEffect.shader)]);
 				titleText.color=0xffff8b0f;
 			}
+			if(Date.now().getHours() == 3)
+				titleText.color=0xffff0000;
 
 			if(FlxG.save.data.gfTitleShow){
 				var _x = logoBl.x;
@@ -871,6 +854,13 @@ class TitleState extends MusicBeatState
 				logoBl.screenCenter(X);
 				FlxTween.tween(FlxG.camera.scroll,{x: 0,y:0},1,{ease:FlxEase.cubeOut});
 			}
+		}
+	}
+	override function stepHit(){
+		super.stepHit();
+		if(Date.now().getHours() == 3 && FlxG.random.int(0,100) > 80){
+			titleText.members[FlxG.random.int(0,titleText.length)].x = FlxG.random.int(-40,1280);
+			titleText.members[FlxG.random.int(0,titleText.length)].y = FlxG.random.int(-40,770);
 		}
 	}
 
@@ -905,24 +895,17 @@ class TitleState extends MusicBeatState
 		coolText.bounce();
 		add(cachingText = coolText);
 
-		_sprite.x = (FlxG.width / 2);
-		_sprite.y = (FlxG.height * 0.60) - 20 * FlxG.game.scaleY;
-		_sprite.scaleX = FlxG.game.scaleX;
-		_sprite.scaleY = FlxG.game.scaleY;
-		_sound = FlxG.sound.load(flixel.system.FlxAssets.getSound("flixel/sounds/flixel"),FlxG.save.data.instVol - 0.2); // Put the volume down by 0.2 for safety of eardrums
+		_sound = FlxG.sound.load(Assets.getSound("flixel/sounds/flixel." + flixel.system.FlxAssets.defaultSoundExtension,false),FlxG.save.data.instVol - 0.2); // Put the volume down by 0.2 for safety of eardrums
 		_sound.play();
-		for (time in _times)
-		{
-			new FlxTimer().start(time, _timerCallback);
-		}
+		for (time in _times) new FlxTimer().start(time, _timerCallback);
 	}
 	function destHaxe(){
+		flixel.util.FlxTimer.globalManager.clear();
 		if(_sprite == null) return;
 		if(_sound != null){
 			_sound.pause();
 			_sound.destroy();
 		}
-		flixel.util.FlxTimer.globalManager.clear();
 		FlxG.stage.removeChild(_sprite);
 		_sprite = null;
 		_gfx = null;
@@ -939,8 +922,13 @@ class TitleState extends MusicBeatState
 		if(textGroup.members[1] == null) textGroup.members[0].color = _colors[_curPart]; else {textGroup.members[1].color = _colors[_curPart];textGroup.members[0].color = 0xFFFFFF;}
 		
 		if(_sprite.filters[0] != null) cast(_sprite.filters[0],flash.filters.GlowFilter).color = _colors[_curPart];
-		if (_curPart == 6)
-		{
+		if(_sprite != null){
+			_sprite.x = (FlxG.width * 0.5);
+			_sprite.y = (FlxG.height * 0.60) - 20 * FlxG.game.scaleY;
+			_sprite.scaleX = FlxG.game.scaleX;
+			_sprite.scaleY = FlxG.game.scaleY;
+		}
+		if (_curPart == 6){
 			// Make the logo a tad bit longer, so our users fully appreciate our hard work :D
 			FlxTween.tween(_sprite.filters[0],{blurX:0,blurY:0,strength:1},1.5,{ease:FlxEase.quadOut});
 			FlxTween.tween(_sprite, {alpha: 0}, 3.0, {ease: FlxEase.quadOut, onComplete: __onComplete});
@@ -1041,8 +1029,7 @@ class TitleState extends MusicBeatState
 		_gfx.lineTo(-50, 50);
 		_gfx.endFill();
 		deleteCoolText();
-		createCoolText(['Powered by','HaxeFlixel']);
-
+		createCoolText(['Powered by',(FlxG.random.bool(0.1) ? 'the bane of my existance' : 'HaxeFlixel')]);
 	}
 
 	function drawLightBlue():Void
