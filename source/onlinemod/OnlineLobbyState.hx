@@ -36,10 +36,12 @@ import Discord.DiscordClient;
 
 class OnlineLobbyState extends ScriptMusicBeatState
 {
+	public static var instance:OnlineLobbyState = null;
 	var clientTexts:Map<Int, Int> = []; // Maps a player ID to the corresponding index in clientsGroup
 	var clientsGroup:Array<Array<Dynamic>> = [[]]; // Stores all FlxText instances used to display names
 	public static var clientCount:Int = 0; // Amount of clients in the lobby
 	var targetY:Float = 8;
+	var targetX:Array<Float> = [40,640]; // playerlist and songbox thing
 	var camPlayerList:FlxCamera = new FlxCamera(0,64,0,406);
 
   static inline var NAMES_SIZE:Int = 32;
@@ -74,6 +76,7 @@ class OnlineLobbyState extends ScriptMusicBeatState
   var songTextBG:FlxSprite;
   var songTextTxt:FlxText;
 
+  var topText:FlxText;
   var readyButton:FlxUIButton;
   var adminButton:Array<Dynamic> = [];
   var countdowntimer:Float = 0;
@@ -94,9 +97,19 @@ class OnlineLobbyState extends ScriptMusicBeatState
 
   var keepClients:Bool;
 
-	public function new(keepClients:Bool=false)
+	static var clientsName:Map<Int, String>;
+	public static var showingLeaderBoard:Bool = true;
+	public static var hasLeaderboard:Bool = false;
+	var clientsGroupLeaderboard:FlxTypedGroup<FlxText>;
+
+	public function new(keepClients:Bool=false,?PSclients:Map<Int, String>)
 	{
 		super();
+		if(PSclients != null){
+			showingLeaderBoard = true;
+			hasLeaderboard = true;
+			clientsName = PSclients;
+		}
 		if (!keepClients)
 		{
 		  clients = [];
@@ -109,6 +122,25 @@ class OnlineLobbyState extends ScriptMusicBeatState
 		this.keepClients = keepClients;
 	}
 
+	function toggleLeaderboard(){
+		showingLeaderBoard = !showingLeaderBoard;
+		if(showingLeaderBoard){
+			topText.text = "< Leaderboard";
+			targetX = [-560,1600];
+			readyButton.visible = false;
+			SettingText.visible = false;
+			for(thing in adminButton){thing.visible = false;}
+			for(thing in clientsGroupLeaderboard){thing.visible = true;}
+		}else{
+			topText.text = "Lobby >";
+			targetX = [40,640];
+			readyButton.visible = true;
+			SettingText.visible = true;
+			for(thing in adminButton){thing.visible = true;}
+			for(thing in clientsGroupLeaderboard){thing.visible = false;}
+		}
+	}
+
   override function create()
   {
 	new FlxTimer().start(0.1, function(tmr)
@@ -118,6 +150,8 @@ class OnlineLobbyState extends ScriptMusicBeatState
 	scriptSubDirectory = '/onlinelobby/';
 	useNormalCallbacks = true;
 	loadScripts(true);
+	instance?.destroy();
+	ScriptMusicBeatState.instance=cast(instance=this);
 	if(onlinemod.OnlinePlayMenuState.rawLobbyScripts.length > 0)
 		for (i in 0 ... onlinemod.OnlinePlayMenuState.rawLobbyScripts.length) {
 			parseHScript(onlinemod.OnlinePlayMenuState.rawLobbyScripts[i][1],null,onlinemod.OnlinePlayMenuState.rawLobbyScripts[i][0],'lobbyScript');
@@ -133,8 +167,8 @@ class OnlineLobbyState extends ScriptMusicBeatState
 	var topBox = new FlxSprite().makeGraphic(FlxG.width, 64, 0x7F3F3F3F); // #3F3F3F
 	add(topBox);
 
-	var topText:FlxText = new FlxText(0, 0, "Lobby");
-	topText.setFormat(CoolUtil.font, 48, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+	topText = new FlxText(0, 0, 640, "Lobby");
+	topText.setFormat(CoolUtil.font, 48, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 	topText.screenCenter(FlxAxes.X);
 	add(topText);
 
@@ -160,9 +194,9 @@ class OnlineLobbyState extends ScriptMusicBeatState
 
 	songTextBG = new FlxSprite().makeGraphic(660, 90, 0xFF3F3F3F);
 	songTextBG.alpha = 0.5;
-	songTextBG.setPosition(640,180);
+	songTextBG.setPosition(1600,180);
 	add(songTextBG);
-	songTextTxt = new FlxText(660, 190, songText);
+	songTextTxt = new FlxText(1600, 190, songText);
 	songTextTxt.setFormat(CoolUtil.font, 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 	add(songTextTxt);
 
@@ -286,6 +320,38 @@ class OnlineLobbyState extends ScriptMusicBeatState
 				hasSong = false;
 			}
 		}
+
+	clientsGroupLeaderboard = new FlxTypedGroup<FlxText>();
+	if(hasLeaderboard){
+		var orderedKeys:Array<Int> = [for(k in OnlinePlayState.clientScores.keys()) k];
+		orderedKeys.sort((a, b) -> OnlinePlayState.clientScores[b] - OnlinePlayState.clientScores[a]);
+
+		var x:Int = 0;
+		for (i in orderedKeys)
+		{
+			var name:String = clientsName[i];
+			var score = OnlinePlayState.clientText[i];
+			if (score == null) score = "N/A";
+			if (name == null) name = "N/A";
+			var text:FlxText = new FlxText(0, FlxG.height*0.1 + 30*x, '${x+1}. $name: $score');
+
+			if (i == -1) text.text += " (YOU)";
+
+			var color:FlxColor = FlxColor.WHITE;
+			if (!OnlineLobbyState.clients.exists(i) && i != -1) color = FlxColor.RED;
+
+			text.setFormat(CoolUtil.font, 24, color, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			text.screenCenter(FlxAxes.X);
+			text.visible = false;
+			add(text);
+			clientsGroupLeaderboard.add(text);
+			x++;
+		}
+		if(showingLeaderBoard){
+			showingLeaderBoard = false;
+			toggleLeaderboard();
+		}else topText.text = "Lobby >";
+	}
 	super.create();
   }
 
@@ -804,13 +870,11 @@ public static function handleServerCommand(command:String,?version = 0) // Not s
 	var playerBG = new FlxSprite().makeGraphic(480, 48,0x7F3F3F3F); // #3F3F3F
 	playerBG.setPosition(-560,targetY + clientCount * NAMES_VERTICAL_SPACING);
 	playerBG.cameras = [camPlayerList];
-	FlxTween.tween(playerBG,{x: 40},0.5,{ease: FlxEase.quadOut});
 	playerArray.push(playerBG);
 	add(playerBG);
 	var text:FlxText = new FlxText(-560, targetY + clientCount * NAMES_VERTICAL_SPACING, 460, nickname);
 	text.setFormat(CoolUtil.font, NAMES_SIZE, color, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 	text.cameras = [camPlayerList];
-	FlxTween.tween(text,{x: 50},0.5,{ease: FlxEase.quadOut});
 	playerArray.push(text);
 	add(text);
 	clientCount++;
@@ -840,6 +904,7 @@ public static function handleServerCommand(command:String,?version = 0) // Not s
 	clientsGroup.remove(clientsGroup[clientTexts[id]]);
 	clientTexts.remove(id);
 	clientCount--;
+	callInterp("removePlayerUI",[]);
   }
   function disconnect(){
 	  if (OnlinePlayMenuState.socket.connected)
@@ -879,7 +944,6 @@ function addStatustext(array:Array<Dynamic>,order:Int,status:String,?animation:B
 	var statusText:FlxText = new FlxText(animation ? -560 : 50, targetY + order * NAMES_VERTICAL_SPACING, 460, status);
 	statusText.setFormat(CoolUtil.font, NAMES_SIZE, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 	statusText.cameras = [camPlayerList];
-	if(animation) FlxTween.tween(statusText,{x: 50},0.5,{ease: FlxEase.quadOut});
 	array.push(statusText);
 	add(statusText);
 	callInterp("addStatustext",[statusText,array]);
@@ -887,8 +951,6 @@ function addStatustext(array:Array<Dynamic>,order:Int,status:String,?animation:B
 
 public function clientCommand(command:String) {
 	var commandarr:Array<String> = command.split(" ");
-	callInterp("clientCommand",[commandarr,command]);
-	if(cancelCurrentFunction) return;
 	switch(commandarr[0]){
 		case "help" | "h":
 			Chat.CLIENT_MESSAGE('redownload/rd: redownload the voice and inst');
@@ -928,6 +990,8 @@ public function clientCommand(command:String) {
 			countdowntimer = 0;
 			Sender.SendPacket(Packets.CUSTOMPACKETSTRING, ["StopTimer", "stop it"], OnlinePlayMenuState.socket);
 		default:
+			callInterp("clientCommand",[commandarr,command]); // hey if anyone using this make sure to set cancelCurrentFunction to true so it doesn't say it Couldn't recognize command
+			if(cancelCurrentFunction) return;
 			Chat.CLIENT_MESSAGE("Couldn't recognize command '" + commandarr[0] + "'. Try using '//help'");
 	}
 }
@@ -980,17 +1044,22 @@ override function update(elapsed:Float)
 
 	if(/* isAdmin &&  */!loadingSong.contains(true)){
 		if (FlxG.mouse.overlaps(songTextBG)){
+			targetX[1] = 620;
 			songTextBG.alpha = FlxMath.lerp(songTextBG.alpha, 0.75, elapsed * 10);
-			songTextBG.x = FlxMath.lerp(songTextBG.x, 620, elapsed * 10);
-			songTextTxt.x = FlxMath.lerp(songTextTxt.x, 640, elapsed * 10);
+			songTextBG.x = FlxMath.lerp(songTextBG.x, targetX[1], elapsed * 10);
+			songTextTxt.x = FlxMath.lerp(songTextTxt.x, targetX[1] + 20, elapsed * 10);
 			if(FlxG.mouse.justPressed)
 				Sender.SendPacket(Packets.CUSTOMPACKETSTRING, ['REQUEST_listVersion'], OnlinePlayMenuState.socket);
-		}else {
+		}else{
+			targetX[1] = (showingLeaderBoard && hasLeaderboard ? 1600 : 640);
 			songTextBG.alpha = FlxMath.lerp(songTextBG.alpha, 0.5, elapsed * 10);
-			songTextBG.x = FlxMath.lerp(songTextBG.x, 640, elapsed * 10);
-			songTextTxt.x = FlxMath.lerp(songTextTxt.x, 660, elapsed * 10);
+			songTextBG.x = FlxMath.lerp(songTextBG.x, targetX[1], elapsed * 10);
+			songTextTxt.x = FlxMath.lerp(songTextTxt.x, targetX[1] + 20, elapsed * 10);
 		}
 	}
+
+	if(hasLeaderboard && (FlxG.keys.justPressed.TAB || FlxG.mouse.overlaps(topText) && FlxG.mouse.justPressed))
+		toggleLeaderboard();
 
 	if(FlxG.mouse.justPressedMiddle)
 		targetY = 8;
@@ -1006,8 +1075,9 @@ override function update(elapsed:Float)
 
 	for(array in 0...clientsGroup.length){
 		var _targetY = targetY + array * NAMES_VERTICAL_SPACING;
-		for(thing in clientsGroup[array]){
-			thing.y = FlxMath.lerp(thing.y, _targetY, elapsed * 10);
+		for(thing in 0...clientsGroup[array].length){
+			clientsGroup[array][thing].x = FlxMath.lerp(clientsGroup[array][thing].x, (thing > 0 ? targetX[0] + 10 : targetX[0]), elapsed * 10);
+			clientsGroup[array][thing].y = FlxMath.lerp(clientsGroup[array][thing].y, _targetY, elapsed * 10);
 		}
 	}
 
@@ -1063,16 +1133,6 @@ override function update(elapsed:Float)
 		quitHeldBG.visible = false;
 	}
 
-	if (Chat.chatField.hasFocus && FlxG.keys.justPressed.ENTER)
-		{
-			if(StringTools.startsWith(Chat.chatField.text, "//"))
-				{
-					clientCommand(Chat.chatField.text.substr(2,Chat.chatField.text.length));
-					Chat.chatField.text = "";
-					Chat.chatField.caretIndex = 0;
-				}
-			else Chat.SendChatMessage();
-		}
 	Chat.update(elapsed);
 	ChatBGBox.visible = Chat.hidechat;
 
