@@ -41,6 +41,7 @@ class OnlinePlayMenuState extends ScriptMusicBeatState
 
 	var ServerList:Array<Array<Dynamic>> = [];
 	var AddServerButton:FlxUIButton;
+	var firstServerInfo:Array<Dynamic> = [];
 
 	public function new(?message:String="", ?color:FlxColor=FlxColor.RED)
 	{
@@ -241,6 +242,7 @@ class OnlinePlayMenuState extends ScriptMusicBeatState
 				socket = null;
 			}
 		}
+		if (FlxG.keys.justPressed.ENTER) Connect(firstServerInfo[0],firstServerInfo[1],firstServerInfo[2]);
 		super.update(elapsed);
 		FlxG.mouse.visible = true;
 	}
@@ -323,6 +325,7 @@ class OnlinePlayMenuState extends ScriptMusicBeatState
 					ConnectButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 					ConnectButton.resize(200, 50);
 					_Server.push(add(ConnectButton));
+					if(firstServerInfo.length == 0)firstServerInfo = [serverInfo[0],serverInfo[1],serverInfo[2]];
 
 					var RUSure = 0;
 					var DeleteButton = new FlxUIButton(ConnectButton.x + ConnectButton.width + 25, ConnectButton.y, 'Delete Server', () -> {
