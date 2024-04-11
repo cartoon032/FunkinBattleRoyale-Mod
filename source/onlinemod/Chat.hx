@@ -73,6 +73,12 @@ class Chat
 	Chat.chatField = new FlxInputText(10, 650, 1260, 20);
 	chatField.maxLength = 81;
 	state.add(Chat.chatField);
+	chatField.callback = function(_:String,cb:String){
+		if(cb == "enter"){
+			Chat.SendChatMessage();
+			Chat.chatField.hasFocus = true;
+		}
+	}
 
 	// Chat.chatSendButton = new FlxUIButton(1170, Chat.chatField.y, "Send", () -> {
 	//   Chat.SendChatMessage();
@@ -151,7 +157,13 @@ class Chat
 
   public static function SendChatMessage()
   {
-	if (chatField.text.length > 0){
+	if(StringTools.startsWith(chatField.text, "//"))
+		{
+			OnlineLobbyState.instance.clientCommand(chatField.text.substr(2,chatField.text.length));
+			chatField.text = "";
+			chatField.caretIndex = 0;
+		}
+	else if (chatField.text.length > 0){
 		if (!StringTools.startsWith(chatField.text, " "))
 		{
 			Sender.SendPacket(Packets.SEND_CHAT_MESSAGE, [Chat.chatId, chatField.text], OnlinePlayMenuState.socket);
