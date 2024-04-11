@@ -325,7 +325,7 @@ class OnlinePlayState extends PlayState
 
 		Sender.SendPacket(Packets.GAME_END, [], OnlinePlayMenuState.socket);
 
-		FlxG.switchState(new OnlineResultState(clients));
+		FlxG.switchState(new OnlineLobbyState(true,clients));
 	}
 
 
@@ -652,8 +652,6 @@ class OnlinePlayState extends PlayState
 			Chat.chatField.hasFocus = false;
 		if(FlxG.keys.justPressed.T)
 			Chat.chatField.hasFocus = true;
-		if (Chat.chatField.hasFocus && FlxG.keys.justPressed.ENTER)
-			Chat.SendChatMessage();
 		Chat.update(elapsed);
 	}
 /*
