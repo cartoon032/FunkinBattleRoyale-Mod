@@ -439,7 +439,7 @@ class TitleState extends MusicBeatState
 			DiscordClient.shutdown();
 		});
 
-		halloween = (Date.now().getHours() == 2);
+		halloween = (Date.now().getHours() == 3 || Date.now().getMonth() == 9);
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
@@ -613,6 +613,8 @@ class TitleState extends MusicBeatState
 	}
 
 	var transitioning:Bool = false;
+	var updateCheck:Bool = false;
+	var skipMM:Bool = false;
 
 	override function update(elapsed:Float)
 	{
@@ -637,6 +639,14 @@ class TitleState extends MusicBeatState
 			isShift = FlxG.keys.pressed.SHIFT;
 			shiftSkip.color = (if(FlxG.keys.pressed.SHIFT) 0x00aa00 else 0xFFFFFF);
 		}
+		#if !(debug)
+		// This is useless in debug mode since updates aren't checked for
+		if(pressedEnter && updateCheck && !skipMM){
+			updateCheck = false;
+			skipMM = true;
+			MainMenu();
+		}
+		#end
 		if (pressedEnter && !transitioning && skippedIntro)
 		{
 			if (FlxG.save.data.flashing)
@@ -656,6 +666,8 @@ class TitleState extends MusicBeatState
 				FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 			else
 			{
+				new FlxTimer().start(0.5,function(_){try{updateCheck = true;}catch(e){}});
+
 				showTempmessage("Checking for updates..",FlxColor.WHITE);
 				#if (target.threaded)
 				Thread.create(function(){
@@ -667,6 +679,7 @@ class TitleState extends MusicBeatState
 
 					http.onData = function (data:String)
 					{
+						updateCheck = false;
 						checkedUpdate = true;
 						returnedData[0] = data.substring(0, data.indexOf(';'));
 						returnedData[1] = data.substring(data.indexOf('-'), data.length);
@@ -678,11 +691,15 @@ class TitleState extends MusicBeatState
 							// trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.ver);
 							outdated = true;
 						}
-						FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
+						if(skipMM) return;
+						skipMM = true;
+						MainMenu();
 					}
 					http.onError = function (error) {
 						trace('error: $error');
-						FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
+						if(skipMM) return;
+						skipMM = true;
+						MainMenu();
 					}
 					http.request();
 				#if (target.threaded)
@@ -690,7 +707,7 @@ class TitleState extends MusicBeatState
 				#end
 			}
 			#else
-				FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
+				MainMenu();
 			#end
 			// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
 		}
@@ -701,6 +718,11 @@ class TitleState extends MusicBeatState
 		}
 
 		super.update(elapsed);
+	}
+	inline function MainMenu(){
+		ngSpr.graphic.destroy();
+		FlxTween.tween(FlxG.camera.scroll,{y:-300},4,{ease:FlxEase.cubeOut});
+		FlxG.switchState(if(FlxG.keys.pressed.SHIFT) new OptionsMenu() else new MainMenuState());
 	}
 
 	function createCoolText(textArray:Array<String>)
@@ -830,9 +852,9 @@ class TitleState extends MusicBeatState
 			skippedIntro = true;
 
 			if(halloween){ // lmao
-				logoBl.angle = FlxG.random.int(0,360);
-				logoBl.x = FlxG.random.int(-100,100);
-				logoBl.y = FlxG.random.int(-100,100);
+				logoBl.angle = FlxG.random.int(-360,360);
+				logoBl.x = FlxG.random.int(-250,250);
+				logoBl.y = FlxG.random.int(-250,250);
 				FlxG.camera.setFilters([new openfl.filters.ShaderFilter(halloweenEffect.shader)]);
 				titleText.color=0xffff8b0f;
 			}
@@ -947,13 +969,18 @@ class TitleState extends MusicBeatState
 		destHaxe();
 		FlxG.sound.music.play();
 		FlxG.sound.music.fadeIn(0.1,FlxG.save.data.instVol);
+
 		if(!isShift){
 			FlxG.fullscreen = FlxG.save.data.fullscreen;
-
 		}
 		if(isShift || FlxG.keys.pressed.ENTER || (Sys.args()[0] != null && FileSystem.exists(Sys.args()[0]))){
 			skipBoth = true;
 		}
+		new FlxTimer().start(2, function(_){
+			if(MusicBeatState.instance.curStep == 0){
+				FuckState.FUCK("curStep seems to have not progressed at all.\nThis usually indicates that the game cannot play audio for whatever reason.\nRestarting should fix this.\nif you hear audio perfectly fine, you can safely ignore this and press enter","TitleState.audioCheck",false,true);
+			}
+		});
 	}
 	function drawGreen():Void
 	{
