@@ -179,12 +179,12 @@ class Note extends FlxSprite
 		animation.addByPrefix('aquaholdend', 'blue hold end');
 		animation.addByPrefix('aquahold', 'blue hold piece');
 
-		animation.addByPrefix(Color + 'Scroll', Color +'0');
-		animation.addByPrefix(Color + 'holdend', Color +' end hold');// why
-		animation.addByPrefix(Color + 'holdend', Color +' hold end');
-		animation.addByPrefix(Color + 'hold', Color +' hold piece');
+		animation.addByPrefix(Color[noteData] + 'Scroll', Color[noteData] +'0');
+		animation.addByPrefix(Color[noteData] + 'holdend', Color[noteData] +' end hold');// why
+		animation.addByPrefix(Color[noteData] + 'holdend', Color[noteData] +' hold end');
+		animation.addByPrefix(Color[noteData] + 'hold', Color[noteData] +' hold piece');
 
-		if(inCharter || (animation.getByName(Color + "Scroll") != null && animation.getByName(Color + "holdend") != null && animation.getByName(Color + "hold") != null)) return; //the old way of load everycolor for somereason
+		if(inCharter || (animation.getByName(Color[noteData]+ "Scroll") != null && animation.getByName(Color[noteData]+ "holdend") != null && animation.getByName(Color[noteData]+ "hold") != null)) return; //the old way of load everycolor for somereason
 
 		if(PlayState.mania != 0){// For when playing MultiKey and custom note don't exist
 			animation.addByPrefix('whiteScroll', 'green0');
@@ -756,7 +756,7 @@ class Note extends FlxSprite
 		var noteName = _noteNames[noteData];
 		if(eventNote || noteData == -1) noteName = "white";
 		x+= swagWidth[mania] * noteData;
-		loadNoteAnimation(noteNames);
+		loadNoteAnimation(_noteNames);
 		animation.play(noteName + "Scroll");
 
 		// trace(prevNote);
