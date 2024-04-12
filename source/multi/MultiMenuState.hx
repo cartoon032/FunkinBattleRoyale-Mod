@@ -437,6 +437,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			var chartFile = onlinemod.OfflinePlayState.chartFile = '${selSong}/${songJSON}';
 			PlayState.isStoryMode = false;
 			// Set difficulty
+			PlayState.songspeed = onlinemod.OfflineMenuState.rate;
 			PlayState.songDiff = songJSON;
 			PlayState.storyDifficulty = (songJSON.endsWith('-easy.json') ? 0 : (songJSON.endsWith('easy.json') ? 2 : 1));
 			PlayState.actualSongName = songJSON;
