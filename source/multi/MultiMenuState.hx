@@ -687,6 +687,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			playCount++;
 			allowInput = false;
 			var songInfo:SongInfo = grpSongs.members[curSelected]?.menuValue;
+			var songchart:Bool = false;
 			if(songInfo == null) {
 				curPlaying = "";
 				SickMenuState.musicHandle();
@@ -716,8 +717,10 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 						}
 						voices = null;
 						try{
-							if(SELoader.exists('${songInfo.path}${songInfo.charts[selMode]}-Inst.ogg'))
+							if(SELoader.exists('${songInfo.path}${songInfo.charts[selMode]}-Inst.ogg')){
 								FlxG.sound.playMusic(SELoader.loadSound('${songInfo.path}${songInfo.charts[selMode]}-Inst.ogg'),FlxG.save.data.instVol,true);
+								songchart = true;
+							}
 							else FlxG.sound.playMusic(SELoader.loadSound(songInfo.inst),FlxG.save.data.instVol,true);
 							songLength = FlxG.sound.music.length;
 							songLengthTxt = FlxStringUtil.formatTime(Math.floor((songLength) / 1000), false);
@@ -758,7 +761,6 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 								FlxTween.tween(songProgressText,{x:songProgress.x + songProgress.width + 10},0.7,{ease:FlxEase.expoOut});
 								songProgressText.text = "Playing Inst";
 							}catch(e){}
-							DiscordClient.changePresence('Listening to',songNames[curSelected],null,true,FlxG.sound.music.length,"https://i.imgur.com/HXQiPxD.gif");
 						}else{
 							curPlaying = "";
 							SickMenuState.musicHandle();
@@ -769,8 +771,10 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 							if(voices == null){
 								if(SELoader.exists(songInfo.voices)){
 									voices = new FlxSound();
-									if(SELoader.exists('${songInfo.path}/${songInfo.charts[selMode]}-Voices.ogg'))
+									if(SELoader.exists('${songInfo.path}/${songInfo.charts[selMode]}-Voices.ogg')){
 										voices.loadEmbedded(SELoader.loadSound('${songInfo.path}/${songInfo.charts[selMode]}-Voices.ogg'),true);
+										songchart = true;
+									}
 									else voices.loadEmbedded(SELoader.loadSound(songInfo.voices),true);
 									voices.volume = FlxG.save.data.voicesVol;
 									voices.looped = true;
@@ -794,6 +798,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 						FlxG.sound.music.volume = FlxG.save.data.instVol;
 						FlxG.sound.music.play();
 					}
+					DiscordClient.changePresence('Listening to',(songchart ? songInfo.charts[selMode] : songInfo.name),null,true,FlxG.sound.music.length,"https://i.imgur.com/HXQiPxD.gif");
 					if(playCount > 2)
 						playCount = 0;
 					allowInput = true;
@@ -963,7 +968,6 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 							songProgressText.text = "Playing Inst";
 						}catch(e){}
 						#if discord_rpc
-						DiscordClient.changePresence('Listening to',songNames[curSelected],null,true,FlxG.sound.music.length,"https://i.imgur.com/HXQiPxD.gif");
 						#end
 					}else{
 						curPlaying = "";
@@ -1000,6 +1004,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 					FlxG.sound.music.volume = FlxG.save.data.instVol;
 					FlxG.sound.music.play();
 				}
+				DiscordClient.changePresence('Listening to',(songchart ? songInfo.charts[selMode] : songInfo.name),null,true,FlxG.sound.music.length,"https://i.imgur.com/HXQiPxD.gif");
 				if(playCount > 2)
 					playCount = 0;
 				allowInput = true;
