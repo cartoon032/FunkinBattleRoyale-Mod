@@ -156,6 +156,7 @@ class ChartingState extends MusicBeatState
 
 	var leftIcon:HealthIcon;
 	var rightIcon:HealthIcon;
+	var gfIcon:HealthIcon;
 	var keyAmmo:Array<Int> = [4, 6, 7, 9, 5, 8, 1, 2, 3, 10, 11, 12, 13, 14, 15, 16 ,17, 18, 21];
 
 	private var lastNote:Note;
@@ -318,17 +319,22 @@ class ChartingState extends MusicBeatState
 
 		leftIcon = new HealthIcon(_song.player1);
 		rightIcon = new HealthIcon(_song.player2);
+		gfIcon = new HealthIcon("gf");
 		leftIcon.scrollFactor.set(1, 1);
 		rightIcon.scrollFactor.set(1, 1);
+		gfIcon.scrollFactor.set(1, 1);
 
 		leftIcon.setGraphicSize(0, 45);
 		rightIcon.setGraphicSize(0, 45);
+		gfIcon.setGraphicSize(0, 45);
 
 		add(leftIcon);
 		add(rightIcon);
+		add(gfIcon);
 
 		leftIcon.setPosition(gridBG.x, -100);
 		rightIcon.setPosition(gridBG.x + (gridBG.width / 2), -100);
+		gfIcon.setPosition(gridBG.x, -100);
 
 		bpmTxt = new FlxText(0, 0, FlxG.width, "", 16);
 		bpmTxt.alignment = RIGHT;
@@ -623,6 +629,7 @@ class ChartingState extends MusicBeatState
 
 	// var stepperLength:FlxUINumericStepper; // it gonna break a lot of stuff and nobody should use it anyway
 	var check_mustHitSection:FlxUICheckBox;
+	var check_gfSection:FlxUICheckBox;
 	var check_changeBPM:FlxUICheckBox;
 	var stepperSectionBPM:FlxUINumericStepper;
 	var check_altAnim:FlxUICheckBox;
@@ -683,7 +690,9 @@ class ChartingState extends MusicBeatState
 		check_mustHitSection = new FlxUICheckBox(10, 30, null, null, "Camera Points to P1?", 100);
 		check_mustHitSection.name = 'check_mustHit';
 		check_mustHitSection.checked = true;
-		// _song.needsVoices = check_mustHit.checked;
+		check_gfSection = new FlxUICheckBox(10, 30, null, null, "Camera Points to GF?", 100);
+		check_gfSection.name = 'check_gf';
+		check_gfSection.checked = false;
 
 		check_altAnim = new FlxUICheckBox(150, 30, null, null, "Alternate Animation", 100);
 		check_altAnim.name = 'check_altAnim';
@@ -699,6 +708,7 @@ class ChartingState extends MusicBeatState
 		tab_group_section.add(stepperCopy);
 		tab_group_section.add(stepperCopyLabel);
 		tab_group_section.add(check_mustHitSection);
+		tab_group_section.add(check_gfSection);
 		tab_group_section.add(check_altAnim);
 		tab_group_section.add(check_changeBPM);
 		tab_group_section.add(ReBuildBPMMapButton);
@@ -889,9 +899,11 @@ class ChartingState extends MusicBeatState
 				case 'Camera Points to P1?':
 					_song.notes[curSection].mustHitSection = check.checked;
 					updateHeads();
+				case 'Camera Points to GF?':
+					_song.notes[curSection].gfSection = check.checked;
+					updateHeads();
 				case 'Change BPM':
 					_song.notes[curSection].changeBPM = check.checked;
-					trace('changed bpm shit');
 				case "Alternate Animation":
 					_song.notes[curSection].altAnim = check.checked;
 				case "Show Note Type":
@@ -921,7 +933,6 @@ class ChartingState extends MusicBeatState
 				if (nums.value <= 0)
 					nums.value = 1;
 				tempBpm = nums.value;
-				Conductor.mapBPMChanges(_song);
 				Conductor.changeBPM(nums.value);
 			}
 			else if (wname == 'note_susLength')
@@ -1562,6 +1573,7 @@ class ChartingState extends MusicBeatState
 			FlxG.sound.play(Sound.fromFile('./assets/shared/sounds/CLAP.ogg'));
 		leftIcon.bounce(60 / Conductor.bpm);
 		rightIcon.bounce(60 / Conductor.bpm);
+		gfIcon.bounce(60 / Conductor.bpm);
 		// player1.dance();
 		// player2.dance();
 	}
@@ -1649,6 +1661,7 @@ class ChartingState extends MusicBeatState
 
 		// stepperLength.value = sec.lengthInSteps;
 		check_mustHitSection.checked = sec.mustHitSection;
+		check_gfSection.checked = (sec.gfSection != null ? sec.gfSection : false);
 		check_altAnim.checked = sec.altAnim;
 		check_changeBPM.checked = sec.changeBPM;
 		stepperSectionBPM.value = sec.bpm;
@@ -1656,6 +1669,16 @@ class ChartingState extends MusicBeatState
 
 	function updateHeads():Void
 	{
+		if (check_gfSection.checked)
+		{
+			gfIcon.visible = true;
+			leftIcon.visible = false;
+		}
+		else
+		{
+			leftIcon.visible = true;
+			gfIcon.visible = false;
+		}
 		if (check_mustHitSection.checked)
 		{
 			leftIcon.setPosition(gridBG.x, -100);
