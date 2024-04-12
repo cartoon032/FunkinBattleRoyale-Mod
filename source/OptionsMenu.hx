@@ -56,11 +56,11 @@ class OptionsMenu extends MusicBeatState
 			#end
 			new HCBoolOption("Content Creation/Debug Mode","Enables the Character/chart editor, F10 console, displays some extra info in the FPS Counter, and some other debug stuff","animDebug"),
 			new ReloadCharlist("Refreshes the character and stage list, used for if you added characters or stages")
-		]),
+		],"Settings relating to Characters, scripts, etc"),
 		new OptionCategory("Online", [
 			new AllowServerScriptsOption("Allow servers to run scripts. THIS IS DANGEROUS, ONLY ENABLE IF YOU TRUST THE SERVERS"),
 			new ShowConnectedIPOption("Showing what server you are currently connect to on Discord RPC"),
-			new OnlineEXCharLimitOption("How many people will get add(not include yourself and opponent) while playing")
+			// new OnlineEXCharLimitOption("How many people will get add(not include yourself and opponent) while playing")
 		]),
 		new OptionCategory("Gameplay", [
 			new DownscrollOption("Change the layout of the strumline."),
@@ -72,20 +72,20 @@ class OptionsMenu extends MusicBeatState
 			new HCBoolOption("Shit Reset Combo","Whether Shit Should reset combo","ShitCombo"),
 			new ScoreSystem("Change how score is calculate"),
 			new AltScoreSystem("The another score show on the result screen")
-		]),
+		],"Edit things like Scroll Direction, Score Calculation, etc"),
 		new OptionCategory("KeyBind",[
 			new DFJKOption(controls),
 			new SixKeyMenu(controls),
 			new NineKeyMenu(controls),
 			new TwelveKeyMenu(controls),
-		]),
+		],"Settings relating to Keybind"),
 		new OptionCategory("Modifiers", [
 			new PracticeModeOption("Disables the ability to get a gameover."),
 			new GhostTapOption("Ghost Tapping is when you tap a direction and it doesn't give you a miss."),
 			new Judgement("Customize your Hit Timings (LEFT or RIGHT)"),
 			new ScrollSpeedOption("Change your scroll speed (1 = Chart dependent)"),
 			new MKScrollSpeedOption("your scroll speed for keycount higher than 4 (1 = Using normal Scroll Speed)")
-		]),
+		],"Toggle Ghost Tapping, Scroll Speed, etc"),
 
 		new OptionCategory("Appearance", [
 			new GUIGapOption("Change the distance between the end of the screen and text"),
@@ -98,7 +98,7 @@ class OptionsMenu extends MusicBeatState
 			new ReplaceDadwithGFOption("When chart doesn't want Dad do you want to replace it GF or just disable Dad"),
 			new SongInfoOption("Change how your performance is displayed"),
 			new JudgementCounterOption("Show Judgement Counter Mid Song"),
-		]),
+		],"Toggle flashing lights, camera movement, song info, etc "),
 		new OptionCategory("Misc", [
 			new CheckForUpdatesOption("Toggle check for updates when booting the game"),
 			new FPSOption("Toggle the FPS Counter"),
@@ -112,7 +112,7 @@ class OptionsMenu extends MusicBeatState
 			new EraseOption("Backs up your options to SEOPTIONS-BACKUP.json and then resets them"),
 			new ImportOption("Import your options from SEOPTIONS.json"),
 			new ExportOption("Export your options to SEOPTIONS.json to backup or to share with a bug report"),
-		]),
+		],"Misc things"),
 		new OptionCategory("Performance", [
 			new FPSCapOption("Cap your FPS"),
 			new ExtraIconOption("Whether to load Extra Icon for Extra Character call by the chart. Can Block your screen if too many"),
@@ -121,7 +121,7 @@ class OptionsMenu extends MusicBeatState
 			new NoteRatingOption("Toggles the rating that appears when you press a note"),
 			// new UnloadSongOption("Unload the song when exiting the game"),
 			// new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu"),
-		]),
+		],"Disable some features for better performance"),
 		new OptionCategory("Visibility", [
 			new HCBoolOption('Force generic Font', "Force menus to use the built-in font or mods/font.ttf for easier reading(Note, some menus will break)",'useFontEverywhere'),
 			new BackTransOption("Change underlay opacity"),
@@ -134,7 +134,7 @@ class OptionsMenu extends MusicBeatState
 			new HCBoolOption("Show Player", "Toggle whether the player is loaded or not",'bfShow'),
 			new HCBoolOption("Threaded loading screen","Makes the loading screen use threads and show loading progress but is buggy","doCoolLoading"),
 			//new MMCharOption("**CAN PUT GAME INTO CRASH LOOP! IF STUCK, HOLD SHIFT AND DISABLE THIS OPTION. Show character on main menu")
-		]),
+		],"Toggle visibility of certain gameplay aspects"),
 		new OptionCategory("Auditory", [
 			new VolumeOption("Adjust the volume of the entire game","master"),
 			new VolumeOption("Adjust the volume of the background music","inst"),
@@ -146,7 +146,7 @@ class OptionsMenu extends MusicBeatState
 			new HitSoundOption("Play a click when you hit a note. Uses osu!'s sounds or your mods/hitsound.ogg and mods/holdsound.ogg"),
 			new DadHitSoundOption("Play a click when Opponent hit a note. Uses osu!'s sounds or your mods/hitsound.ogg and mods/holdsound.ogg"),
 			new PlayVoicesOption("Plays the voices a character has when you press a note."),
-		])
+		],"Toggle some sounds and change the volume of things")
 	];
 
 	public var acceptInput:Bool = true;

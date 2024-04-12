@@ -12,33 +12,32 @@ import Discord.DiscordClient;
 
 class OptionCategory
 {
-	private var _options:Array<Option> = new Array<Option>();
+	public var options(default,null):Array<Option> = new Array<Option>();
 	public var modded:Bool = false;
-	public final function getOptions():Array<Option>
+	public var description:String = "";
+	@:keep inline public final function getOptions():Array<Option>
 	{
-		return _options;
+		return options;
 	}
 
-	public final function addOption(opt:Option)
+	@:keep inline public final function addOption(opt:Option)
 	{
-		_options.push(opt);
+		options.push(opt);
 	}
 
 	
-	public final function removeOption(opt:Option)
+	@:keep inline public final function removeOption(opt:Option)
 	{
-		_options.remove(opt);
+		options.remove(opt);
 	}
 
-	private var _name:String = "New Category";
-	public final function getName() {
-		return _name;
-	}
+	public var name(default,null):String = "New Category";
 
-	public function new (catName:String, options:Array<Option>,?mod:Bool = false)
+	public function new(catName:String, options:Array<Option>,?desc:String = "",?mod:Bool = false)
 	{
-		_name = catName;
-		_options = options;
+		description = desc;
+		name = catName;
+		this.options = options;
 		this.modded = mod;
 	}
 }
