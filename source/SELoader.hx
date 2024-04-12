@@ -173,7 +173,7 @@ class SELoader {
 	@:keep inline public static function saveContent(textPath:String,content:String):String{return saveText(textPath,content,false);}
 	@:keep inline public static function getBytes(textPath:String):Bytes{return loadBytes(textPath,false);}
 	@:keep inline public static function gc(){
-		// FlxG.bitmap.clearUnused();
+		FlxG.bitmap.clearUnused();
 		openfl.system.System.gc();
 	}
 

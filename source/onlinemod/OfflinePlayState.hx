@@ -9,8 +9,7 @@ import flixel.util.FlxColor;
 import flash.media.Sound;
 import sys.FileSystem;
 import sys.io.File;
-import sys.thread.Lock;
-import sys.thread.Thread;
+import se.ThreadedAction;
 
 import Section.SwagSection;
 
@@ -36,28 +35,33 @@ class OfflinePlayState extends PlayState
 	willChart = charting;
 	super();
   }
-  function loadSongs(){
-  		LoadingScreen.loadingText = "Loading music";
+	function loadSongs(){
+		LoadingScreen.loadingText = "Loading music";
 		if(lastVoicesFile != voicesFile && loadedVoices != null){
 			loadedVoices.destroy();
 		}
 		#if(target.threaded)
-		var lock = new Lock();
-		sys.thread.Thread.create(() -> { // Offload to another thread for faster loading
+		var voicesThread = new ThreadedAction(() -> { // Offload to another thread for faster loading
 		#end
-			if(!(lastVoicesFile == voicesFile && loadedVoices != null)){
-				if(voicesFile == ""){
-					for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Voices.ogg','assets/onlinedata/songs/${PlayState.SONG.song}/Voices.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Voices.ogg']) {
-						trace('looking for voice at $i');
-						if (FileSystem.exists('${Sys.getCwd()}/$i')){
-							voicesFile = i;
-							break;
-						}
-					}
+			if(loadedVoices == null || lastVoicesFile != voicesFile){
+				if(voicesFile == null || voicesFile == ""){
+					voicesFile = SELoader.anyExists([
+							'assets/onlinedata/songs/${chartFile.substring(chartFile.lastIndexOf('/')+1,chartFile.lastIndexOf('.'))}/Voices.ogg',
+							'assets/onlinedata/songs/${PlayState.songDir}/Voices.ogg',
+							'assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Voices.ogg',
+							'assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Voices.ogg'
+						],"");
 				}
-				if(voicesFile != ""){loadedVoices = SELoader.loadFlxSound(voicesFile);}
-				if(voicesFile == "" && PlayState.SONG != null){
-					loadedVoices =  new FlxSound();
+				if(voicesFile != ""){
+					try{
+						loadedVoices = SELoader.loadFlxSound(voicesFile);
+					}catch(e){
+						trace('Unable to load voices ${e.details()}');
+						loadedVoices = new FlxSound();
+						PlayState.SONG.needsVoices = false;
+					}
+				}else if(voicesFile == "" && PlayState.SONG != null){
+					loadedVoices = new FlxSound();
 					PlayState.SONG.needsVoices = false;
 				}
 				if(loadedVoices.length < 1){
@@ -66,26 +70,31 @@ class OfflinePlayState extends PlayState
 
 			}
 		#if(target.threaded)
-			lock.release();
 		});
 		#end
-			if(!(lastInstFile == instFile && loadedInst != null)){ // This doesn't need to be threaded
-				if(instFile == ""){
 
-					for (i in ['assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg','assets/onlinedata/songs/${PlayState.SONG.song}/Inst.ogg','assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg']) {
-						trace('looking for inst at $i');
-						if (FileSystem.exists('${Sys.getCwd()}/$i')){
-							instFile = i;
-							break;
-						}
-					}
-					if (instFile == ""){MainMenuState.handleError('${PlayState.actualSongName} is missing a inst file!');}
+		if(loadedInst == null || lastInstFile != instFile){ // This doesn't need to be threaded
+			try{
 
+				if(instFile == null || instFile == ""){
+					var list = [
+							'assets/onlinedata/songs/${chartFile.substring(chartFile.lastIndexOf('/')+1,chartFile.lastIndexOf('.'))}/Inst.ogg',
+							'assets/onlinedata/songs/${PlayState.actualSongName.toLowerCase()}/Inst.ogg',
+							'assets/onlinedata/songs/${PlayState.songDir.toLowerCase()}/Inst.ogg',
+							'assets/onlinedata/songs/${PlayState.SONG.song.toLowerCase()}/Inst.ogg'
+						];
+					instFile = SELoader.anyExists(list,"");
+				}
+				if (instFile == null || instFile == ""){ // why the fuck is instFile null? :sob:
+					throw('${PlayState.actualSongName} is missing a inst file!');
 				}
 				loadedInst = SELoader.loadSound(instFile);
+			}catch(e){
+				return MainMenuState.handleError('Error occurred while trying to load inst:${e.details()}');
 			}
+		}
 		#if(target.threaded)
-		lock.wait();
+		voicesThread.wait();
 		#end
 		if(loadedVoices != null)loadedVoices.time = 0;
 
