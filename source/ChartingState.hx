@@ -1677,7 +1677,7 @@ class ChartingState extends MusicBeatState
 			rightIcon.setPosition(gridBG.x + (gridBG.width / 2), -100);
 			gfIcon.visible = check_gfSection.checked;
 			leftIcon.visible = !check_gfSection.checked;
-			leftIcon.visible = true;
+			rightIcon.visible = true;
 		}
 		else
 		{
