@@ -386,6 +386,8 @@ class ChartingState extends MusicBeatState
 		addSectionUI();
 		addNoteUI();
 		updateWaveform();
+		updateSectionUI();
+		updateHeads();
 
 		add(curRenderedNotes);
 		add(curRenderedSustains);
@@ -1616,6 +1618,7 @@ class ChartingState extends MusicBeatState
 		updateCurStep();
 
 		updateGrid();
+		updateHeads();
 		updateSectionUI();
 		updateWaveform();
 	}
