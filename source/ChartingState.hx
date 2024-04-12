@@ -1677,6 +1677,7 @@ class ChartingState extends MusicBeatState
 			rightIcon.setPosition(gridBG.x + (gridBG.width / 2), -100);
 			gfIcon.visible = check_gfSection.checked;
 			leftIcon.visible = !check_gfSection.checked;
+			leftIcon.visible = true;
 		}
 		else
 		{
@@ -1685,6 +1686,7 @@ class ChartingState extends MusicBeatState
 			leftIcon.setPosition(gridBG.x + (gridBG.width / 2), -100);
 			gfIcon.visible = check_gfSection.checked;
 			rightIcon.visible = !check_gfSection.checked;
+			leftIcon.visible = true;
 		}
 	}
 
