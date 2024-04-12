@@ -48,23 +48,9 @@ class Option
 	{
 		display = updateDisplay();
 	}
-	private var description:String = "";
-	private var display:String;
-	private var acceptValues:Bool = false;
-	public final function getDisplay():String
-	{
-		return display;
-	}
-
-	public final function getAccept():Bool
-	{
-		return acceptValues;
-	}
-
-	public final function getDescription():String
-	{
-		return description;
-	}
+	public var description(default,null):String = "";
+	public var display(default,null):String = "";
+	public var acceptValues(default,null):Bool = false;
 
 	public function getValue():String { return throw "you forgot to replace getValue!"; };
 	

@@ -61,7 +61,7 @@ class OptionsMenu extends MusicBeatState
 			new AllowServerScriptsOption("Allow servers to run scripts. THIS IS DANGEROUS, ONLY ENABLE IF YOU TRUST THE SERVERS"),
 			new ShowConnectedIPOption("Showing what server you are currently connect to on Discord RPC"),
 			// new OnlineEXCharLimitOption("How many people will get add(not include yourself and opponent) while playing")
-		]),
+		],"Settings relating to Online"),
 		new OptionCategory("Gameplay", [
 			new DownscrollOption("Change the layout of the strumline."),
 			new MiddlescrollOption("Move the strumline to the middle of the screen"),
@@ -78,7 +78,7 @@ class OptionsMenu extends MusicBeatState
 			new SixKeyMenu(controls),
 			new NineKeyMenu(controls),
 			new TwelveKeyMenu(controls),
-		],"Settings relating to Keybind"),
+		],"Change Keybind"),
 		new OptionCategory("Modifiers", [
 			new PracticeModeOption("Disables the ability to get a gameover."),
 			new GhostTapOption("Ghost Tapping is when you tap a direction and it doesn't give you a miss."),
@@ -86,7 +86,6 @@ class OptionsMenu extends MusicBeatState
 			new ScrollSpeedOption("Change your scroll speed (1 = Chart dependent)"),
 			new MKScrollSpeedOption("your scroll speed for keycount higher than 4 (1 = Using normal Scroll Speed)")
 		],"Toggle Ghost Tapping, Scroll Speed, etc"),
-
 		new OptionCategory("Appearance", [
 			new GUIGapOption("Change the distance between the end of the screen and text"),
 			new DistractionsAndEffectsOption("Toggle stage distractions that can hinder your gameplay."),
@@ -170,6 +169,7 @@ class OptionsMenu extends MusicBeatState
 	{
 		DiscordClient.changePresence("In Option Menu",null);
 		loading = false;
+		FlxG.mouse.visible = true;
 		instance = this;
 		FlxG.save.data.masterVol = FlxG.sound.volume;
 		if(onlinemod.OnlinePlayMenuState.socket == null){
@@ -237,104 +237,126 @@ class OptionsMenu extends MusicBeatState
 		}else
 			FlxG.switchState(new MainMenuState());
 	}
-	override function update(elapsed:Float)
-	{
+	function isHovering(obj1:Dynamic,obj2:Dynamic):Bool{
+		if(obj1 == null || obj2 == null) return false;
+		var width:Float = obj2.width;
+		var height:Float = obj2.height;
+		var x:Float = obj2.x;
+		var y:Float = obj2.y;
+		return (obj1.x > x && obj1.x < x + width) && (obj1.y > y && obj1.y < y + height);
+	}
+	override function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (acceptInput)
-		{
-			if (controls.BACK && !isCat){
+		if (!acceptInput) return;
+		var _back = controls.BACK;
+		var _up = controls.UP_P;
+		var _down = controls.DOWN_P;
+		var _left = controls.LEFT_P;
+		var _right = controls.RIGHT_P;
+		var _accept = controls.ACCEPT;
 
-				saveChanges(); // Save when exiting, not every fucking frame
-				goBack();
+		if(FlxG.mouse.justReleased){
+			if(isHovering(FlxG.mouse,titleText)) _back = true;
+			if(FlxG.mouse.overlaps(grpControls.members[curSelected])) _accept = true;
+			if(FlxG.mouse.y > 450) _down = true;
+			else if(FlxG.mouse.y < 300) _up = true;
+			// if(grpControls.members[curSelected + 1] != null && FlxG.mouse.overlaps(grpControls.members[curSelected + 1])){
+			// 	_down = true;
+			// }
+			// if(grpControls.members[curSelected - 1] != null && FlxG.mouse.overlaps(grpControls.members[curSelected - 1])){
+			// 	_up = true;
+			// }
+
+			if(FlxG.swipes[0] != null){
+				var swipe = FlxG.swipes[0];
+				var distance = (swipe.startPosition.x - swipe.endPosition.x);
+				
+				if(swipe.duration < 0.5 && (distance > 100 || distance < -100)){
+					_left = (distance < -100);
+					_right = (distance > 100);
+				}
 			}
-			else if (controls.BACK)
-			{
+			// TODO Add left and right arrows onscreen for changing options
+		}
+		if (_back){
+			if(isCat){
+
 				isCat = false;
 
 				CoolUtil.clearFlxGroup(grpControls);
-				for (i in 0...options.length)
-					{
-						var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, options[i].name, true, false);
-						controlLabel.isMenuItem = true;
-						controlLabel.targetY = i;
-						controlLabel.x = -2000;
-						grpControls.add(controlLabel);
-						// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-					}
+				for (i in 0...options.length){
+					var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, options[i].name, true, false);
+					controlLabel.isMenuItem = true;
+					controlLabel.targetY = i;
+					controlLabel.x = -2000;
+					grpControls.add(controlLabel);
+					// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
+				}
 				curSelected = selCat;
-				changeSelection(0);
 				addTitleText();
-				updateOffsetText();
+				changeSelection();
+			}else{
+				saveChanges(); // Save when exiting, not every fucking frame
+				goBack();
 			}
-			if (controls.UP_P || FlxG.keys.justPressed.UP) changeSelection(-1);
-			if (controls.DOWN_P || FlxG.keys.justPressed.DOWN) changeSelection(1);
-			
-			if (isCat)
-			{
-				
-				if (currentSelectedCat.getOptions()[curSelected].getAccept())
-				{
-
-					if (FlxG.keys.pressed.SHIFT && FlxG.keys.pressed.RIGHT || FlxG.keys.justPressed.RIGHT ){
-						if(currentSelectedCat.getOptions()[curSelected].right()) updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].getDisplay());
-
-					}
-					if (FlxG.keys.pressed.SHIFT && FlxG.keys.pressed.LEFT || FlxG.keys.justPressed.LEFT ){
-						if(currentSelectedCat.getOptions()[curSelected].left()) updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].getDisplay());
-					}
-
-				}
-				updateOffsetText();
-			}
-			else
-			{
-				if (FlxG.keys.pressed.SHIFT)
-				{
-					if (FlxG.keys.justPressed.RIGHT) FlxG.save.data.offset += 0.1;
-					else if (FlxG.keys.justPressed.LEFT) FlxG.save.data.offset -= 0.1;
-				}
-				else if (FlxG.keys.pressed.RIGHT) FlxG.save.data.offset += 0.1;
-				else if (FlxG.keys.pressed.LEFT) FlxG.save.data.offset -= 0.1;
-				updateOffsetText();
-			}
+		}
+		if (_up) changeSelection(-1);
+		if (_down) changeSelection(1);
+		if(FlxG.mouse.wheel != 0){
+			var move = -FlxG.mouse.wheel;
+			changeSelection(Std.int(move));
+		}
 		
+		if (isCat){
+			
+			if (currentSelectedCat.getOptions()[curSelected].acceptValues){
+				if((FlxG.keys.pressed.SHIFT && FlxG.keys.pressed.RIGHT || _right ) && currentSelectedCat.getOptions()[curSelected].right()) 
+					updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].display);
+				if((FlxG.keys.pressed.SHIFT && FlxG.keys.pressed.LEFT || _left ) && currentSelectedCat.getOptions()[curSelected].left())
+					updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].display);
+			}
+			updateOffsetText();
+		}else{
+			if (FlxG.keys.pressed.SHIFT){
+				if (FlxG.keys.pressed.RIGHT) FlxG.save.data.offset += 0.1;
+				else if (FlxG.keys.pressed.LEFT) FlxG.save.data.offset -= 0.1;
+			}
+			else if (FlxG.keys.justPressed.RIGHT) FlxG.save.data.offset += 0.1;
+			else if (FlxG.keys.justPressed.LEFT) FlxG.save.data.offset -= 0.1;
+			updateOffsetText();
+		}
+	
 
-			if (controls.RESET)
-				FlxG.save.data.offset = 0;
+		if (controls.RESET) FlxG.save.data.offset = 0;
 
-			if (controls.ACCEPT)
-			{
-				if (isCat)
-				{
-					if (currentSelectedCat.getOptions()[curSelected].press())
-					updateAlphabet(grpControls.members[curSelected],currentSelectedCat.getOptions()[curSelected].getDisplay());
+		if (_accept){
+			if (isCat){ 
+				if (currentSelectedCat.options[curSelected].press()) 
+					updateAlphabet(grpControls.members[curSelected],currentSelectedCat.options[curSelected].display);
+			}else{
+				selCat = curSelected;
+				currentSelectedCat = options[curSelected];
+				isCat = true;
+				var start = 0;
+				var iy = FlxG.height * 0.50;
+				CoolUtil.clearFlxGroup(grpControls);
+				for (i in start...currentSelectedCat.getOptions().length){
+					var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, currentSelectedCat.getOptions()[i].display, true, false);
+					controlLabel.isMenuItem = true;
+					controlLabel.targetY = i;
+					// controlLabel.y = iy;
+					updateAlphabet(controlLabel);
+					controlLabel.y+=360;
+					controlLabel.x=1280;
+					grpControls.add(controlLabel);
+					// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
 				}
-				else
-				{
-					selCat = curSelected;
-					currentSelectedCat = options[curSelected];
-					isCat = true;
-					var start = 0;
-					var iy = FlxG.height * 0.50;
-					CoolUtil.clearFlxGroup(grpControls);
-					for (i in start...currentSelectedCat.getOptions().length)
-						{
-							var controlLabel:Alphabet = new Alphabet(0, (70 * i) + 30, currentSelectedCat.getOptions()[i].getDisplay(), true, false);
-							controlLabel.isMenuItem = true;
-							controlLabel.targetY = i;
-							// controlLabel.y = iy;
-							updateAlphabet(controlLabel);
-							controlLabel.y+=360;
-							controlLabel.x=1280;
-							grpControls.add(controlLabel);
-							// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-						}
-					
-					curSelected = 0;
-					addTitleText('Options > ' + options[selCat].name);
-					updateOffsetText();
-				}
+				
+				curSelected = 0;
+				addTitleText('Options > ' + options[selCat].name);
+				changeSelection();
+				// updateOffsetText();
 			}
 		}
 		
@@ -355,12 +377,8 @@ class OptionsMenu extends MusicBeatState
 
 	function updateOffsetText(){
 		if (isCat)
-		{
-			if (currentSelectedCat.getOptions()[curSelected].getAccept())
-				versionShit.text =  currentSelectedCat.getOptions()[curSelected].getValue() + " - Description - " + currentDescription;
-			else
-				versionShit.text = "Description - " + currentDescription;
-		}
+			versionShit.text = (if(currentSelectedCat.getOptions()[curSelected].acceptValues) currentSelectedCat.getOptions()[curSelected].getValue() + " - " else "") + 
+				"Description - " + currentDescription;
 		else
 			versionShit.text = "Offset (Left, Right, Shift for slow): " + HelperFunctions.truncateFloat(FlxG.save.data.offset,2) + " - Description - " + currentDescription;
 	}
@@ -377,10 +395,9 @@ class OptionsMenu extends MusicBeatState
 		if (curSelected >= grpControls.members.length)
 			curSelected = 0;
 
-		if (isCat)
-			currentDescription = currentSelectedCat.getOptions()[curSelected].getDescription();
-		else
-			currentDescription = "Select a category";
+		if (isCat) currentDescription = currentSelectedCat.options[curSelected].description;
+		else if (options[curSelected].description != null) currentDescription = options[curSelected].description;
+		else currentDescription = "Select a category";
 
 		updateOffsetText();
 
