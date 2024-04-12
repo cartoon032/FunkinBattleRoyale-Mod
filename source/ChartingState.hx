@@ -323,6 +323,7 @@ class ChartingState extends MusicBeatState
 		leftIcon.scrollFactor.set(1, 1);
 		rightIcon.scrollFactor.set(1, 1);
 		gfIcon.scrollFactor.set(1, 1);
+		gfIcon.visible = false;
 
 		leftIcon.setGraphicSize(0, 45);
 		rightIcon.setGraphicSize(0, 45);
@@ -645,10 +646,6 @@ class ChartingState extends MusicBeatState
 
 		// var stepperLengthLabel = new FlxText(74,10,'Section Length (in steps)');
 
-		stepperSectionBPM = new FlxUINumericStepper(10, 80, 1, Conductor.bpm, 0, 999, 0);
-		stepperSectionBPM.value = Conductor.bpm;
-		stepperSectionBPM.name = 'section_bpm';
-
 		var stepperCopy:FlxUINumericStepper = new FlxUINumericStepper(230, 132, 1, 1, -999, 999, 0);
 		var stepperCopyLabel = new FlxText(295,132,'sections back');
 
@@ -687,20 +684,24 @@ class ChartingState extends MusicBeatState
 		replaceDadNoteTypeButton.resize(100,25);
 		var replaceBFNoteTypeButton = new FlxUIButton(230, 300, "Replace BF Note Type", replaceBFNoteType);
 		replaceBFNoteTypeButton.resize(100,25);
-		check_mustHitSection = new FlxUICheckBox(10, 30, null, null, "Camera Points to P1?", 100);
+
+		check_mustHitSection = new FlxUICheckBox(10, 20, null, null, "Camera Points to P1?", 100);
 		check_mustHitSection.name = 'check_mustHit';
 		check_mustHitSection.checked = true;
-		check_gfSection = new FlxUICheckBox(10, 30, null, null, "Camera Points to GF?", 100);
+		check_gfSection = new FlxUICheckBox(10, 50, null, null, "GF section", 100);
 		check_gfSection.name = 'check_gf';
 		check_gfSection.checked = false;
 
-		check_altAnim = new FlxUICheckBox(150, 30, null, null, "Alternate Animation", 100);
+		check_altAnim = new FlxUICheckBox(150, 20, null, null, "Alternate Animation", 100);
 		check_altAnim.name = 'check_altAnim';
 
-		check_changeBPM = new FlxUICheckBox(10, 60, null, null, 'Change BPM', 100);
+		check_changeBPM = new FlxUICheckBox(10, 80, null, null, 'Change BPM', 100);
 		check_changeBPM.name = 'check_changeBPM';
 		var ReBuildBPMMapButton:FlxUIButton = new FlxUIButton(check_changeBPM.x + 80, check_changeBPM.y + 10, "Update BPM Map", function(){Conductor.mapBPMChanges(_song);});
 		ReBuildBPMMapButton.resize(100,20);
+		stepperSectionBPM = new FlxUINumericStepper(check_changeBPM.x, check_changeBPM.y + 20, 1, Conductor.bpm, 0, 999, 0);
+		stepperSectionBPM.value = Conductor.bpm;
+		stepperSectionBPM.name = 'section_bpm';
 
 		// tab_group_section.add(stepperLength);
 		// tab_group_section.add(stepperLengthLabel);
@@ -774,7 +775,7 @@ class ChartingState extends MusicBeatState
 		});
 		clearnotetype.resize(150,25);
 
-		var ammolabel = new FlxText(10,35,64,'Amount of Keys');
+		var ammolabel = new FlxText(10,35,96,'Amount of Keys');
 		var maniabutton1 = new FlxUIButton(10, ammolabel.y + 15,"1", function(){changemania(6);}); maniabutton1.resize(64,20);
 		var maniabutton2 = new FlxUIButton(10, maniabutton1.y + 20,"2", function(){changemania(7);}); maniabutton2.resize(64,20);
 		var maniabutton3 = new FlxUIButton(10, maniabutton2.y + 20,"3", function(){changemania(8);}); maniabutton3.resize(64,20);
@@ -1669,25 +1670,21 @@ class ChartingState extends MusicBeatState
 
 	function updateHeads():Void
 	{
-		if (check_gfSection.checked)
-		{
-			gfIcon.visible = true;
-			leftIcon.visible = false;
-		}
-		else
-		{
-			leftIcon.visible = true;
-			gfIcon.visible = false;
-		}
 		if (check_mustHitSection.checked)
 		{
+			gfIcon.setPosition(gridBG.x, -100);
 			leftIcon.setPosition(gridBG.x, -100);
 			rightIcon.setPosition(gridBG.x + (gridBG.width / 2), -100);
+			gfIcon.visible = check_gfSection.checked;
+			leftIcon.visible = !check_gfSection.checked;
 		}
 		else
 		{
+			gfIcon.setPosition(gridBG.x, -100);
 			rightIcon.setPosition(gridBG.x, -100);
 			leftIcon.setPosition(gridBG.x + (gridBG.width / 2), -100);
+			gfIcon.visible = check_gfSection.checked;
+			rightIcon.visible = !check_gfSection.checked;
 		}
 	}
 
