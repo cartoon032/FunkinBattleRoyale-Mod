@@ -154,7 +154,7 @@ class OfflinePlayState extends PlayState {
 
 
 		// Add XieneDev watermark
-		xieneDevWatermark = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, 'SuperEngine${stateNames[stateType]}\n${MainMenuState.ver}(${MainMenuState.buildType})', 16)
+		xieneDevWatermark = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, 'SuperEngine${stateNames[stateType]}\n${MainMenuState.modver}(${MainMenuState.buildType})', 16)
 			.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 			xieneDevWatermark.scrollFactor.set();
 			add(xieneDevWatermark);
