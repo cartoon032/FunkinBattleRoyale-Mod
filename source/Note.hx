@@ -554,7 +554,7 @@ class Note extends FlxSprite
 			}
 
 			showNote = !(!playerNote && !FlxG.save.data.oppStrumLine);
-			if(_type == "gf sing" || (PlayState.SONG.notes[section].gfSection && rawNote[1] < PlayState.keyAmmo[mania])){
+			if(_type == "gf sing" || (PlayState.SONG.notes[section].gfSection && rawNote[1] < PlayState.keyAmmo[PlayState.SongOGmania])){
 				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
 					if(PlayHit){
 						switch (charID) {
