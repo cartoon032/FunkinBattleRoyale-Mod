@@ -695,7 +695,7 @@ class PlayState extends ScriptMusicBeatState
 				SONG.mania = mania = 5;
 				SONG.keyCount = SONG.playerKeyCount = 8;
 			}
-		else if(SONG.keyCount != null && QuickOptionsSubState.getSetting("Force Mania") == -1)
+		else if(SONG.keyCount != null)
 			{
 				switch(SONG.keyCount)
 				{
@@ -726,7 +726,7 @@ class PlayState extends ScriptMusicBeatState
 				mania = SONG.mania;
 				SONG.keyCount = SONG.playerKeyCount = keyAmmo[mania];
 			}
-		else
+		if(QuickOptionsSubState.getSetting("Force Mania") > -1)
 			{
 				SONG.mania = mania = QuickOptionsSubState.getSetting("Force Mania");
 				SONG.keyCount = SONG.playerKeyCount = keyAmmo[mania];
