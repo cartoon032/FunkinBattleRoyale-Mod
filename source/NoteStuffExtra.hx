@@ -1,6 +1,6 @@
 import openfl.system.System;
 import flixel.math.FlxMath;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import Song.SwagSong;
 import sys.FileSystem;
 import sys.io.File;

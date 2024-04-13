@@ -9,7 +9,7 @@ import flixel.FlxSubState;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKey;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
@@ -306,7 +306,7 @@ class PauseSubState extends MusicBeatSubstate
 			});
 		}
 		FlxG.sound.music.pause();
-		Conductor.songPosition = FlxG.sound.music.time = time;
+		FlxG.sound.music.time = Conductor.songPosition = Conductor.rawPosition = time;
 		disappearMenu(0.4);
 		callInterp("pauseResume",[]);
 		FlxTween.tween(bg,{alpha:0},2.5,{ease:FlxEase.quartOut});
@@ -372,12 +372,12 @@ class PauseSubState extends MusicBeatSubstate
 		for (i in tweens) i.active = true;
 		for (i in timers) i.active = true;
 		if(_tween != null)_tween.cancel();
+		FlxG.sound.music.pause();
 		FlxG.sound.music.time = Conductor.songPosition = Conductor.rawPosition = time;
 		FlxG.sound.music.volume = volume;
 		if(FlxG.save.data.PauseMode != 2)FlxTween.tween(FlxG.sound.music,{volume:volume},0.01);
 		else FlxTween.tween(FlxG.sound.music,{volume:volume},Conductor.crochet * 0.003);
 		FlxG.sound.music.onComplete = finishCallback;
-		FlxG.sound.music.pause();
 		close();
 	}
 

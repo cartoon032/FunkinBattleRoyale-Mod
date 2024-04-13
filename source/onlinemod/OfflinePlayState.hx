@@ -3,21 +3,38 @@ package onlinemod;
 import flixel.FlxG;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.FlxSubState;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
-import flash.media.Sound;
+import openfl.media.Sound;
 import sys.FileSystem;
 import sys.io.File;
 import se.ThreadedAction;
 
 import Section.SwagSection;
 
-class OfflinePlayState extends PlayState
-{
+using StringTools;
+
+class OfflinePlayState extends PlayState {
 	public static var instanc:OfflinePlayState;
-	public var loadedVoices:FlxSound;
-	public var loadedInst:Sound;
+	// public var loadedVoices:FlxSound;
+	public static var loadedVoices_:FlxSound;
+	public var loadedVoices(get,set):FlxSound;
+	public function get_loadedVoices(){
+		return loadedVoices_;
+	}
+	public function set_loadedVoices(vari){
+		return loadedVoices_ = vari;
+	}
+	public static var loadedInst_:Sound;
+	// public var loadedInst:Sound;
+	public var loadedInst(get,set):Sound;
+	public function get_loadedInst(){
+		return loadedInst_;
+	}
+	public function set_loadedInst(vari){
+		return loadedInst_ = vari;
+	}
 	public var xieneDevWatermark:FlxText;
 	var loadingtext:FlxText;
 	var shouldLoadJson:Bool = true;
@@ -29,12 +46,13 @@ class OfflinePlayState extends PlayState
 	public static var lastVoicesFile = "";
 	public static var chartFile:String = "";
 	public static var nameSpace:String = "";
-	public static var stateNames:Array<String> = ["-freep","","-Offl","","-Multi","-OSU","-Story","","",""];
+	public static var stateNames:Array<String> = ["","-freep","-Offl","","-Multi","-OSU","-Story","","",""];
 	var willChart:Bool = false;
 	override public function new(?charting:Bool = false){
-	willChart = charting;
-	super();
-  }
+		willChart = charting;
+		super();
+	}
+
 	function loadSongs(){
 		LoadingScreen.loadingText = "Loading music";
 		if(lastVoicesFile != voicesFile && loadedVoices != null){
@@ -104,55 +122,53 @@ class OfflinePlayState extends PlayState
 	trace('Loading $voicesFile, $instFile');
 	
   }
-function loadJSON(){
+	override function destroy(){
+		if(loadedVoices != null){loadedVoices.pause();loadedVoices.time = 0;}
+		super.destroy();
+	}
+  function loadJSON(){
 	try{
-		if (!ChartingState.charting)
-			{
-				PlayState.SONG = Song.parseJSONshit(File.getContent(chartFile));
-				if(nameSpace != ""){
-				if(TitleState.retChar(nameSpace + "|" + PlayState.player2) != null){
-					PlayState.player2 = nameSpace + "|" + PlayState.player2;
-				}
-				if(TitleState.retChar(nameSpace + "|" + PlayState.SONG.player1) != null){
-					PlayState.player1 = nameSpace + "|" + PlayState.player1;
-				}
-			}
+
+		LoadingScreen.loadingText = "Loading chart JSON";
+		if (!ChartingState.charting) {
+				PlayState.SONG = Song.parseJSONshit(SELoader.getContent(chartFile));
 		}
-	}catch(e) MainMenuState.handleError('Error loading chart \'${chartFile}\': ${e.message}');
-}
-override function create()
-{
+	}catch(e) throw('Error loading chart \'${chartFile}\': ${e.message}');
+  }
+	override function create()
+	{
 	try{
 		instanc = this;
 		if (shouldLoadJson) loadJSON();
-	    PlayState.stateType=stateType;
-	    if (shouldLoadSongs) loadSongs();
 
-	    var oldScripts:Bool = false;
-	    if(willChart){ // Loading scripts is redundant when we're just going to go into charting state
-	    	oldScripts = QuickOptionsSubState.getSetting("Song hscripts");
-	    	QuickOptionsSubState.setSetting("Song hscripts",false);
-	    }
-	    super.create();
+		PlayState.stateType=stateType;
 
+		if (shouldLoadSongs) loadSongs();
 
-	    // Add XieneDev watermark
-	    xieneDevWatermark = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, "SE-T" + stateNames[stateType] + " " + MainMenuState.modver, 16);
-		xieneDevWatermark.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
-		xieneDevWatermark.scrollFactor.set();
-		add(xieneDevWatermark);
-	    xieneDevWatermark.cameras = [camHUD];
+		var oldScripts:Bool = false;
+		if(willChart){ // Loading scripts is redundant when we're just going to go into charting state
+			oldScripts = QuickOptionsSubState.getSetting("Song hscripts");
+			QuickOptionsSubState.setSetting("Song hscripts",false);
+		}
+		super.create();
 
 
-	    FlxG.mouse.visible = false;
-	    FlxG.autoPause = true;
-	    if(willChart){
-	    	QuickOptionsSubState.setSetting("Song hscripts",oldScripts);
+		// Add XieneDev watermark
+		xieneDevWatermark = new FlxText(-4, FlxG.height * 0.1 - 50, FlxG.width, 'SuperEngine${stateNames[stateType]}\n${MainMenuState.ver}(${MainMenuState.buildType})', 16)
+			.setFormat(CoolUtil.font, 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
+			xieneDevWatermark.scrollFactor.set();
+			add(xieneDevWatermark);
+		xieneDevWatermark.cameras = [camHUD];
+
+
+		FlxG.mouse.visible = false;
+		FlxG.autoPause = true;
+		if(willChart){
+			QuickOptionsSubState.setSetting("Song hscripts",oldScripts);
 			FlxG.switchState(new ChartingState());
-	    }
-	  }catch(e){MainMenuState.handleError('Caught "create" crash: ${e.message}');}
+		}
+	  }catch(e){MainMenuState.handleError(e,'Caught "create" crash: ${e.message}');}
 	}
-
   override function startSong(?alrLoaded:Bool = false)
   {
     if (shouldLoadJson) FlxG.sound.playMusic(loadedInst, 1, false);
@@ -162,16 +178,7 @@ override function create()
   }
   override function generateSong(?dataPath:String = "")
   {
-  //   // I have to code the entire code over so that I can remove the offset thing
-  //   var songData = PlayState.SONG;
-		// Conductor.changeBPM(songData.bpm);
-
-		// curSong = songData.song;
-
-		if (PlayState.SONG.needsVoices && loadedVoices.length > Math.max(4000,loadedInst.length - 20000) && loadedVoices.length < loadedInst.length + 10000)
-			vocals = loadedVoices;
-		else
-			vocals = new FlxSound();
+	vocals = ((PlayState.SONG.needsVoices && Math.abs(loadedVoices.length - loadedInst.length) < 20000) ? loadedVoices : new FlxSound());
     super.generateSong(dataPath);
 
   }

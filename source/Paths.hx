@@ -5,7 +5,7 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import flixel.graphics.FlxGraphic;
-import flash.display.BitmapData;
+// import flash.display.BitmapData;
 
 class Paths
 {
@@ -131,7 +131,7 @@ class Paths
 	{
 		return FlxAtlasFrames.fromSpriteSheetPacker(image(key, library), file('images/$key.txt', library));
 	}
-	static public function getImageDirect(path:String):FlxGraphic{
-		return FlxGraphic.fromBitmapData(BitmapData.fromFile(path));
-	}
+	// static public function getImageDirect(path:String):FlxGraphic{
+	// 	return FlxGraphic.fromBitmapData(BitmapData.fromFile(path));
+	// }
 }

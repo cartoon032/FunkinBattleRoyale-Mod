@@ -32,7 +32,7 @@ import flixel.addons.ui.FlxUIInputText;
 import Controls.Control;
 import flixel.addons.transition.FlxTransitionableState;
 import SENumericStepper as FlxUINumericStepper;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.ui.FlxBar;

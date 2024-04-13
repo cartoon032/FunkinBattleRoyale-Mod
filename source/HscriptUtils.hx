@@ -11,7 +11,7 @@ import flixel.system.frontEnds.SoundFrontEnd;
 import flixel.addons.effects.FlxTrail;
 import flixel.system.frontEnds.InputFrontEnd;
 import flixel.system.FlxAssets.FlxSoundAsset;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.system.FlxSoundGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKeyboard;

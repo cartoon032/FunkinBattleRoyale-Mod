@@ -587,14 +587,14 @@ class ScriptMusicBeatState extends MusicBeatState{
 				}
 				return super.switchTo(s);
 			}
-			// override public function startOutro(func:() -> Void){
-			// 	if(useNormalCallbacks){
-			// 		callInterp('startOutro',[func]);
-			// 		if(cancelCurrentFunction) return;
-			// 	}
-			// 	super.startOutro(func);
-			// 	return;
-			// }
+			override public function startOutro(func:() -> Void){
+				if(useNormalCallbacks){
+					callInterp('startOutro',[func]);
+					if(cancelCurrentFunction) return;
+				}
+				super.startOutro(func);
+				return;
+			}
 
 // 	/* End of base functions */
 }

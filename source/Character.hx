@@ -23,7 +23,7 @@ import sys.io.File;
 import sys.FileSystem;
 import flash.display.BitmapData;
 import Xml;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 
 import hscript.Expr;
 import hscript.Interp;
@@ -31,29 +31,33 @@ import hscript.Interp;
 using StringTools;
 
 class CharAnimController extends FlxAnimationController{
-	override function findByPrefix(AnimFrames:Array<FlxFrame>, Prefix:String):Void
-	{
+	override function findByPrefix(AnimFrames:Array<FlxFrame>, Prefix:String, logError = true):Void {
 		if(Prefix == "FORCEALLLMAOTHISISSHIT"){
 			fuckinAddAll(AnimFrames);
 		}
 		Prefix = EReg.escape(Prefix);
 		var regTP:EReg = new EReg('^${Prefix}[- ]*[0-9][0-9]?[0-9]?[0-9]?','ig'); // Fixes the game improperly registering frames from other animations
-		for (frame in _sprite.frames.frames)
-		{
-			if (frame.name != null && regTP.match(frame.name))
-			{
-				AnimFrames.push(frame);
-			}
+		for (index => frame in _sprite.frames.framesHash){
+			if (regTP.match(index)) AnimFrames.push(frame);
 		}
 	}
-	function fuckinAddAll(AnimFrames:Array<FlxFrame>):Void
-	{
-		for (frame in _sprite.frames.frames)
-		{
-			if (frame.name != null)
-			{
-				AnimFrames.push(frame);
-			}
+	function fuckinAddAll(AnimFrames:Array<FlxFrame>):Void {
+		for (index => frame in _sprite.frames.framesHash){
+			AnimFrames.push(frame);
+		}
+	}
+	@:keep inline public function playAnimation(anim:FlxAnimation, force = false, reversed = false, frame = 0):Void {
+		var oldFlipX:Bool = false;
+		var oldFlipY:Bool = false;
+		if (_curAnim != null && _curAnim.name != anim.name) {
+			oldFlipX = _curAnim.flipX;
+			oldFlipY = _curAnim.flipY;
+			_curAnim.stop();
+		}
+		(_curAnim = anim).play(force, reversed, frame);
+
+		if (oldFlipX != _curAnim.flipX || oldFlipY != _curAnim.flipY) {
+			_sprite.dirty = true;
 		}
 	}
 }

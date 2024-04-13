@@ -154,16 +154,15 @@ class ScriptableSearchMenuState extends SearchMenuState{
 		
 		return super.switchTo(state);
 	}
-	// override function startOutro(func){
-	// 	try{
-	// 		ScriptableStateManager.callInterp('startOutro',[func]);
-	// 	}catch(e){
-	// 		ScriptableStateManager.handleError('Caught startOutro error: ${e.toString()}');
-	// 	}
-	// 	if(ScriptableStateManager.cancelCurrentFunction) return;
-		
-	// 	return super.startOutro(func);
-	// }
+	override function startOutro(func){
+		try{
+			ScriptableStateManager.callInterp('startOutro',[func]);
+		}catch(e){
+			ScriptableStateManager.handleError('Caught startOutro error: ${e.toString()}');
+		}
+		if(ScriptableStateManager.cancelCurrentFunction) return;
+		return super.startOutro(func);
+	}
 	override function select(sel:Int = 0){
 		try{
 
@@ -533,16 +532,15 @@ class ScriptableMusicBeatState extends MusicBeatState{
 		
 		return super.switchTo(state);
 	}
-	// override function startOutro(func){
-	// 	try{
-	// 		ScriptableStateManager.callInterp('startOutro',[func]);
-	// 	}catch(e){
-	// 		ScriptableStateManager.handleError('Caught startOutro error: ${e.toString()}');
-	// 	}
-	// 	if(ScriptableStateManager.cancelCurrentFunction) return;
-		
-	// 	return super.startOutro(func);
-	// }
+	override function startOutro(func){
+		try{
+			ScriptableStateManager.callInterp('startOutro',[func]);
+		}catch(e){
+			ScriptableStateManager.handleError('Caught startOutro error: ${e.toString()}');
+		}
+		if(ScriptableStateManager.cancelCurrentFunction) return;
+		return super.startOutro(func);
+	}
 	override function new(){
 		ScriptableStateManager.callInterp('new',[this,]);
 		ScriptableStateManager.interp.variables.set("state",this);

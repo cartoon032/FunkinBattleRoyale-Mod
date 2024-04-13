@@ -42,7 +42,7 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
@@ -1181,7 +1181,7 @@ class PlayState extends ScriptMusicBeatState
 		followChar(0,true);
 		add(camFollow);
 
-		FlxG.camera.follow(camFollow, LOCKON, 0.04 * (30 / (cast (Lib.current.getChildAt(0), Main)).getFPS()));
+		moveCamera = moveCamera;
 		// FlxG.camera.setScrollBounds(0, FlxG.width, 0, FlxG.height);
 		FlxG.camera.zoom = defaultCamZoom;
 		// FlxG.camera.focusOn(camFollow.getPosition());
@@ -2235,12 +2235,7 @@ class PlayState extends ScriptMusicBeatState
 		if (updateTime) songTimeTxt.text = FlxStringUtil.formatTime(Math.floor(Conductor.songPosition / 1000), false) + "/" + songLengthTxt;
 
 		if (FlxG.keys.justPressed.ENTER && startedCountdown && canPause)
-		{
-			persistentUpdate = false;
-			persistentDraw = true;
-			paused = true;
-			openSubState(new PauseSubState(boyfriendArray[0].getScreenPosition().x, boyfriendArray[0].getScreenPosition().y));
-		}
+			pause();
 
 		if (BothSide){
 			var hello:Int = 0;
@@ -2410,9 +2405,18 @@ class PlayState extends ScriptMusicBeatState
 	}catch(e){MainMenuState.handleError(e,'Caught "update" crash: ${e.message}\n ${e.stack}');}
 	#end
 }
+public function pause(){
+	persistentUpdate = false;
+	persistentDraw = true;
+	paused = true;
+	openSubState(new PauseSubState(boyfriend.x, boyfriend.y));
+	camFollow.x = defLockedCamPos[0];
+	camFollow.y = defLockedCamPos[1];
+	camGame.zoom = 1;
+}
 	@:keep inline function addNotes(){
-		if(unspawnNotes[0] != null && unspawnNotes[0].strumTime - Conductor.songPosition < 2000){
-			while(unspawnNotes[0] != null && unspawnNotes[0].strumTime - Conductor.songPosition < 2000)
+		if(unspawnNotes[0] != null && unspawnNotes[0].strumTime - Conductor.rawPosition / songspeed < 2000){
+			while(unspawnNotes[0] != null && unspawnNotes[0].strumTime - Conductor.rawPosition / songspeed < 2000)
 			{
 				var dunceNote:Note = unspawnNotes.shift();
 				callInterp('noteSpawn',[dunceNote]);

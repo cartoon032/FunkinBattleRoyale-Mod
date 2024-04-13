@@ -10,7 +10,7 @@ import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUIText;
 import flixel.math.FlxRandom;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 
 import sys.io.File;

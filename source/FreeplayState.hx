@@ -348,7 +348,7 @@ class FreeplayState extends MusicBeatState
 // import sys.io.File;
 // import sys.FileSystem;
 // import tjson.Json;
-// import flixel.system.FlxSound;
+// import flixel.sound.FlxSound;
 
 
 // import flixel.tweens.FlxTween;
