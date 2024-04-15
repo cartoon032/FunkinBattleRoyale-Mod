@@ -47,7 +47,7 @@ class CoolUtil
 		FlxG.drawFramerate = Framerate;
 		FlxG.updateFramerate = Framerate * 2;
 	}
-	public static function clearFlxGroup(obj:FlxTypedGroup<Dynamic>):FlxTypedGroup<Dynamic>{ // Destroys all objects inside of a FlxGroup
+	@:keep inline public static function clearFlxGroup(obj:FlxTypedGroup<Dynamic>):FlxTypedGroup<Dynamic>{ // Destroys all objects inside of a FlxGroup
 		while (obj.members.length > 0){
 			var e = obj.members.pop();
 			if(e != null && e.destroy != null) e.destroy();

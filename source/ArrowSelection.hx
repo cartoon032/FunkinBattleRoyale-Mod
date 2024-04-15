@@ -56,8 +56,8 @@ class ArrowSelection extends SearchMenuState
 					}
 				}
 			}else{MainMenuState.handleError('mods/noteassets is not a folder. You need to create it to use custom arrow skins!');}
-			{
-				var dataDir = "mods/packs/";
+			var dataDir = "mods/packs/";
+			if(SELoader.exists(dataDir)){
 				for (_dir in SELoader.readDirectory(dataDir))
 				{
 					var dataDir = 'mods/packs/$_dir/noteassets/';

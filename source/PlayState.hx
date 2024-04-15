@@ -4075,26 +4075,16 @@ public function pause(){
 	public function testanimdebug(){
 		if (FlxG.save.data.animDebug && onlinemod.OnlinePlayMenuState.socket == null) {
 			if (FlxG.keys.justPressed.ONE && FlxG.keys.pressed.SHIFT && boyfriend != null)
-			{
-				SHUTUP();
 				FlxG.switchState(new AnimationDebug(boyfriend.curCharacter,true,0));
-			}
 			if (FlxG.keys.justPressed.TWO && FlxG.keys.pressed.SHIFT && dad != null)
-			{
-				SHUTUP();
 				FlxG.switchState(new AnimationDebug(dad.curCharacter,false,1));
-			}
 			if (FlxG.keys.justPressed.THREE && FlxG.keys.pressed.SHIFT && gf != null)
-			{
-				SHUTUP();
 				FlxG.switchState(new AnimationDebug(gfChar,false,2));
-			}
 			if (FlxG.keys.justPressed.SEVEN)
 			{
 				health = 9999;
 				songspeed = 1;
 				sectionStart = false;
-				SHUTUP();
 				LoadingState.loadAndSwitchState(new ChartingState());
 			}
 			if (FlxG.keys.pressed.SHIFT && (FlxG.keys.justPressed.LBRACKET || FlxG.keys.justPressed.RBRACKET) )
