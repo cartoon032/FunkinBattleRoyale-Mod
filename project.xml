@@ -147,8 +147,7 @@
 	<haxedef name="HXCPP_CHECK_POINTER"/>
 	<haxedef name="HXCPP_STACK_LINE"/>
 	<haxedef name="HXCPP_STACK_TRACE"/>
-	<!-- I really wish i know why this just error out -->
-	<!-- <haxedef name="HXCPP_GC_GENERATIONAL"/> -->
+	<haxedef name="HXCPP_GC_GENERATIONAL"/>
 	<haxedef name="NO_PRECOMPILED_HEADERS"/>
 
 	<!--Enable this for Nape release builds for a serious peformance improvement-->
