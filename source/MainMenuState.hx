@@ -36,7 +36,7 @@ class MainMenuState extends SickMenuState {
 	// This should be incremented every update, this'll be sequential so you can just compare it to another version identifier
 	public static var versionIdentifier:Int = 2;
 	public static var lastVersionIdentifier:Int = 0;
-	public static var modver(default,never):String = "24w16a";
+	public static var modver(default,never):String = "24w16b";
 
 	public static var buildType:String = #if(android) "android" #else Sys.systemName() #end ;
 	public static var errorMessage:String = "";
