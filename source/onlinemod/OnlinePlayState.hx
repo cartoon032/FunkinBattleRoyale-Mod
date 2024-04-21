@@ -167,7 +167,7 @@ class OnlinePlayState extends PlayState
 				CoolLeaderBoard[i][1].y = CoolLeaderBoard[i][0].y;
 				CoolLeaderBoard[i][1].x = CoolLeaderBoard[i][0].x + 10;
 				// Name Text
-				CoolLeaderBoard[i][2].y = CoolLeaderBoard[i][1].y + 5;
+				CoolLeaderBoard[i][2].y = CoolLeaderBoard[i][1].y + 12.5;
 				CoolLeaderBoard[i][2].x = CoolLeaderBoard[i][1].x + 10;
 				// Score Text
 				CoolLeaderBoard[i][3].y = CoolLeaderBoard[i][1].y + 5;
@@ -286,7 +286,7 @@ class OnlinePlayState extends PlayState
 		CoolLeaderBoard.sort((a,b) -> Std.int(b[3].text.split(' ')[0]) - Std.int(a[3].text.split(' ')[0]));
 		var WhereME = 1;
 		for(Array in CoolLeaderBoard){
-			if(StringTools.contains(Array[1].text,OnlineNickState.nickname))
+			if(StringTools.contains(Array[2].text,OnlineNickState.nickname))
 				break;
 			else
 				WhereME++;
