@@ -298,7 +298,6 @@ class OnlinePlayState extends PlayState
 						125 - (Math.abs((WhereME - 1) - i) * 10) :
 						(FlxG.width - 375) + (Math.abs((WhereME - 1) - i) * 10)
 						);
-					CoolLeaderBoard[i][2].text = XMove;
 					if(YMove - CoolLeaderBoard[i][0].y >= 20 || YMove - CoolLeaderBoard[i][0].y <= -20 || YMove - CoolLeaderBoard[i][1].y >= 20 || YMove - CoolLeaderBoard[i][1].y <= -20){
 						FlxTween.tween(CoolLeaderBoard[i][0],{y: YMove,x: XMove},0.1,{ease: FlxEase.quadInOut});
 						FlxTween.tween(CoolLeaderBoard[i][1],{y: YMove,x: XMove + 10},0.1,{ease: FlxEase.quadInOut});
