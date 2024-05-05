@@ -21,6 +21,7 @@ class StrumArrow extends FlxSprite{
 	var keyTween2:FlxTween;
 	var keyTween3:FlxTween;
 	var ShowKey:Bool;
+	var SkinMania:Int = 0;
 	public static var confirmArrowOffset:Int = 0;
 	public var id:Int = 0; 
 	static var path_:String = "mods/noteassets";
@@ -53,6 +54,14 @@ class StrumArrow extends FlxSprite{
 	}
 
 	public function RefreshSprite(mania:Int){
+		if(NoteAssets.image[mania] != NoteAssets.image[SkinMania]){
+			if(NoteAssets.image[mania] == null || NoteAssets.xml[mania] == null)
+				frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[0],NoteAssets.xml[0]);
+			else
+				frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[mania],NoteAssets.xml[mania]);
+			updateHitbox();
+			SkinMania = mania;
+		}
 		setArrowName(mania);
 		// for 4k
 		animation.addByPrefix('static', 'arrow' + arrowIDsBackup[id] + '0');
@@ -70,11 +79,14 @@ class StrumArrow extends FlxSprite{
 	public static var arrowIDsBackup:Array<String> = ['LEFT','DOWN','UP',"RIGHT"];
 	public function init(?showkey:Int = 0){
 		TitleState.loadNoteAssets();
-		if (frames == null) frames = FlxAtlasFrames.fromSparrow(NoteAssets.image,NoteAssets.xml);
-
 		antialiasing = true;
 		var _mania = (showkey == 1 ? PlayState.playermania : PlayState.mania);
 		var _NoteNames = (showkey == 1 ? Note.playernoteNames : Note.noteNames);
+		if(NoteAssets.image[_mania] == null || NoteAssets.xml[_mania] == null)
+			frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[0],NoteAssets.xml[0]);
+		else
+			frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[_mania],NoteAssets.xml[_mania]);
+		SkinMania = _mania;
 		setArrowName(_mania);
 		// setGraphicSize(Std.int(width * Note.noteScale[_mania]));
 		scale.x = scale.y = Note.noteScale[_mania];

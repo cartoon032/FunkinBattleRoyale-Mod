@@ -315,7 +315,7 @@ class FinishSubState extends MusicBeatSubstate
 					{
 						for(ManiaMap in Conductor.ManiaChangeMap)
 							{
-							if(ManiaMap.Section != -100 && KeyCount == "") KeyCount += PlayState.keyAmmo[PlayState.SONG.mania] + 'K ';
+							if(ManiaMap.Beat != -100 && KeyCount == "") KeyCount += PlayState.keyAmmo[PlayState.SONG.mania] + 'K ';
 							if(KeyCount != "") KeyCount += ">";
 							KeyCount += " " + PlayState.keyAmmo[ManiaMap.Mania] + "K ";
 						}

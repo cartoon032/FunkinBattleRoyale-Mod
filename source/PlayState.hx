@@ -1716,11 +1716,11 @@ class PlayState extends ScriptMusicBeatState
 		callInterp("generateSongBefore",[]);
 		// Per song offset check
 
-		var daBeats:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
+		var daSection:Int = 0;
 		for (section in noteData)
 		{
-			if(sectionStart && daBeats < sectionStartPoint){
-				daBeats++;
+			if(sectionStart && daSection < sectionStartPoint){
+				daSection++;
 				continue;
 			}
 
@@ -1878,7 +1878,7 @@ class PlayState extends ScriptMusicBeatState
 					}
 				}
 
-				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote,null,null,NoteType,songNotes,gottaHitNote,daBeats);
+				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote,null,null,NoteType,songNotes,gottaHitNote,daSection * 4);
 				swagNote.sustainLength = songNotes[2] / songspeed;
 				swagNote.scrollFactor.set(0, 0);
 
@@ -1891,7 +1891,7 @@ class PlayState extends ScriptMusicBeatState
 				{
 					oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
 
-					var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + Conductor.stepCrochet, daNoteData, oldNote, true,null,NoteType,songNotes,gottaHitNote,daBeats);
+					var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + Conductor.stepCrochet, daNoteData, oldNote, true,null,NoteType,songNotes,gottaHitNote,daSection * 4);
 					sustainNote.scrollFactor.set();
 					sustainNote.sustainLength = susLength;
 					unspawnNotes.push(sustainNote);
@@ -1910,7 +1910,7 @@ class PlayState extends ScriptMusicBeatState
 				}
 			}
 
-			daBeats += 1;
+			daSection += 1;
 		}
 
 		if(MirrorMode > 0){
@@ -2018,7 +2018,7 @@ class PlayState extends ScriptMusicBeatState
 			{
 				babyArrow.y -= 10;
 				babyArrow.alpha = 0;
-				if(Conductor.ManiaChangeMap.length == 0 || Conductor.ManiaChangeMap[0].Section != -100)
+				if(Conductor.ManiaChangeMap.length == 0 || Conductor.ManiaChangeMap[0].Beat != -100)
 					FlxTween.tween(babyArrow, {y: babyArrow.y + 10, alpha: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.125 + (0.05 * i)});
 			}
 
@@ -3840,7 +3840,7 @@ public function pause(){
 
 	function handleManiaChange() {
 		for(ManiaMap in Conductor.ManiaChangeMap){
-			if (Math.floor(curStep / 16) >= ManiaMap.Section && !ManiaMap.Skip){ //change mania mid song lmao // geez the code is ass
+			if (curBeat >= ManiaMap.Beat && !ManiaMap.Skip){ //change mania mid song lmao // geez the code is ass
 				mania = playermania = SONG.mania = Changemania = ManiaMap.Mania;
 				ManiaMap.Skip = true;
 				resetNote();

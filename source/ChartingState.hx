@@ -625,7 +625,7 @@ class ChartingState extends MusicBeatState
 
 		camFollow = new FlxObject(0, 0, 2, 2);
 		camFollow.screenCenter();
-		camFollow.y -= GRID_SIZE * 2; 
+		camFollow.y -= GRID_SIZE * 2;
 		add(camFollow);
 		FlxG.camera.follow(strumLine);
 	}
@@ -1126,12 +1126,9 @@ class ChartingState extends MusicBeatState
 			lastRMouseX = Std.int(FlxG.mouse.screenX);
 			lastRMouseY = Std.int(FlxG.mouse.screenY);
 		}
-
 		if(FlxG.mouse.pressedRight && FlxG.mouse.justMoved){
-
 			var mx = Std.int(FlxG.mouse.screenX);
 			var my = Std.int(FlxG.mouse.screenY);
-
 			camFollow.x+=lastRMouseX - mx;
 			camFollow.y+=lastRMouseY - my;
 			lastRMouseX = mx;

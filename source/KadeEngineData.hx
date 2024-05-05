@@ -120,7 +120,7 @@ class KadeEngineData
 		if (FlxG.save.data.hitSound == null) FlxG.save.data.hitSound = false;
 		if (FlxG.save.data.dadhitSound == null) FlxG.save.data.dadhitSound = false;
 
-		if (FlxG.save.data.noteAsset == null) FlxG.save.data.noteAsset = "default";
+		if (FlxG.save.data.noteAsset == null) FlxG.save.data.noteAsset = ["default"];
 
 		if (FlxG.save.data.noterating == null) FlxG.save.data.noterating = true;
 		if (FlxG.save.data.camMovement == null) FlxG.save.data.camMovement = true;
@@ -184,6 +184,9 @@ class KadeEngineData
 			var lastVersionIdentifier = MainMenuState.lastVersionIdentifier;
 			if(lastVersionIdentifier < 1)
 				FlxG.save.data.inputEngine = 1; // Update to new input
+			if(lastVersionIdentifier < 3){
+				FlxG.save.data.noteAsset = [FlxG.save.data.noteAsset];
+			}
 		}
 
 		Conductor.recalculateTimings();

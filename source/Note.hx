@@ -161,12 +161,20 @@ class Note extends FlxSprite
 			}catch(e){trace("Couldn't load bad arrow sprites, recoloring arrows instead!");}
 			try{
 				if(frames == null && shouldntBeHit) {color = 0x220011;}
-				if (frames == null) frames = FlxAtlasFrames.fromSparrow(NoteAssets.image,NoteAssets.xml);
+				if (frames == null){
+					if(NoteAssets.image[mania] == null || NoteAssets.xml[mania] == null)
+						frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[0],NoteAssets.xml[0]);
+					else
+						frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[mania],NoteAssets.xml[mania]);
+				}
 			}catch(e) {
 				try{
 					TitleState.loadNoteAssets(true);
 					if(shouldntBeHit) {color = 0x220011;}
-					frames = FlxAtlasFrames.fromSparrow(NoteAssets.image,NoteAssets.xml);
+					if(NoteAssets.image[mania] == null || NoteAssets.xml[mania] == null)
+						frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[0],NoteAssets.xml[0]);
+					else
+						frames = FlxAtlasFrames.fromSparrow(NoteAssets.image[mania],NoteAssets.xml[mania]);
 				}catch(e){
 					MainMenuState.handleError("Unable to load note assets, please restart your game!");
 				}
@@ -301,7 +309,7 @@ class Note extends FlxSprite
 
 	static var psychChars:Array<Int> = [1,0,2]; // Psych uses different character ID's than SE
 
-	public function new(strumTime:Float, _noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inCharter:Bool = false,?_type:Dynamic = 0,?_rawNote:Array<Dynamic> = null,?playerNote:Bool = false,?section:Int = 0)
+	public function new(strumTime:Float, _noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inCharter:Bool = false,?_type:Dynamic = 0,?_rawNote:Array<Dynamic> = null,?playerNote:Bool = false,?beat:Int = 0)
 		{try{
 		if(!inCharter)
 		{
@@ -409,7 +417,7 @@ class Note extends FlxSprite
 				}
 			}
 			for(i in 0...Conductor.ManiaChangeMap.length){
-				if (section >= Conductor.ManiaChangeMap[i].Section){
+				if (beat >= Conductor.ManiaChangeMap[i].Beat){
 					mania = Conductor.ManiaChangeMap[i].Mania;
 				}else break;
 			}
@@ -554,7 +562,7 @@ class Note extends FlxSprite
 			}
 
 			showNote = !(!playerNote && !FlxG.save.data.oppStrumLine);
-			if(_type == "gf sing" || (PlayState.SONG.notes[section].gfSection && rawNote[1] < PlayState.keyAmmo[PlayState.SongOGmania])){
+			if(_type == "gf sing" || (PlayState.SONG.notes[Std.int(beat / 4)].gfSection && rawNote[1] < PlayState.keyAmmo[PlayState.SongOGmania])){
 				hit = function(?charID:Int = 0,note:Note,?useAlt:Bool = false,?ArrayID:Int,?PlayHit:Bool = true){
 					if(PlayHit){
 						switch (charID) {

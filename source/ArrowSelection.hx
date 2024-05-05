@@ -21,6 +21,7 @@ using StringTools;
 class ArrowSelection extends SearchMenuState
 {
 	public var playerStrums:FlxTypedGroup<StrumArrow> = new FlxTypedGroup<StrumArrow>();
+	var maniaSkin:FlxText;
 	function generateStaticArrows():Void
 	{
 		for (i in 0...PlayState.keyAmmo[PlayState.mania])
@@ -89,8 +90,15 @@ class ArrowSelection extends SearchMenuState
 
 		generateStaticArrows();
 		super.create();
-		updateInfoText('Press Tab to change mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
+		updateInfoText('Hold Shift to set only for current mania, Hold Control to set for every mania, Enter for default/fallback,\nPress Tab to increase mania, Press Shift+Tab to decrease mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
 		add(playerStrums);
+
+		maniaSkin = new FlxText(920, 140, 320, "", 16);
+		maniaSkin.wordWrap = true;
+		maniaSkin.scrollFactor.set();
+		maniaSkin.setFormat(CoolUtil.font, 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(maniaSkin);
+		updateManiaSkinText();
 
 		changeSelection();
 
@@ -105,7 +113,24 @@ class ArrowSelection extends SearchMenuState
 		);
 	}
 	override function select(sel:Int = 0){
-		FlxG.save.data.noteAsset = songs[curSelected];
+		retAfter = false;
+		if(FlxG.keys.pressed.SHIFT){
+			FlxG.save.data.noteAsset[PlayState.mania] = songs[curSelected];
+			updateManiaSkinText();
+			showTempmessage('${PlayState.keyAmmo[PlayState.mania]}K will now using ${songs[curSelected]}');
+		}else if(FlxG.keys.pressed.CONTROL){
+			FlxG.save.data.noteAsset = [songs[curSelected]];
+			updateManiaSkinText();
+			showTempmessage('every keycount will now using ${songs[curSelected]}');
+		}else{
+			FlxG.save.data.noteAsset[0] = songs[curSelected];
+			updateManiaSkinText();
+			showTempmessage('default will now using ${songs[curSelected]}');
+		}
+	}
+	override function ret(){
+		TitleState.loadNoteAssets(true);
+		super.ret();
 	}
 	override function beatHit(){
 		super.beatHit();
@@ -127,9 +152,10 @@ class ArrowSelection extends SearchMenuState
 				});
 			}
 			trace('Changing skin!');
-			PlayState.mania++;
+			PlayState.mania += (FlxG.keys.pressed.SHIFT ? -1 : 1);
 			if(PlayState.mania >= PlayState.keyAmmo.length) PlayState.mania = 0;
-			updateInfoText('Press Tab to change mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
+			if(PlayState.mania < 0) PlayState.mania = PlayState.keyAmmo.length -1;
+			updateInfoText('Hold Shift to set only for current mania, Hold Control to set for every mania, Enter for default/fallback,\nPress Tab to increase mania, Press Shift+Tab to decrease mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
 			playerStrums = new FlxTypedGroup<StrumArrow>();
 			changeColor();
 			generateStaticArrows();
@@ -145,6 +171,14 @@ class ArrowSelection extends SearchMenuState
 			});
 		}
 	}
+
+	function updateManiaSkinText() {
+		maniaSkin.text = "Default/";
+		for(skin in 0...FlxG.save.data.noteAsset.length){
+			maniaSkin.text += PlayState.keyAmmo[skin] + "K: " + FlxG.save.data.noteAsset[skin] + "\n";
+		}
+	}
+
 	function changeColor(){
 		switch (PlayState.mania)
 		{

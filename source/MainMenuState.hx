@@ -34,9 +34,9 @@ class MainMenuState extends SickMenuState {
 	public static var nightly(default,never):String = "";
 	public static var ver(default,never):String = "1.0.0" + (if(nightly != "") "-" + nightly else "");
 	// This should be incremented every update, this'll be sequential so you can just compare it to another version identifier
-	public static var versionIdentifier:Int = 2;
+	public static var versionIdentifier:Int = 3;
 	public static var lastVersionIdentifier:Int = 0;
-	public static var modver(default,never):String = "24w16b";
+	public static var modver(default,never):String = "24w18a";
 
 	public static var buildType:String = #if(android) "android" #else Sys.systemName() #end ;
 	public static var errorMessage:String = "";
@@ -136,7 +136,7 @@ class MainMenuState extends SickMenuState {
 				}catch(e){trace('Error closing socket? ${e.message}');}
 			}
 			if(lastVersionIdentifier != versionIdentifier){
-				var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'Super Engine has been updated since last start.\n You are now on ${ver}!', 32);
+				var outdatedLMAO:FlxText = new FlxText(0, FlxG.height * 0.05, 0,'SE-T has been updated since last start.\n You are now on ${modver}!', 32);
 				outdatedLMAO.setFormat(CoolUtil.font, 32, if(nightly == "") FlxColor.RED else FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 				outdatedLMAO.scrollFactor.set();
 	 			outdatedLMAO.screenCenter(FlxAxes.X);

@@ -11,7 +11,7 @@ typedef BPMChangeEvent =
 }
 typedef ManiaChangeEvent =
 {
-	var Section:Int;
+	var Beat:Int;
 	var Mania:Int;
 	var Skip:Bool;
 }
@@ -80,20 +80,20 @@ class Conductor
 		ManiaChangeMap = [];
 
 		var curMania:Int = song.mania;
-		var totalSections:Int = -100;
+		var totalBeats:Int = -100;
 		for (i in 0...song.notes.length)
 		{
 			if(song.notes[i].changeMania >= 0 && song.notes[i].changeMania != curMania)
 			{
 				curMania = song.notes[i].changeMania;
 				ManiaChangeMap.push({
-					Section: totalSections,
+					Beat: totalBeats,
 					Mania: curMania,
 					Skip: false
 				});
 			}
 
-			totalSections = i + 1;
+			totalBeats = (i+1) * 4;
 		}
 		trace("new Mania map BUDDY " + ManiaChangeMap);
 	}

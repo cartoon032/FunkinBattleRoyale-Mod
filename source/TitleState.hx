@@ -98,9 +98,9 @@ class TitleState extends MusicBeatState
 	var curWacky:Array<String> = [];
 
 	public static function loadNoteAssets(?forced:Bool = false){
-		if (NoteAssets == null || NoteAssets.name != FlxG.save.data.noteAsset || forced){
-			if (!SELoader.exists('mods/noteassets/${FlxG.save.data.noteAsset}.png') || !SELoader.exists('mods/noteassets/${FlxG.save.data.noteAsset}.xml')){
-				FlxG.save.data.noteAsset = "default";
+		if (NoteAssets == null || NoteAssets.name[0] != FlxG.save.data.noteAsset[0] || forced){
+			if (!SELoader.exists('mods/noteassets/${FlxG.save.data.noteAsset[0]}.png') || !SELoader.exists('mods/noteassets/${FlxG.save.data.noteAsset[0]}.xml')){
+				FlxG.save.data.noteAsset[0] = "default";
 			} // Hey, requiring an entire reset of the game's settings when noteasset goes missing is not a good idea
 			new NoteAssets(FlxG.save.data.noteAsset);
 		}

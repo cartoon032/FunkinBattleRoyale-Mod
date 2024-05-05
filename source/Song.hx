@@ -132,26 +132,25 @@ class Song
 		return '{
 			"song": {
 				"player1": "bf",
-				"events": [
-				],
+				"events": [],
 				"gfVersion": "gf",
 				"notes": [
-					{
-						"lengthInSteps": 16,
-						"sectionNotes": [],
-						"typeOfSection": 0,
-						"mustHitSection": true,
-						"changeBPM": false,
-						"bpm": 95
-					},
-					{
-						"lengthInSteps": 16,
-						"sectionNotes": [],
-						"typeOfSection": 0,
-						"mustHitSection": false,
-						"changeBPM": false,
-						"bpm": 165
-					}
+				{
+					"lengthInSteps": 16,
+					"sectionNotes": [],
+					"typeOfSection": 0,
+					"mustHitSection": true,
+					"changeBPM": false,
+					"bpm": 150
+				},
+				{
+					"lengthInSteps": 16,
+					"sectionNotes": [],
+					"typeOfSection": 0,
+					"mustHitSection": false,
+					"changeBPM": false,
+					"bpm": 150
+				}
 				],
 				"player2": "bf",
 				"player3": null,
@@ -162,7 +161,7 @@ class Song
 				"needsVoices": false,
 				"bpm": 150,
 				"speed": 2.0,
-				"chartType":"FNF/Super"
+				"chartType": "FNF/Super-T"
 			}
 		}';
 	}
