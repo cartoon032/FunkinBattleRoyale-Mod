@@ -80,13 +80,16 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			zoomtween = FlxTween.tween(grpSongs.members[curplay].scale.set(1.25,1.25),{x:1,y:1},(Conductor.crochet / 2000),{ease: FlxEase.quadInOut});
 		}
 		if (voices != null && shouldVoicesPlay && (!voices.playing || (voices.time > FlxG.sound.music.time + 20 || voices.time < FlxG.sound.music.time - 20))){
+			voices.pause();
 			voices.time = FlxG.sound.music.time;
 			voices.play();
 		}
 		if(Conductor.bpmChangeMap.length > 0){
 			for(event in Conductor.bpmChangeMap){
-                if(event.stepTime == curStep)
+                if(event.stepTime == curStep){
                     Conductor.changeBPM(event.bpm);
+					break;
+                }
 				if(event.stepTime > curStep)
 					break;
 			}
