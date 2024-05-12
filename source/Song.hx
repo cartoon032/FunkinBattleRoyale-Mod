@@ -215,7 +215,6 @@ class Song
 				if(swagShit.playerKeyCount == null)swagShit.playerKeyCount = swagShit.keyCount;
 
 				if (PlayState.invertedChart || (onlinemod.OnlinePlayMenuState.socket == null && QuickOptionsSubState.getSetting("Inverted chart")) && !charting){
-					PlayState.invertedChart = true;
 					swagShit = invertChart(swagShit);
 				}
 				// swagShit = modifyChart(swagShit,charting);
