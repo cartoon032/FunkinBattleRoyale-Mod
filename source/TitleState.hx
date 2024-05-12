@@ -609,7 +609,7 @@ class TitleState extends MusicBeatState
 		];
 	public static var hardcodedDays(default,never):Map<Int,Map<Int,Array<Array<String>>>> = [
 		0=>[
-			0 => [["New Year","More Pain :)"],["Good bye",'${Date.now().getFullYear() - 1}'],["Hey look","New year"]],
+			1 => [["New Year","More Pain :)"],["Good bye",'${Date.now().getFullYear() - 1}'],["Hey look","New year"]],
 			4 => [["Happy Birthday","PhantomArcade"]],
 		],
 		4 => [
