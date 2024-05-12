@@ -441,7 +441,7 @@ class TitleState extends MusicBeatState
 
 		halloween = (Date.now().getHours() == 3 || Date.now().getMonth() == 9);
 
-		curWacky = FlxG.random.getObject(getIntroTextShit());
+		curWacky = getIntroTextShit();
 
 		// DEBUG BULLSHIT
 
@@ -598,21 +598,79 @@ class TitleState extends MusicBeatState
 	}
 	var shiftSkip:FlxText;
 	var isShift = false;
+	static var technoAnni = [
+			["Technoblade","never dies"],
+			['SAY IT WITH ME','Not even close'],
+			["thank you hypixel",'very cool'],
+			["if you wish to defeat me",'train for another 100 years'],
+			["all part of",'my master plan'],
+			['subscribe to','technoblade'],
+			['This is the second-worst thing','that has happened to these orphans']
+		];
+	public static var hardcodedDays(default,never):Map<Int,Map<Int,Array<Array<String>>>> = [
+		0=>[
+			0 => [["New Year","More Pain :)"],["Good bye",'${Date.now().getFullYear() - 1}'],["Hey look","New year"]],
+			4 => [["Happy Birthday","PhantomArcade"]],
+		],
+		4 => [
+			12 => [["Hey look","an idiot was born"],['its supers birthday?','whos that?']],
+		],
+		5 =>[
+			-1 => [
+				['trans rights','are human rights'],
+				['yeah I\'m straight','straight up gay'],
+				['be gay','do crime'],
+				['Respect my trans homies','or im going to identify','as a fuckin problem'],
+				['pride month','less goo'],
+				['garlic bread','garlic bread'],
+				['omg','blahaj'],
+				['I put the l','in lesbian'],
+				["you're talkin mad valid",'for someone in','cuddling distance'],
+				['women','based'],
+				['men','based'],
+				['embies','based'],
+				['person','based'],
+				['skirt go speeen','still cis though'],
+				['i want to wear a dress and makeup','still cis though'],
+			],
+		],
+		6 => [
+			1 => technoAnni,
+			27 => [["Hey look","a furry was born"],['its naytoon birthday?','whos that?']],
+			30 => technoAnni
+		],
+		7 => [
+			1 => technoAnni
+		],
+		8 => [
+			12 => [["Happy Birthday","ninjamuffin"]]
+		],
+		10 => [
+			4 => [['funkin on a','friday night']],
+			28 => technoAnni,
+			30 => [["Spooky time","very spoopy"],["pumpkin pog","wait what"],["Spooky scary skeletons","send shivers down your spine"]]
+		],
+		11 => [
+			30 => [["New Year","More Pain :)"],["Just one more day",'of ${Date.now().getFullYear()}'],["Hey look","New year"]],
+		],
+	];
 	var forcedText:Bool = false;
-
-	function getIntroTextShit():Array<Array<String>>
+	function getIntroTextShit():Array<String>
 	{
+		var now = Date.now();
+		if(hardcodedDays[now.getMonth()] != null && hardcodedDays[now.getMonth()][now.getDate()] != null){
+			forcedText = true;
+			return FlxG.random.getObject(hardcodedDays[now.getMonth()][now.getDate()]);
+		}else if(hardcodedDays[now.getMonth()] != null && hardcodedDays[now.getMonth()][-1] != null){
+			forcedText = true;
+			return FlxG.random.getObject(hardcodedDays[now.getMonth()][-1]);
+		}
+		if(FlxG.save.data.seenForcedText) FlxG.save.data.seenForcedText = false;
 		var fullText:String = Assets.getText(Paths.txt('introText'));
 
 		var firstArray:Array<String> = fullText.split('\n');
-		var swagGoodArray:Array<Array<String>> = [];
 
-		for (i in firstArray)
-		{
-			swagGoodArray.push(i.split('--'));
-		}
-
-		return swagGoodArray;
+		return FlxG.random.getObject(firstArray).split('--');
 	}
 
 	var transitioning:Bool = false;
