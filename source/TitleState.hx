@@ -633,10 +633,10 @@ class TitleState extends MusicBeatState
 				['skirt go speeen','still cis though'],
 				['i want to wear a dress and makeup','still cis though'],
 			],
+			27 => [["Hey look","a furry was born"],['its naytoon birthday?','whos that?']],
 		],
 		6 => [
 			1 => technoAnni,
-			27 => [["Hey look","a furry was born"],['its naytoon birthday?','whos that?']],
 			30 => technoAnni
 		],
 		7 => [
