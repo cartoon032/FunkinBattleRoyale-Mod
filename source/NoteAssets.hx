@@ -38,7 +38,7 @@ class NoteAssets{
 		name = name_;
 		while(image.length > 0){
 			var _image = image.pop();_image.destroy();
-			var _xml = xml.pop();_xml.destroy();
+			var _xml = [];
 		}
 		doThing();
 		perm(); // Prevents Flixel from being flixel and unloading things
