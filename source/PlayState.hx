@@ -3851,11 +3851,11 @@ public function pause(){
 				else iconRPC = "wdym";
 				iconRPCText = 'Song Mania: ${SONG.mania}';
 				for(i in 0...playerStrums.length){
-					FlxTween.tween(cpuStrums.members[i],{x: BabyArrowCenterX + (Note.swagWidth[mania] * i) + i - (Note.swagWidth[mania] + (Note.swagWidth[mania] * ((keyAmmo[mania] * 0.5) - 1.5)))},0.5,{ease: FlxEase.quadInOut});
-					FlxTween.tween(cpuStrums.members[i].scale,{x: Note.noteScale[mania],y: Note.noteScale[mania]},0.5,{ease: FlxEase.quadInOut});
+					FlxTween.tween(cpuStrums.members[i],{x: BabyArrowCenterX + (Note.swagWidth[mania] * i) + i - (Note.swagWidth[mania] + (Note.swagWidth[mania] * ((keyAmmo[mania] * 0.5) - 1.5)))},0.25,{ease: FlxEase.quadInOut});
+					FlxTween.tween(cpuStrums.members[i].scale,{x: Note.noteScale[mania],y: Note.noteScale[mania]},0.25,{ease: FlxEase.quadInOut});
 
-					FlxTween.tween(playerStrums.members[i],{x: BabyArrowCenterX + (Note.swagWidth[mania] * i) + i - (Note.swagWidth[mania] + (Note.swagWidth[mania] * ((keyAmmo[mania] * 0.5) - 1.5)))},0.5,{ease: FlxEase.quadInOut});
-					FlxTween.tween(playerStrums.members[i].scale,{x: Note.noteScale[mania],y: Note.noteScale[mania]},0.5,{ease: FlxEase.quadInOut});
+					FlxTween.tween(playerStrums.members[i],{x: BabyArrowCenterX + (Note.swagWidth[mania] * i) + i - (Note.swagWidth[mania] + (Note.swagWidth[mania] * ((keyAmmo[mania] * 0.5) - 1.5)))},0.25,{ease: FlxEase.quadInOut});
+					FlxTween.tween(playerStrums.members[i].scale,{x: Note.noteScale[mania],y: Note.noteScale[mania]},0.25,{ease: FlxEase.quadInOut});
 					playerStrums.members[i].ShowKeyReminder();
 					if(i < keyAmmo[mania]){
 						FlxTween.tween(cpuStrums.members[i],{alpha: 1},0.25,{ease: FlxEase.quadInOut});
