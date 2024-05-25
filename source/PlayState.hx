@@ -2323,10 +2323,12 @@ class PlayState extends ScriptMusicBeatState
 
 		if (health <= 0 && !hasDied && !ChartingState.charting && onlinemod.OnlinePlayMenuState.socket == null){
 			if(practiceMode) {
-				hasDied = true;
-				practiceText.text = "Practice Mode; Score won't be saved";
-				practiceText.screenCenter(X);
-				FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+				if(!botPlay){
+					hasDied = true;
+					practiceText.text = "Practice Mode; Score won't be saved";
+					practiceText.screenCenter(X);
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+				}
 			} else finishSong(false);
 		}
  		if (FlxG.save.data.resetButton && onlinemod.OnlinePlayMenuState.socket == null)
