@@ -2395,7 +2395,7 @@ class PlayState extends ScriptMusicBeatState
 				i++;
 				if(note == null || note.strumTime > Conductor.songPosition) continue;
 				note.hit(note);
-				eventNotes.remove(note);
+				eventNotes.remove(note,true);
 				note.destroy();
 			}
 		}
@@ -3217,7 +3217,7 @@ public function pause(){
 			if (!pressArray[daNote.noteData] || !daNote.canBeHit || daNote.tooLate || daNote.wasGoodHit) continue;
 			var coolNote = possibleNotes[daNote.noteData];
 			if (coolNote != null){
-				if((Math.abs(daNote.strumTime - coolNote.strumTime) < 7)){notes.remove(daNote);daNote.destroy();continue;}
+				if((Math.abs(daNote.strumTime - coolNote.strumTime) < 7)){notes.remove(daNote,true);daNote.destroy();continue;}
 				if((daNote.strumTime > coolNote.strumTime)) continue;
 			}
 			possibleNotes[daNote.noteData] = daNote;
@@ -3508,7 +3508,7 @@ public function pause(){
 						var coolNote = possibleNotes[daNote.noteData];
 						if (coolNote != null)
 						{
-							if((Math.abs(daNote.strumTime - coolNote.strumTime) < 7)){notes.remove(daNote);daNote.destroy();continue;}
+							if((Math.abs(daNote.strumTime - coolNote.strumTime) < 7)){notes.remove(daNote,true);daNote.destroy();continue;}
 							if((daNote.strumTime > coolNote.strumTime)) continue;
 						}
 						possibleNotes[daNote.noteData] = daNote;
@@ -4102,7 +4102,7 @@ public function pause(){
 			if(PlayState.instance.vocals == null) return;
 			PlayState.instance.vocals.stop();
 			PlayState.instance.vocals.volume = 0;
-			FlxG.sound.list.remove(PlayState.instance.vocals);
+			FlxG.sound.list.remove(PlayState.instance.vocals,true);
 			PlayState.instance.vocals.destroy();
 			PlayState.instance.vocals = new FlxSound();
 		}catch(e){}
