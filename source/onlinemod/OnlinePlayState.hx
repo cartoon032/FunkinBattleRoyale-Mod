@@ -111,21 +111,21 @@ class OnlinePlayState extends PlayState
 		var Box1 = new FlxSprite().makeGraphic(275, 50, 0x7FFF7F00); // #FF7F00
 		Box1.screenCenter(Y);
 		scoreY = Box1.y;
-		CoolLeaderBoard[0].push(Box1);
+		CoolLeaderBoard[-1].push(Box1);
 		Box1.cameras = [camHUD];
 		add(Box1);
 		var Box2 = new FlxSprite().makeGraphic(150, 50, 0x7FFFFF00); // #FFFF00
-		CoolLeaderBoard[0].push(Box2);
+		CoolLeaderBoard[-1].push(Box2);
 		Box2.cameras = [camHUD];
 		add(Box2);
 		var nametext = new FlxText(Box2.x + 10, Box2.y + 12.5, OnlineNickState.nickname,16);
 		nametext.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		CoolLeaderBoard[0].push(nametext);
+		CoolLeaderBoard[-1].push(nametext);
 		nametext.cameras = [camHUD];
 		add(nametext);
 		var scoretext = new FlxText(Box2.x + Box2.width + 10, Box2.y + 5, '0\nn/a%  0\n',16);
 		scoretext.setFormat(CoolUtil.font, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		CoolLeaderBoard[0].push(scoretext);
+		CoolLeaderBoard[-1].push(scoretext);
 		scoretext.cameras = [camHUD];
 		add(scoretext);
 		clientsGroup.add(scoretext);
