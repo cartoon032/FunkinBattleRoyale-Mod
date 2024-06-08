@@ -640,57 +640,6 @@ class CustomizeGameplay extends Option
 		return "Customize Gameplay";
 	}
 }
-
-// class WatermarkOption extends Option
-// {
-// 	public function new(desc:String)
-// 	{
-// 		super();
-// 		description = desc;
-// 	}
-
-// 	public override function press():Bool
-// 	{
-// 		Main.watermarks = !Main.watermarks;
-// 		FlxG.save.data.watermark = Main.watermarks;
-// 		display = updateDisplay();
-// 		return true;
-// 	}
-
-// 	private override function updateDisplay():String
-// 	{
-// 		return "Watermarks " + (Main.watermarks ? "on" : "off");
-// 	}
-// }
-
-class OffsetMenu extends Option
-{
-	public function new(desc:String)
-	{
-		super();
-		description = desc;
-	}
-
-	public override function press():Bool
-	{
-		trace("switch");
-		var poop:String = Highscore.formatSong("Tutorial", 1);
-
-		PlayState.SONG = Song.loadFromJson(poop, "Tutorial");
-		PlayState.isStoryMode = false;
-		PlayState.storyDifficulty = 0;
-		PlayState.storyWeek = 0;
-		PlayState.offsetTesting = true;
-		trace('CUR WEEK' + PlayState.storyWeek);
-		LoadingState.loadAndSwitchState(new PlayState());
-		return false;
-	}
-
-	private override function updateDisplay():String
-	{
-		return "Time your offset";
-	}
-}
 class BotPlay extends Option
 {
 	public function new(desc:String)
@@ -873,27 +822,6 @@ class ShitQualityOption extends Option
 		return "Shit Quality " + (!FlxG.save.data.preformance ? "off" : "on");
 	}
 }
-class NoteRatingOption extends Option
-{
-	public function new(desc:String)
-	{
-		super();
-		description = desc;
-	}
-
-	public override function press():Bool
-	{
-		FlxG.save.data.noterating = !FlxG.save.data.noterating;
-		display = updateDisplay();
-		return true;
-	}
-
-	private override function updateDisplay():String
-	{
-		return "Note Ratings " + (!FlxG.save.data.noterating ? "off" : "on");
-	}
-}
-
 class GUIGapOption extends Option
 {
 	public function new(desc:String)
@@ -2116,6 +2044,117 @@ class PauseMode extends Option
 	private override function updateDisplay():String
 	{
 		return 'Pause Mode : ${ies[FlxG.save.data.PauseMode]}';
+	}
+}
+class ShowRating extends Option
+{
+	var ies:Array<String> = ["OFF","Stacking","Only One"];
+	var iesDesc:Array<String> = ["No more Rating in the way","just like how the FNF dev wanted","will only see the most recent hit"];
+
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.noterating >= ies.length) FlxG.save.data.noterating = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.noterating];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.noterating += 1;
+		if (FlxG.save.data.noterating >= ies.length) FlxG.save.data.noterating = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.noterating -= 1;
+		if (FlxG.save.data.noterating < 0) FlxG.save.data.noterating = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Note Ratings : ${ies[FlxG.save.data.noterating]}';
+	}
+}
+class ShowCombo extends Option
+{
+	var ies:Array<String> = ["OFF","Stacking","Only One"];
+	var iesDesc:Array<String> = ["No more Combo in the way","just like how the FNF dev wanted","will only see the most recent hit"];
+
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.showCombo >= ies.length) FlxG.save.data.showCombo = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.showCombo];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.showCombo += 1;
+		if (FlxG.save.data.showCombo >= ies.length) FlxG.save.data.showCombo = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.showCombo -= 1;
+		if (FlxG.save.data.showCombo < 0) FlxG.save.data.showCombo = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Current Combo : ${ies[FlxG.save.data.showCombo]}';
+	}
+}
+class ShowMS extends Option
+{
+	var ies:Array<String> = ["OFF","Stacking","Only One Per Land"];
+	var iesDesc:Array<String> = ["No more Combo in the way","just like how the Super wanted","will only see the most recent hit of land"];
+
+	public function new(desc:String)
+	{
+		super();
+		if (FlxG.save.data.showTimings >= ies.length) FlxG.save.data.showTimings = 0;
+		description = desc;
+
+		acceptValues = true;
+	}
+
+	override function getValue():String {
+		return iesDesc[FlxG.save.data.showTimings];
+	}
+
+	override function right():Bool {
+		FlxG.save.data.showTimings += 1;
+		if (FlxG.save.data.showTimings >= ies.length) FlxG.save.data.showTimings = 0;
+		display = updateDisplay();
+		return true;
+	}
+	override function left():Bool {
+		FlxG.save.data.showTimings -= 1;
+		if (FlxG.save.data.showTimings < 0) FlxG.save.data.showTimings = ies.length - 1;
+		display = updateDisplay();
+		return true;
+	}
+	public override function press():Bool{return right();}
+
+	private override function updateDisplay():String
+	{
+		return 'Note Timings : ${ies[FlxG.save.data.showTimings]}';
 	}
 }
 

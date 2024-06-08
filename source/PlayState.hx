@@ -255,8 +255,6 @@ class PlayState extends ScriptMusicBeatState
 		
 		return botPlay = val;
 	}
-
-	public static var offsetTesting:Bool = false;
 	var updateTime:Bool = false;
 
 
@@ -2518,113 +2516,81 @@ public function pause(){
 		charCall("endSong",[]);
 		callInterp("endSong",[]);
 		if(!shouldEndSong){shouldEndSong = true;return;}
-		if (offsetTesting)
-		{
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
-			offsetTesting = false;
-			LoadingState.loadAndSwitchState(new OptionsMenu());
-			FlxG.save.data.offset = offsetTest;
-		}
-		else
-		{
-			if (isStoryMode)
+		if (isStoryMode){
+			campaignScore += Math.round(songScore);
+
+			storyPlaylist.remove(storyPlaylist[0]);
+			StoryMenuState.weekMarvelous = marvelous;
+			StoryMenuState.weekSicks = sicks;
+			StoryMenuState.weekBads = bads;
+			StoryMenuState.weekShits = shits;
+			StoryMenuState.weekGoods = goods;
+			StoryMenuState.weekMisses = misses;
+			StoryMenuState.weekMaxCombo = maxCombo;
+			StoryMenuState.weekScore = songScore;
+			StoryMenuState.weekAccuracy = accuracy;
+			if (storyPlaylist.length <= 0)
 			{
-				campaignScore += Math.round(songScore);
-
-				storyPlaylist.remove(storyPlaylist[0]);
-				StoryMenuState.weekMarvelous = marvelous;
-				StoryMenuState.weekSicks = sicks;
-				StoryMenuState.weekBads = bads;
-				StoryMenuState.weekShits = shits;
-				StoryMenuState.weekGoods = goods;
-				StoryMenuState.weekMisses = misses;
-				StoryMenuState.weekMaxCombo = maxCombo;
-				StoryMenuState.weekScore = songScore;
-				StoryMenuState.weekAccuracy = accuracy;
-				if (storyPlaylist.length <= 0)
-				{
-					// FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					trace("Song finis");
-
-					transIn = FlxTransitionableState.defaultTransIn;
-					transOut = FlxTransitionableState.defaultTransOut;
-
-					// FlxG.switchState(new StoryMenuState());
-					sectionStart = false;
-
-
-					// if ()
-
-					// if (SONG.validScore)
-					// {
-						Highscore.saveWeekScore(storyWeek, songScore, storyDifficulty);
-					// }
-					FlxG.save.flush();
-					finishSong(true);
-				}
-				else if(!StoryMenuState.isVanillaWeek){
-					trace('Swapping songs');
-					resetInterps();
-					FlxG.sound.music.stop();
-					prevCamFollow = camFollow;
-					StoryMenuState.curSong++;
-					FlxTransitionableState.skipNextTransIn = true;
-					FlxTransitionableState.skipNextTransOut = true;
-					StoryMenuState.swapSongs();
-
-					// LoadingState.loadAndSwitchState(new PlayState());
-
-				}
-				else
-				{
-					var difficulty:String = "";
-
-					if (storyDifficulty == 0)
-						difficulty = '-easy';
-
-					if (storyDifficulty == 2)
-						difficulty = '-hard';
-
-					trace('LOADING NEXT SONG');
-					trace(PlayState.storyPlaylist[0].toLowerCase() + difficulty);
-
-					if (SONG.song.toLowerCase() == 'eggnog')
-					{
-						var blackShit:FlxSprite = new FlxSprite(-FlxG.width * FlxG.camera.zoom,
-							-FlxG.height * FlxG.camera.zoom).makeGraphic(FlxG.width * 3, FlxG.height * 3, FlxColor.BLACK);
-						blackShit.scrollFactor.set();
-						add(blackShit);
-						camHUD.visible = false;
-
-						FlxG.sound.play(Paths.sound('Lights_Shut_off'),FlxG.save.data.otherVol);
-					}
-
-					FlxTransitionableState.skipNextTransIn = true;
-					FlxTransitionableState.skipNextTransOut = true;
-					prevCamFollow = camFollow;
-
-					PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + difficulty, PlayState.storyPlaylist[0]);
-					FlxG.sound.music.stop();
-
-					LoadingState.loadAndSwitchState(new PlayState());
-				}
+				// FlxG.sound.playMusic(Paths.music('freakyMenu'));
+				trace("Song finis");
+				transIn = FlxTransitionableState.defaultTransIn;
+				transOut = FlxTransitionableState.defaultTransOut;
+				sectionStart = false;
+				Highscore.saveWeekScore(storyWeek, songScore, storyDifficulty);
+				FlxG.save.flush();
+				finishSong(true);
+			}
+			else if(!StoryMenuState.isVanillaWeek){
+				trace('Swapping songs');
+				resetInterps();
+				FlxG.sound.music.stop();
+				prevCamFollow = camFollow;
+				StoryMenuState.curSong++;
+				FlxTransitionableState.skipNextTransIn = true;
+				FlxTransitionableState.skipNextTransOut = true;
+				StoryMenuState.swapSongs();
 			}
 			else
 			{
-				// trace('WENT BACK TO FREEPLAY??');
-				// Switches to the win state
-				// openSubState(new FinishSubState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y,true));
-				finishSong(!hasDied);
+				var difficulty:String = "";
+
+				if (storyDifficulty == 0)
+					difficulty = '-easy';
+
+				if (storyDifficulty == 2)
+					difficulty = '-hard';
+
+				trace('LOADING NEXT SONG');
+				trace(PlayState.storyPlaylist[0].toLowerCase() + difficulty);
+
+				if (SONG.song.toLowerCase() == 'eggnog')
+				{
+					var blackShit:FlxSprite = new FlxSprite(-FlxG.width * FlxG.camera.zoom,
+						-FlxG.height * FlxG.camera.zoom).makeGraphic(FlxG.width * 3, FlxG.height * 3, FlxColor.BLACK);
+					blackShit.scrollFactor.set();
+					add(blackShit);
+					camHUD.visible = false;
+
+					FlxG.sound.play(Paths.sound('Lights_Shut_off'),FlxG.save.data.otherVol);
+				}
+
+				FlxTransitionableState.skipNextTransIn = true;
+				FlxTransitionableState.skipNextTransOut = true;
+				prevCamFollow = camFollow;
+
+				PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + difficulty, PlayState.storyPlaylist[0]);
+				FlxG.sound.music.stop();
+
+				LoadingState.loadAndSwitchState(new PlayState());
 			}
-		}
+		} else finishSong(!hasDied);
 	}
 	var endingSong:Bool = false;
 
-	var hits:Array<Float> = [];
-	var offsetTest:Float = 0;
-
-	var timeShown = 0;
 	var lastNoteSplash:NoteSplash;
+	var lastRating:FlxSprite = null;
+	var lastCombo:Array<FlxSprite> = [];
+	var lastMS:Array<FlxText> = [null,null,null,null];
 	private function popUpScore(daNote:Note):Void
 		{
 			var noteDiff:Float = Math.abs(Conductor.songPosition - daNote.strumTime);
@@ -2643,35 +2609,27 @@ public function pause(){
 				case 'shit':
 					score = RatingScore[4];
 					altscore = AltRatingScore[4];
-					if (FlxG.save.data.ShitCombo)
-						combo = 0;
-					// misses++; A shit should not equal a miss
+					if (FlxG.save.data.ShitCombo) combo = 0;
 					health -= 0.2;
 					shits++;
-					if (FlxG.save.data.accuracyMod == 0)
-						totalNotesHit += 0.25;
+					if (FlxG.save.data.accuracyMod == 0) totalNotesHit += 0.25;
 				case 'bad':
 					score = RatingScore[3];
 					altscore = AltRatingScore[3];
 					health -= 0.06;
 					bads++;
-					if (FlxG.save.data.accuracyMod == 0)
-						totalNotesHit += 0.50;
+					if (FlxG.save.data.accuracyMod == 0) totalNotesHit += 0.50;
 				case 'good':
 					score = RatingScore[2];
 					altscore = AltRatingScore[2];
 					goods++;
-					if (health < 2)
-						health += 0.04;
-					if (FlxG.save.data.accuracyMod == 0)
-						totalNotesHit += 0.75;
+					if (health < 2) health += 0.04;
+					if (FlxG.save.data.accuracyMod == 0) totalNotesHit += 0.75;
 				case 'sick':
 						score = RatingScore[1];
 						altscore = AltRatingScore[1];
-					if (health < 2)
-						health += 0.1;
-					if (FlxG.save.data.accuracyMod == 0)
-						totalNotesHit += 1;
+					if (health < 2) health += 0.1;
+					if (FlxG.save.data.accuracyMod == 0) totalNotesHit += 1;
 					sicks++;
 					if (FlxG.save.data.noteSplash && !daNote.isSustainNote){
 						var a:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
@@ -2680,10 +2638,8 @@ public function pause(){
 						grpNoteSplashes.add(a);
 					}
 				case 'marvelous':
-					if (health < 2)
-						health += 0.125;
-					if (FlxG.save.data.accuracyMod == 0)
-						totalNotesHit += 1.01;
+					if (health < 2) health += 0.125;
+					if (FlxG.save.data.accuracyMod == 0) totalNotesHit += 1.01;
 					marvelous++;
 					if (FlxG.save.data.noteSplash && !daNote.isSustainNote){
 						var a:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
@@ -2692,10 +2648,7 @@ public function pause(){
 						grpNoteSplashes.add(a);
 					}
 			}
-			// trace('Wife accuracy loss: ' + wife + ' | Rating: ' + daRating + ' | Score: ' + score + ' | Weight: ' + (1 - wife));
 
-			var rating:FlxSprite = new FlxSprite(); // Todo, load sprites before song
-			
 			switch(FlxG.save.data.scoresystem)
 			{
 				case 0: songScoreInFloat += score * songspeed; //FNF
@@ -2722,143 +2675,124 @@ public function pause(){
 			songScore = Math.round(songScoreInFloat);
 			// songScoreDef += ConvertScore.convertScore(noteDiff);
 
-			if(!FlxG.save.data.noterating || daNote.isSustainNote) return;
+			if((!FlxG.save.data.noterating && !FlxG.save.data.showTimings && !FlxG.save.data.showCombo) || daNote.isSustainNote) return;
 
-			rating.loadGraphic(Paths.image(daRating));
-			if(middlescroll || !swappedChars)
-				rating.x = playerStrums.members[0].x - 100;
-			else
-				rating.x = playerStrums.members[keyAmmo[playermania] - 1].x + (playerStrums.members[keyAmmo[playermania] - 1].width);
-			rating.y = playerStrums.members[0].y + (playerStrums.members[0].height * 0.5);
-			if(!middlescroll) rating.y -= 33;
-			rating.acceleration.y = 550;
-			rating.velocity.y -= FlxG.random.int(140, 175);
-			rating.velocity.x -= FlxG.random.int(0, 10);
-			
-			var msTiming = FlxMath.roundDecimal(noteDiff / songspeed, 3);
+			var strum = playerStrums.members[daNote.noteData];
+			var firstStrum = playerStrums.members[0];
+			var lastStrum = playerStrums.members[playerStrums.members.length - 1];
 
-			var currentTimingShown = new FlxText(0,0,0,"0ms");
-			timeShown = 0;
+			var rating:FlxSprite=null;
+			if(FlxG.save.data.noterating){
+				if(FlxG.save.data.noterating == 2 && lastRating != null) lastRating.kill();
+				rating = new FlxSprite().loadGraphic(SELoader.cache.loadGraphic('assets/shared/images/$daRating.png'));
+				if(middlescroll || !swappedChars)
+					rating.x = firstStrum.x - 100;
+				else
+					rating.x = lastStrum.x + lastStrum.width;
+				rating.y = firstStrum.y + (firstStrum.height * 0.5);
+				if(!middlescroll) rating.y -= 33;
+				rating.acceleration.y = 550;
+				rating.velocity.y -= FlxG.random.int(140, 175);
+				rating.velocity.x -= FlxG.random.int(0, 10);
+				add(rating);
+
+				rating.setGraphicSize(Std.int(rating.width * 0.3));
+				rating.antialiasing = true;
+				rating.updateHitbox();
+				rating.cameras = [playerNoteCamera];
+				
+				FlxTween.tween(rating, {alpha: 0}, 0.3, {
+					startDelay: Conductor.crochet * 0.001,
+					onComplete: function(tween:FlxTween){rating.destroy();}
+					});
+				lastRating = rating;
+			}
+
+			var currentTimingShown:FlxText=null;
+			var txtColor:FlxColor = FlxColor.CYAN;
 			switch(daRating)
 			{
-				case 'shit':
-					currentTimingShown.color = FlxColor.RED;
-				case 'bad':
-					currentTimingShown.color = FlxColor.ORANGE;
-				case 'good':
-					currentTimingShown.color = FlxColor.GREEN;
-				case 'sick' | 'marvelous':
-					currentTimingShown.color = FlxColor.CYAN;
-			}
-			currentTimingShown.borderStyle = OUTLINE;
-			currentTimingShown.borderSize = 1;
-			currentTimingShown.borderColor = FlxColor.BLACK;
-			var _dist = (Conductor.songPosition - daNote.strumTime);
-			currentTimingShown.text = msTiming + "ms " + (_dist ==  0 ? "=" : downscroll && _dist < 0 || !downscroll && _dist > 0 ? "^" : "v");
-			currentTimingShown.size = 20;
-
-			if (msTiming >= 0.03 && offsetTesting)
-			{
-				//Remove Outliers
-				hits.shift();
-				hits.shift();
-				hits.shift();
-				hits.pop();
-				hits.pop();
-				hits.pop();
-				hits.push(msTiming);
-
-				var total = 0.0;
-
-				for(i in hits)
-					total += i;
-				offsetTest = HelperFunctions.truncateFloat(total / hits.length,2);
+				case 'shit': txtColor = FlxColor.RED;
+				case 'bad': txtColor = FlxColor.ORANGE;
+				case 'good': txtColor = FlxColor.GREEN;
+				case 'sick' | 'marvelous': txtColor = FlxColor.CYAN;
 			}
 
-			add(currentTimingShown);
+			if(FlxG.save.data.showTimings){
+				if(FlxG.save.data.showTimings == 2 && lastMS[daNote.noteData] != null) lastMS[daNote.noteData].kill();
+				var _dist = (Conductor.songPosition - daNote.strumTime);
+				currentTimingShown = new FlxText(0,0,100,Std.string(Math.floor(noteDiff * 1000) * 0.001) + "ms " + ((_dist == 0) ? "=" :((downscroll && _dist < 0 || !downscroll && _dist > 0) ? "^" : "v")));
+				currentTimingShown.color = txtColor;
+				currentTimingShown.borderStyle = OUTLINE;
+				currentTimingShown.borderSize = 1;
+				currentTimingShown.borderColor = FlxColor.BLACK;
+				currentTimingShown.size = 20;
+				currentTimingShown.alignment=CENTER;
 
-			currentTimingShown.x = (playerStrums.members[daNote.noteData].x + (playerStrums.members[daNote.noteData].width * 0.5)) - (currentTimingShown.width * 0.5);
-			currentTimingShown.y = daNote.y + (daNote.height * 0.5);
-			currentTimingShown.acceleration.y = -200;
-			currentTimingShown.velocity.y = 140;
+				add(currentTimingShown);
 
-			currentTimingShown.velocity.x += FlxG.random.int(-20, 20);
-			currentTimingShown.updateHitbox();
-			add(rating);
-	
-			rating.setGraphicSize(Std.int(rating.width * 0.3));
-			rating.antialiasing = true;
-			rating.updateHitbox();
-			currentTimingShown.cameras = rating.cameras = [playerNoteCamera];
-			var seperatedScore:Array<Int> = [];
-	
-			var comboSplit:Array<String> = (combo + "").split('');
+				currentTimingShown.x = (strum.x + (strum.width * 0.5)) - (currentTimingShown.width * 0.5);
+				currentTimingShown.y = daNote.y + (daNote.height * 0.5);
+				currentTimingShown.acceleration.y = -200;
+				currentTimingShown.velocity.y = 140;
 
-			for(i in 0...comboSplit.length)
-			{
-				var str:String = comboSplit[i];
-				seperatedScore.push(Std.parseInt(str));
-			}
-	
-			var daLoop:Int = 0;
-			var comboSize = 1.20 - (seperatedScore.length * 0.1);
-			var scoreObjs = [];
-			for (i in seperatedScore)
-			{
-				var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image('num' + Std.int(i)));
-				if(middlescroll)
-					numScore.x = playerStrums.members[keyAmmo[playermania] - 1].x + (playerStrums.members[keyAmmo[playermania] - 1].width) + ((43 * comboSize) * daLoop);
-				else
-					numScore.x = rating.x + ((43 * comboSize) * daLoop);
-
-				if(!middlescroll && !swappedChars){
-					if(comboSplit.length >= 4)
-						numScore.x -= numScore.width * 0.5;
-					else if(comboSplit.length >= 3)
-						numScore.x -= numScore.width * 0.25;
-				}
-				numScore.y = playerStrums.members[keyAmmo[playermania] - 1].y + (playerStrums.members[keyAmmo[playermania] - 1].height * 0.5);
-				if(!middlescroll) numScore.y += 33;
-				numScore.cameras = rating.cameras;
-				if(goods == 0 && bads == 0 && shits == 0 && misses == 0)
-					numScore.color = 0xFFFFBF00; //#FFBF00 gold
-				else numScore.color = currentTimingShown.color;
-
-				numScore.antialiasing = true;
-				numScore.setGraphicSize(Std.int((numScore.width * comboSize) * 0.5));
-
-				numScore.updateHitbox();
-	
-				numScore.acceleration.y = FlxG.random.int(200, 300);
-				numScore.velocity.y -= FlxG.random.int(140, 160);
-				numScore.velocity.x = FlxG.random.float(-5, 5);
-				add(numScore);
-				scoreObjs.push(numScore);
-				FlxTween.tween(numScore, {alpha: 0}, 0.2, {
-					onComplete: function(tween:FlxTween)
-					{
-						numScore.destroy();
-					},
-					startDelay: Conductor.crochet * 0.002
+				currentTimingShown.velocity.x += FlxG.random.int(-20, 20);
+				currentTimingShown.updateHitbox();
+				currentTimingShown.cameras = [playerNoteCamera];
+				lastMS[daNote.noteData] = currentTimingShown;
+				FlxTween.tween(currentTimingShown, {alpha: 0,y:currentTimingShown.y - 60}, Conductor.crochet * 0.002, {
+					onComplete: function(tween:FlxTween){currentTimingShown.destroy();},
+					startDelay: Conductor.crochet * 0.001,
 				});
-	
-				daLoop++;
 			}
 
-			FlxTween.tween(rating, {alpha: 0}, 0.3, {
-				startDelay: Conductor.crochet * 0.001,
-				onComplete: function(tween:FlxTween)
-				{
-					rating.destroy();
+			var scoreObjs:Array<FlxSprite> = [];
+			if(FlxG.save.data.showCombo){
+				if(FlxG.save.data.showCombo == 2 && lastCombo.length > 0){
+					for(thing in lastCombo){thing.kill();}
 				}
-			});
-			FlxTween.tween(currentTimingShown, {alpha: 0,y:currentTimingShown.y - 60}, Conductor.crochet * 0.002, {
-				onComplete: function(tween:FlxTween)
-				{
-					currentTimingShown.destroy();
-				},
-				startDelay: Conductor.crochet * 0.001,
-			});
+				var comboSplit:Array<String> = ('$combo').split('');
+				var comboSize = 1.20 - (comboSplit.length * 0.1);
+				for (i in 0...comboSplit.length) {
+					var num:Int = Std.parseInt(comboSplit[i]);
+					var numScore:FlxSprite = new FlxSprite().loadGraphic(SELoader.cache.loadGraphic('assets/images/num$num.png'));
+					if(middlescroll)
+						numScore.x = lastStrum.x + (lastStrum.width) + ((43 * comboSize) * i);
+					else{
+						if(!swappedChars)
+							numScore.x = (firstStrum.x - 100) + ((43 * comboSize) * i);
+						else
+							numScore.x = (lastStrum.x + lastStrum.width) + ((43 * comboSize) * i);
+					}
+					if(!middlescroll && !swappedChars){
+						if(comboSplit.length >= 4)
+							numScore.x -= numScore.width * 0.5;
+						else if(comboSplit.length >= 3)
+							numScore.x -= numScore.width * 0.25;
+					}
+					numScore.y = lastStrum.y + (lastStrum.height * 0.5);
+					if(!middlescroll) numScore.y += 33;
+					numScore.cameras = [playerNoteCamera];
+					if(goods == 0 && bads == 0 && shits == 0 && misses == 0)
+						numScore.color = 0xFFFFBF00; //#FFBF00 gold
+					else numScore.color = txtColor;
+
+					numScore.antialiasing = true;
+					numScore.setGraphicSize(Std.int((numScore.width * comboSize) * 0.5));
+					numScore.updateHitbox();
+
+					numScore.acceleration.y = FlxG.random.int(200, 300);
+					numScore.velocity.y -= FlxG.random.int(140, 160);
+					numScore.velocity.x = FlxG.random.float(-5, 5);
+					add(numScore);
+					scoreObjs.push(numScore);
+					FlxTween.tween(numScore, {alpha: 0}, 0.2, {
+						onComplete: function(tween:FlxTween) {numScore.destroy();},
+						startDelay: Conductor.crochet * 0.002
+					});
+				}
+				lastCombo = scoreObjs;
+			}
 			callInterp('popUpScore',[rating,scoreObjs,currentTimingShown]);
 		}
 

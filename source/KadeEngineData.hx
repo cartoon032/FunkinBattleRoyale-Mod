@@ -122,7 +122,6 @@ class KadeEngineData
 
 		if (FlxG.save.data.noteAsset == null) FlxG.save.data.noteAsset = ["default"];
 
-		if (FlxG.save.data.noterating == null) FlxG.save.data.noterating = true;
 		if (FlxG.save.data.camMovement == null) FlxG.save.data.camMovement = true;
 		if (FlxG.save.data.practiceMode == null) FlxG.save.data.practiceMode = false;
 		if (FlxG.save.data.dadShow == null) FlxG.save.data.dadShow = true;
@@ -165,6 +164,10 @@ class KadeEngineData
 		if (FlxG.save.data.menuScripts == null)FlxG.save.data.menuScripts = true;
 		if (FlxG.save.data.UsingSystemMouse == null)FlxG.save.data.UsingSystemMouse = true;
 		if (FlxG.save.data.luaScripts == null)FlxG.save.data.luaScripts = true;
+		if (FlxG.save.data.noterating == null)FlxG.save.data.noterating = true;
+		if (FlxG.save.data.showTimings == null)FlxG.save.data.showTimings = 1;
+		if (FlxG.save.data.showCombo == null)FlxG.save.data.showCombo = 1;
+		if (FlxG.save.data.comboStacking == null)FlxG.save.data.comboStacking = 1;
 
 		if (FlxG.save.data.instVol == null) FlxG.save.data.instVol = 0.8;
 		if (FlxG.save.data.masterVol == null) FlxG.save.data.masterVol = 1;
