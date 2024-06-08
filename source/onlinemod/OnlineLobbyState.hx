@@ -159,6 +159,7 @@ class OnlineLobbyState extends ScriptMusicBeatState
 	AutoOffset = [200.0,-200.0];
 	FlxG.sound.music.looped = true;
 	FlxG.sound.music.onComplete = null;
+	wasloadingSong = false; loadingSong = [false,false]; // if you just got on looby this shouldn't be on
   	if(!FlxG.sound.music.playing) FlxG.sound.music.play();
 	var bg:FlxSprite = new FlxSprite().loadGraphic(SearchMenuState.background);
 	bg.color = 0x9BD2F5;
