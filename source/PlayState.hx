@@ -2675,14 +2675,14 @@ public function pause(){
 			songScore = Math.round(songScoreInFloat);
 			// songScoreDef += ConvertScore.convertScore(noteDiff);
 
-			if((!FlxG.save.data.noterating && !FlxG.save.data.showTimings && !FlxG.save.data.showCombo) || daNote.isSustainNote) return;
+			if((FlxG.save.data.noterating == 0 && FlxG.save.data.showTimings == 0 && FlxG.save.data.showCombo == 0) || daNote.isSustainNote) return;
 
 			var strum = playerStrums.members[daNote.noteData];
 			var firstStrum = playerStrums.members[0];
 			var lastStrum = playerStrums.members[playerStrums.members.length - 1];
 
 			var rating:FlxSprite=null;
-			if(FlxG.save.data.noterating){
+			if(FlxG.save.data.noterating > 0){
 				if(FlxG.save.data.noterating == 2 && lastRating != null) lastRating.kill();
 				rating = new FlxSprite().loadGraphic(SELoader.cache.loadGraphic('assets/shared/images/$daRating.png'));
 				if(middlescroll || !swappedChars)
@@ -2718,7 +2718,7 @@ public function pause(){
 				case 'sick' | 'marvelous': txtColor = FlxColor.CYAN;
 			}
 
-			if(FlxG.save.data.showTimings){
+			if(FlxG.save.data.showTimings > 0){
 				if(FlxG.save.data.showTimings == 2 && lastMS[daNote.noteData] != null) lastMS[daNote.noteData].kill();
 				var _dist = (Conductor.songPosition - daNote.strumTime);
 				currentTimingShown = new FlxText(0,0,100,Std.string(Math.floor(noteDiff * 1000) * 0.001) + "ms " + ((_dist == 0) ? "=" :((downscroll && _dist < 0 || !downscroll && _dist > 0) ? "^" : "v")));
@@ -2747,7 +2747,7 @@ public function pause(){
 			}
 
 			var scoreObjs:Array<FlxSprite> = [];
-			if(FlxG.save.data.showCombo){
+			if(FlxG.save.data.showCombo > 0){
 				if(FlxG.save.data.showCombo == 2 && lastCombo.length > 0){
 					for(thing in lastCombo){thing.kill();}
 				}
