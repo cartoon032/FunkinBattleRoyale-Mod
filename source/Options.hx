@@ -2130,8 +2130,8 @@ class ShowComboOption extends Option
 }
 class ShowMSOption extends Option
 {
-	var ies:Array<String> = ["OFF","Stacking","Only One Per Land"];
-	var iesDesc:Array<String> = ["No more Combo in the way","just like how the Super wanted","will only see the most recent hit of land"];
+	var ies:Array<String> = ["OFF","Stacking","Only One Per Lane"];
+	var iesDesc:Array<String> = ["No more Combo in the way","just like how the Super wanted","will only see the most recent hit of each lane"];
 
 	public function new(desc:String)
 	{
