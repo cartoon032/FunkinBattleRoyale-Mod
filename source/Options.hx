@@ -534,6 +534,48 @@ class ScrollSpeedOption extends Option
 	}
 }
 
+class BreakTimerOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Break Timer: " + (FlxG.save.data.breakTimer > 0 ? HelperFunctions.truncateFloat(FlxG.save.data.breakTimer,1) : "OFF");
+	}
+
+	override function right():Bool {
+		FlxG.save.data.breakTimer += 0.1;
+
+		if (FlxG.save.data.breakTimer > 10)
+			FlxG.save.data.breakTimer = 10;
+		display = updateDisplay();
+		return true;
+	}
+
+	override function getValue():String {
+		return "Break Timer: " + HelperFunctions.truncateFloat(FlxG.save.data.breakTimer,1);
+	}
+
+	override function left():Bool {
+		FlxG.save.data.breakTimer -= 0.1;
+
+		if (FlxG.save.data.breakTimer < 1)
+			FlxG.save.data.breakTimer = 0;
+		display = updateDisplay();
+		return true;
+	}
+}
+
 
 class RainbowFPSOption extends Option
 {
@@ -997,7 +1039,7 @@ class ScoreSystem extends Option
 
 	private override function updateDisplay():String
 	{
-		return 'Score Mode : ${ies[FlxG.save.data.scoresystem]}';
+		return 'Score Mode: ${ies[FlxG.save.data.scoresystem]}';
 	}
 }
 class AltScoreSystem extends Option
@@ -1042,7 +1084,7 @@ class AltScoreSystem extends Option
 
 	private override function updateDisplay():String
 	{
-		return 'Extra Score Mode : ${ies[FlxG.save.data.altscoresystem]}';
+		return 'Extra Score Mode: ${ies[FlxG.save.data.altscoresystem]}';
 	}
 }
 class NoteSelOption extends Option
@@ -1094,7 +1136,7 @@ class MMCharOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Char on main menu : " + (!FlxG.save.data.mainMenuChar ? "off" : "on");
+		return "Char on main menu: " + (!FlxG.save.data.mainMenuChar ? "off" : "on");
 	}
 }
 
@@ -1583,42 +1625,6 @@ class LogGameplayOption extends Option
 		return ("Log Gameplay " + (FlxG.save.data.logGameplay ? "on" : "off"));
 	}
 }
-class PopupScoreLocationOption extends Option
-{
-	var ies:Array<String> = ["Center","Left Side","Right Side","Opposite Side","Same Side"];
-	var iesDesc:Array<String> = ["Center","Left Side","Right Side","Opposite Side","Same Side"];
-	public function new(desc:String)
-	{
-		super();
-		if (FlxG.save.data.popupscorelocation >= ies.length) FlxG.save.data.popupscorelocation = 0;
-		description = desc;
-
-		acceptValues = true;
-	}
-
-	override function getValue():String {
-		return iesDesc[FlxG.save.data.popupscorelocation];
-	}
-
-	override function right():Bool {
-		FlxG.save.data.popupscorelocation += 1;
-		if (FlxG.save.data.popupscorelocation >= ies.length) FlxG.save.data.popupscorelocation = 0;
-		display = updateDisplay();
-		return true;
-	}
-	override function left():Bool {
-		FlxG.save.data.popupscorelocation -= 1;
-		if (FlxG.save.data.popupscorelocation < 0) FlxG.save.data.popupscorelocation = ies.length - 1;
-		display = updateDisplay();
-		return true;
-	}
-	public override function press():Bool{return right();}
-
-	private override function updateDisplay():String
-	{
-		return 'Popup Score Location : ${ies[FlxG.save.data.popupscorelocation]}';
-	}
-}
 class PopupScoreOffset extends Option
 {
 	public function new(desc:String)
@@ -2043,10 +2049,10 @@ class PauseMode extends Option
 
 	private override function updateDisplay():String
 	{
-		return 'Pause Mode : ${ies[FlxG.save.data.PauseMode]}';
+		return 'Pause Mode: ${ies[FlxG.save.data.PauseMode]}';
 	}
 }
-class ShowRating extends Option
+class ShowRatingOption extends Option
 {
 	var ies:Array<String> = ["OFF","Stacking","Only One"];
 	var iesDesc:Array<String> = ["No more Rating in the way","just like how the FNF dev wanted","will only see the most recent hit"];
@@ -2080,10 +2086,10 @@ class ShowRating extends Option
 
 	private override function updateDisplay():String
 	{
-		return 'Note Ratings : ${ies[FlxG.save.data.noterating]}';
+		return 'Note Ratings: ${ies[FlxG.save.data.noterating]}';
 	}
 }
-class ShowCombo extends Option
+class ShowComboOption extends Option
 {
 	var ies:Array<String> = ["OFF","Stacking","Only One"];
 	var iesDesc:Array<String> = ["No more Combo in the way","just like how the FNF dev wanted","will only see the most recent hit"];
@@ -2117,10 +2123,10 @@ class ShowCombo extends Option
 
 	private override function updateDisplay():String
 	{
-		return 'Current Combo : ${ies[FlxG.save.data.showCombo]}';
+		return 'Current Combo: ${ies[FlxG.save.data.showCombo]}';
 	}
 }
-class ShowMS extends Option
+class ShowMSOption extends Option
 {
 	var ies:Array<String> = ["OFF","Stacking","Only One Per Land"];
 	var iesDesc:Array<String> = ["No more Combo in the way","just like how the Super wanted","will only see the most recent hit of land"];
@@ -2154,7 +2160,7 @@ class ShowMS extends Option
 
 	private override function updateDisplay():String
 	{
-		return 'Note Timings : ${ies[FlxG.save.data.showTimings]}';
+		return 'Note Timings: ${ies[FlxG.save.data.showTimings]}';
 	}
 }
 

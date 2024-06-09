@@ -2299,7 +2299,7 @@ class PlayState extends ScriptMusicBeatState
 					Conductor.lastSongPos = Conductor.songPosition;
 				}
 			}
-			BreakTimer(elapsed);
+			if(FlxG.save.data.breakTimer > 0)BreakTimer(elapsed);
 			// Conductor.lastSongPos = FlxG.sound.music.time;
 		}
 		if(FlxG.save.data.animDebug){
@@ -3826,7 +3826,7 @@ public function pause(){
             var targetAlpha:Float = 0.0;
             if (show)
             {
-                if (lastStartTime == FlxMath.MAX_VALUE_FLOAT && timeTillNextNote > 3200)
+                if (lastStartTime == FlxMath.MAX_VALUE_FLOAT && timeTillNextNote > FlxG.save.data.breakTimer * 1000)
                     lastStartTime = timeTillNextNote;
 
                 if (lastStartTime != FlxMath.MAX_VALUE_FLOAT)
