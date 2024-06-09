@@ -550,7 +550,7 @@ class BreakTimerOption extends Option
 
 	private override function updateDisplay():String
 	{
-		return "Break Timer: " + (FlxG.save.data.breakTimer > 0 ? HelperFunctions.truncateFloat(FlxG.save.data.breakTimer,1) : "OFF");
+		return "Break Timer: " + (FlxG.save.data.breakTimer > 0 ? HelperFunctions.truncateFloat(FlxG.save.data.breakTimer,1) + "" : "OFF");
 	}
 
 	override function right():Bool {
