@@ -109,23 +109,15 @@ class QuickOptionsSubState extends MusicBeatSubstate
 
 	override function update(elapsed:Float)
 	{
-
 		super.update(elapsed);
 
-		var upP = controls.UP_P;
-		var downP = controls.DOWN_P;
-		var leftP = controls.LEFT_P;
-		var rightP = controls.RIGHT_P;
-		var accepted = controls.ACCEPT;
 		var oldOffset:Float = 0;
 
-		if (upP) changeSelection(-1);
-		if (downP) changeSelection(1);
-
-		if (FlxG.keys.pressed.ESCAPE){saveSettings();close();}
-
-		if (accepted && settings[menuItems[curSelected]].type != 1) changeSetting(curSelected);
-		if (leftP || rightP) changeSetting(curSelected,rightP);
+		if (controls.UP_P) changeSelection(-1);
+		if (controls.DOWN_P) changeSelection(1);
+		if (controls.BACK){saveSettings();close();}
+		if (controls.ACCEPT && settings[menuItems[curSelected]].type != 1) changeSetting(curSelected);
+		if (controls.LEFT_P || controls.RIGHT_P) changeSetting(curSelected,rightP);
 	}
 
 	function changeSetting(sel:Int,?dir:Bool = true){
