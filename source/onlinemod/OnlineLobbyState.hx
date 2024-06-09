@@ -275,8 +275,10 @@ class OnlineLobbyState extends ScriptMusicBeatState
 	  Sender.SendPacket(Packets.JOINED_LOBBY, [], OnlinePlayMenuState.socket);
 
 	optionsButton = new FlxUIButton(FlxG.width - (1240 * 0.25) - 10, 15, "Quick Options", () -> {
-	  Chat.created = false;
-	  FlxG.switchState(new OnlineOptionsMenu());
+		if(!loadingSong.contains(true)){
+			Chat.created = false;
+			FlxG.switchState(new OnlineOptionsMenu());
+		}
 	});
 	optionsButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
 	optionsButton.resize(1240 * 0.25, 30);
