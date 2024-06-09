@@ -648,7 +648,7 @@ class PlayState extends ScriptMusicBeatState
 		middlescroll = (FlxG.save.data.middleScroll || BothSide);
 		scrollspeed = FlxMath.roundDecimal(QuickOptionsSubState.getSetting("Scroll speed") > 1 ? QuickOptionsSubState.getSetting("Scroll speed") : QuickOptionsSubState.getSetting("Scroll speed") == 1 || FlxG.save.data.scrollSpeed == 1 ? SONG.speed : FlxG.save.data.scrollSpeed, 2);
 		if(FlxG.save.data.MKScrollSpeed > 1 && SONG.playerKeyCount > 4 && FlxG.save.data.scrollSpeed != 1)
-			scrollspeed = FlxMath.roundDecimal(FlxG.save.data.MKScrollSpeed, 2);
+			scrollspeed = FlxMath.roundDecimal(QuickOptionsSubState.getSetting("Scroll speed") > 1 ? QuickOptionsSubState.getSetting("Scroll speed") : FlxG.save.data.MKScrollSpeed, 2);
 		scrollspeed = FlxMath.roundDecimal(scrollspeed * songspeed, 2);
 		instance = this;
 		clearVariables();
