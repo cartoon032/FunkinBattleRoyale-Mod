@@ -556,6 +556,8 @@ class BreakTimerOption extends Option
 	override function right():Bool {
 		FlxG.save.data.breakTimer += 0.1;
 
+		if (FlxG.save.data.breakTimer < 1)
+			FlxG.save.data.breakTimer = 1;
 		if (FlxG.save.data.breakTimer > 10)
 			FlxG.save.data.breakTimer = 10;
 		display = updateDisplay();
