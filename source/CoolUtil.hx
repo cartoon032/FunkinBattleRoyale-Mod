@@ -52,6 +52,7 @@ class CoolUtil
 			var e = obj.members.pop();
 			if(e != null && e.destroy != null) e.destroy();
 		}
+		obj.clear();
 		return obj;
 	}
 	public static function difficultyString():String{return if (PlayState.stateType == 4) PlayState.actualSongName else difficultyArray[PlayState.storyDifficulty];}
