@@ -3797,22 +3797,22 @@ public function pause(){
         // if (instance != null)
         // {
             var show:Bool = false;
-            if (Conductor.songPosition > 0)
+            if (Conductor.rawPosition > 0)
             {
-                for (daNote in instance.notes)
+                for (daNote in notes)
                     if (daNote.mustPress && !daNote.shouldntBeHit) //check notes for closest
                     {
-                        var timeDiff = daNote.strumTime-Conductor.songPosition;
+                        var timeDiff = daNote.strumTime-Conductor.rawPosition;
                         if (timeDiff < timeTillNextNote)
                             timeTillNextNote = timeDiff;
                     }
 
                 if (timeTillNextNote == FlxMath.MAX_VALUE_FLOAT) //now check unspawnNotes if not found anything
                 {
-                    for (daNote in instance.unspawnNotes)
+                    for (daNote in unspawnNotes)
                         if (daNote.mustPress && !daNote.shouldntBeHit)
                         {
-                            var timeDiff = daNote.strumTime-Conductor.songPosition;
+                            var timeDiff = daNote.strumTime-Conductor.rawPosition;
                             if (timeDiff < timeTillNextNote)
                             {
                                 timeTillNextNote = timeDiff;
@@ -3820,7 +3820,7 @@ public function pause(){
                             }
                         }
                 }
-                show = timeTillNextNote != FlxMath.MAX_VALUE_FLOAT; //if found a note and time is larger than 2 secs
+                show = timeTillNextNote != FlxMath.MAX_VALUE_FLOAT;
             }
 
             var targetAlpha:Float = 0.0;
@@ -3833,7 +3833,8 @@ public function pause(){
                 {
                     var secsLeft:Float = FlxMath.roundDecimal(timeTillNextNote*0.001,1);
                     var percent:Float = timeTillNextNote/lastStartTime;
-                    if (percent <= 0)
+					// Overlay.debugVar += '\nBreak Timer:$timeTillNextNote / $lastStartTime : $percent';
+                    if (secsLeft <= 0.1)
                     {
                         lastStartTime = FlxMath.MAX_VALUE_FLOAT; //reset
                         timerText.text = "";
@@ -3850,8 +3851,7 @@ public function pause(){
                     targetAlpha = 1.0;
                 }
             }
-
-            timerBar.alpha = timerText.alpha = FlxMath.lerp(timerText.alpha, targetAlpha, elapsed*5);
+            timerBar.alpha = timerText.alpha = FlxMath.lerp(timerText.alpha, targetAlpha, elapsed*7.5);
         // }
     }
 
