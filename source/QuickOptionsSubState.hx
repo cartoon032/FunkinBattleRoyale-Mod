@@ -117,7 +117,7 @@ class QuickOptionsSubState extends MusicBeatSubstate
 		if (controls.DOWN_P) changeSelection(1);
 		if (controls.BACK){saveSettings();close();}
 		if (controls.ACCEPT && settings[menuItems[curSelected]].type != 1) changeSetting(curSelected);
-		if (controls.LEFT_P || controls.RIGHT_P) changeSetting(curSelected,rightP);
+		if (controls.LEFT_P || controls.RIGHT_P) changeSetting(curSelected,controls.RIGHT_P);
 	}
 
 	function changeSetting(sel:Int,?dir:Bool = true){
