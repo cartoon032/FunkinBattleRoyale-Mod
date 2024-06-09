@@ -28,9 +28,9 @@ class OfflineMenuState extends SearchMenuState
   var songDirs:Array<String> = [];
   var dataDir:String = "assets/onlinedata/data/";
   var optionsButton:FlxUIButton;
+  var goBackButton:FlxUIButton;
   var invertedChart:Bool = false;
 	var SpeedText:FlxText;
-	var Speedtwee:FlxTween;
 	public static var rate:Float = 1.0;
 
   function goOptions(){
@@ -50,9 +50,13 @@ class OfflineMenuState extends SearchMenuState
     loadScripts(true);
 		PlayState.hsBrToolsPath = "assets/";
     super.create();
-    optionsButton = new FlxUIButton(1120, 30, "Options", goOptions);
+    goBackButton = new FlxUIButton(1120, 5, "Go back", ret);
+    goBackButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
+    goBackButton.resize(150, 30);
+    add(goBackButton);
+    optionsButton = new FlxUIButton(1120, 37, "Options", goOptions);
     optionsButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
-    optionsButton.resize(150, 30);
+    optionsButton.resize(150, 26);
     add(optionsButton);
     sideButton = new FlxUIButton(1020, 65, "Chart Options", chartOptions);
     sideButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
@@ -120,27 +124,27 @@ class OfflineMenuState extends SearchMenuState
 		{
 			if (FlxG.keys.justPressed.LEFT)
 				{
-					if(Speedtwee != null)Speedtwee.cancel();
-					SpeedText.scale.set(1.2,1.2);
-					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
+					FlxTween.cancelTweensOf(SpeedText);
+					SpeedText.scale.set(1.1,1.1);
+					FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
 					rate -= 0.05 * (FlxG.keys.pressed.ALT ? 5 : 1);
 				}
 			if (FlxG.keys.justPressed.RIGHT)
 				{
-					if(Speedtwee != null)Speedtwee.cancel();
-					SpeedText.scale.set(1.2,1.2);
-					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
+					FlxTween.cancelTweensOf(SpeedText);
+					SpeedText.scale.set(1.1,1.1);
+					FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
 					rate += 0.05 * (FlxG.keys.pressed.ALT ? 5 : 1);
 				}
 			if (FlxG.keys.justPressed.R)
 				{
-					if(Speedtwee != null)Speedtwee.cancel();
-					SpeedText.scale.set(1.2,1.2);
-					Speedtwee = FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
+					FlxTween.cancelTweensOf(SpeedText);
+					SpeedText.scale.set(1.1,1.1);
+					FlxTween.tween(SpeedText.scale,{x:1,y:1},(30 / Conductor.bpm));
 					rate = 1;
 				}
 
-			else if (rate < 0.25)
+			if (rate < 0.25)
 				rate = 0.25;
 			SpeedText.text = "Song Speed : " + HelperFunctions.truncateFloat(rate, 2) + "x";
 		}
