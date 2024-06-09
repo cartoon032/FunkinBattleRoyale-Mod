@@ -527,8 +527,8 @@ class TitleState extends MusicBeatState
 		logoBl.updateHitbox();
 		try{
 			if(FlxG.save.data.gfTitleShow){
-				gf = new Character(FlxG.width, FlxG.height * 0.07, FlxG.save.data.gfChar,false,2,true,null,null,false);
-				gf2 = new Character(FlxG.width, FlxG.height * 0.07, FlxG.save.data.gfChar,false,2,true,null,null,false);
+				gf = new Character(FlxG.width, FlxG.height * 0.07, FlxG.save.data.gfTitleChar,false,2,true,null,null,false);
+				gf2 = new Character(FlxG.width, FlxG.height * 0.07, FlxG.save.data.gfTitleChar,false,2,true,null,null,false);
 				var shader:ChromAbEffect = new ChromAbEffect();
 				gf2.shader = shader.shader;
 				shader.strength = -0.0015;

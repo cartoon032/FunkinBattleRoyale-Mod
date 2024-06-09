@@ -86,6 +86,9 @@ class KadeEngineData
 		if (FlxG.save.data.gfChar == null)
 			FlxG.save.data.gfChar = "gf";
 
+		if (FlxG.save.data.gfTitleChar == null)
+			FlxG.save.data.gfTitleChar = FlxG.save.data.gfChar;
+
 		if (FlxG.save.data.selStage == null)
 			FlxG.save.data.selStage = "default";
 

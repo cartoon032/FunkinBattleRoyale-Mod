@@ -63,8 +63,9 @@ class SearchMenuState extends ScriptMusicBeatState
 		#if android
 			str = str + " - Tap here to go back";
 		#end
-		titleText = new FlxText(FlxG.width * 0.5, 20, 0, str, 12);
+		titleText = new FlxText(0, 20, FlxG.width, str, 12);
 		titleText.scrollFactor.set();
+		titleText.screenCenter(X);
 		titleText.setFormat(CoolUtil.font, 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(titleText);
 	}

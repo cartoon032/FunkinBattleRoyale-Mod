@@ -38,15 +38,12 @@ class CharSelection extends SearchMenuState
 			searchList.insert(0,TitleState.invalidCharacters[i]);
 		}
 	}
-	if (Options.PlayerOption.playerEdit == 0){
-		if(!searchList.contains("automatic")) searchList.insert(0,"automatic");
-	} else if (searchList.contains("automatic")) searchList.remove("automatic");
 	super.create();
 	var title = "";
 	switch (Options.PlayerOption.playerEdit){
 		case 0: title="Change BF";
 		case 1: title="Change Opponent";
-		case 2: title="Change GF";
+		case 2: title="Change GF\nHold Shift for only TitleScreen GF";
 		default: title= "You found a secret, You should exit this menu to prevent further 'secrets'";
 	}
 
@@ -115,7 +112,13 @@ class CharSelection extends SearchMenuState
 		case 1:
 			FlxG.save.data.opponent = songs[curSelected];
 		case 2:
-			FlxG.save.data.gfChar = songs[curSelected];
+			if(FlxG.keys.pressed.SHIFT){
+				FlxG.save.data.gfTitleChar = songs[curSelected];
+				showTempmessage('Title Screen GF will now using ${songs[curSelected]}');
+				retAfter = false;
+				return;
+			}
+			FlxG.save.data.gfChar = FlxG.save.data.gfTitleChar = songs[curSelected];
 		}
 	}
 }
