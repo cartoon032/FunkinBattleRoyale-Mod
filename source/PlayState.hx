@@ -3797,12 +3797,12 @@ public function pause(){
         // if (instance != null)
         // {
             var show:Bool = false;
-            if (Conductor.rawPosition > 0)
+            if (songStarted)
             {
                 for (daNote in notes)
                     if (daNote.mustPress && !daNote.shouldntBeHit) //check notes for closest
                     {
-                        var timeDiff = daNote.strumTime-Conductor.songPosition;
+                        var timeDiff = daNote.strumTime-(Conductor.rawPosition / songspeed);
                         if (timeDiff < timeTillNextNote)
                             timeTillNextNote = timeDiff;
                     }
@@ -3812,7 +3812,7 @@ public function pause(){
                     for (daNote in unspawnNotes)
                         if (daNote.mustPress && !daNote.shouldntBeHit)
                         {
-                            var timeDiff = daNote.strumTime-Conductor.songPosition;
+                            var timeDiff = daNote.strumTime-(Conductor.rawPosition / songspeed);
                             if (timeDiff < timeTillNextNote)
                             {
                                 timeTillNextNote = timeDiff;
