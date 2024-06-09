@@ -171,6 +171,8 @@ class KadeEngineData
 		if (FlxG.save.data.showTimings == null)FlxG.save.data.showTimings = 1;
 		if (FlxG.save.data.showCombo == null)FlxG.save.data.showCombo = 1;
 		if (FlxG.save.data.comboStacking == null)FlxG.save.data.comboStacking = 1;
+		if (FlxG.save.data.breakTimer == null)FlxG.save.data.breakTimer = 3.2;
+		if (FlxG.save.data.favourites == null)FlxG.save.data.favourites = [];
 
 		if (FlxG.save.data.instVol == null) FlxG.save.data.instVol = 0.8;
 		if (FlxG.save.data.masterVol == null) FlxG.save.data.masterVol = 1;

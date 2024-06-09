@@ -61,6 +61,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 	var songProgressParent:Alphabet;
 	var songProgressText:FlxText = new FlxText(0,0,"00:00/00:00. Playing voices",12);
 	var updateTime:Bool = false;
+	var favButton:FlxUIButton;
 	override function draw(){
 		if(shouldDraw)
 			super.draw();
@@ -147,6 +148,11 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 		songProgress.width = 180;
 		songProgress.createFilledBar(0xff000000,0xFF9BD2F5,true,0xff000000);
 
+		favButton = new FlxUIButton(750, 65, "Un/Fav Chart", favChart);
+		add(favButton);
+		favButton.setLabelFormat(24, FlxColor.BLACK, CENTER);
+		favButton.resize(250, 30);
+
 		searchField.text = lastSearch;
 		if(lastSearch != "") reloadList(true,lastSearch);
 
@@ -178,6 +184,16 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 		grpSongs.add(controlLabel);
 		callInterp('addListingAfter',[controlLabel,name,i]);
 		return controlLabel;
+	}
+	function favChart(){
+		var songInfo = grpSongs.members[curSelected].menuValue;
+		if(songInfo == null) return showTempmessage('This is not a song!',FlxColor.RED);
+		if(!FlxG.save.data.favourites.remove(songInfo)){
+			FlxG.save.data.favourites.push(songInfo);
+		}
+		FlxG.save.flush();
+		reloadList(false,'');
+		reloadList(true,searchField.text);
 	}
 	function addCategory(name:String,i:Int,addToCats:Bool = true):Alphabet{
 		callInterp('addCategory',[name,i]);
@@ -259,14 +275,14 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 		if(!allowInput) return;
 		curSelected = 0;
 
-		if(reload) {
+		if(grpSongs != null){
 			CoolUtil.clearFlxGroup(grpSongs);
 		}
 
-		var query = new EReg((~/[-_ ]/g).replace(search.toLowerCase(),'[-_ ]'),'i'); // Regex that allows _ and - for songs to still pop up if user puts space, game ignores - and _ when showing
+		var query = new EReg((~/[-_ ]/g).replace(search.toLowerCase().replace('\\','\\\\'),'[-_ ]'),'i'); // Regex that allows _ and - for songs to still pop up if user puts space, game ignores - and _ when showing
 		callInterp('reloadList',[reload,search,query]);
 
-		if(!cancelCurrentFunction && songInfoArray[0] != null && (reload || FlxG.save.data.cacheMultiList)){
+		if(!cancelCurrentFunction && songInfoArray[0] != null && ((reload && search != ""))){
 			if(selMode == -1) {
 				reloadListFromMemory(search,query);
 				return;
@@ -293,6 +309,28 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 		callInterp('generateList',[reload,search,query]);
 		if(!cancelCurrentFunction){
 			var emptyCats:Array<String> = [];
+
+			if(FlxG.save.data.favourites != null && FlxG.save.data.favourites.length > 0){
+				var containsSong = false;
+				var missingSongs:Array<SongInfo> = [];
+				var fav:Array<se.formats.SongInfo> = FlxG.save.data.favourites;
+				for (song in fav){
+					if(!SELoader.exists(song.path)){
+						missingSongs.push(song);
+						continue;
+					}
+					if(search != "" && !query.match(song.name.toLowerCase())) continue;
+					if(!containsSong){
+						containsSong = true;
+						addCategory('Favourites',i,false);
+						i++;
+					}
+					addListing(song.name,i,song);
+					// songInfoArray.push(song);
+					i++;
+				}
+				for (song in missingSongs){FlxG.save.data.favourites.remove(song);}
+			}
 			if (SELoader.exists(dataDir)){
 				var dirs = orderList(SELoader.readDirectory(dataDir));
 				var catID = 0;
@@ -315,7 +353,6 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 					emptyCats.push('Charts Folder');
 				}
 			}
-			var _packCount:Int = 0;
 			if (SELoader.exists("mods/weeks")){
 				for (name in orderList(SELoader.readDirectory("mods/weeks"))){
 					var catID = categories.length;
@@ -325,7 +362,6 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 					var catMatch = query.match(name.toLowerCase());
 					var dirs = orderList(SELoader.readDirectory(dataDir));
 					// addCategory(name + "(Week)",i);
-					_packCount++;
 					var containsSong = false;
 					LoadingScreen.loadingText = 'Scanning mods/weeks/$name';
 					for (directory in dirs){
@@ -352,17 +388,20 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			}
 			if (SELoader.exists("mods/packs")){
 				for (name in orderList(SELoader.readDirectory("mods/packs"))){
-					var catID = categories.length;
 					// dataDir = "mods/packs/" + dataDir + "/charts/";
 					var catMatch = query.match(name.toLowerCase());
-					var baseDir = 'mods/packs/$name/';
 					// var dataDir = SELoader.anyExists(['${baseDir}charts/','${baseDir}data/']);
 					// !SELoader.exists(dataDir) && !SELoader.exists(dataDir = "mods/packs/" + name + "/data/")
 					// if(dataDir == null) continue;
-					_packCount++;
+					if(!catMatch){
+						emptyCats.push(name);
+						continue;
+					}
+					var catID = categories.length;
 					// var containsSong = false;
-					var dirs = orderList(SELoader.readDirectory(dataDir));
+					// var dirs = orderList(SELoader.readDirectory(dataDir));
 					
+					var baseDir = 'mods/packs/$name/';
 					var folderSongs:Array<SongInfo> = SELoader.getSongsFromFolder(baseDir);
 					if(folderSongs.length == 0){
 						emptyCats.push(name);
@@ -371,15 +410,13 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 					addCategory(name,i);
 					i++;
 					for (song in folderSongs){
+
 						song.categoryID=catID;
 						song.namespace=name;
 						addListing(song.name,i,song);
 						songInfoArray.push(song);
+						i++;
 					}
-					
-					i++;
-
-					// if(!containsSong) emptyCats.push(name);
 					
 				}
 			}
@@ -390,18 +427,13 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 			}
 		}
 		if(reload && lastSel == 1){
-			for(value in grpSongs){
+			for(index => value in grpSongs.members){
 				if(value.menuValue is SongInfo){
 					changeSelection(i);
 					break;
 				}
 			}
 		}
-		// if(_packCount == 0){
-		// 	addCategory("No packs or weeks to show",i);
-		// 	grpSongs.members[i - 1].color = FlxColor.RED;
-		// }
-		// if(reload && lastSel == 1) changeSelection(_goToSong);
 		SELoader.gc();
 		updateInfoText('Use shift to scroll faster; Shift+F7 to erase the score of the current chart. Press CTRL/Control to listen to instrumental/voices of song. Press again to toggle the voices. *Disables autopause while listening to a song in this menu. Found ${songInfoArray.length} songs');
 	}
