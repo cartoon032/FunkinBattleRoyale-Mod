@@ -825,9 +825,8 @@ class Note extends FlxSprite
 		super.destroy();
 	}
 	public function updateCanHit():Bool{
-		if(shouldntBeHit){
+		if(shouldntBeHit)
 			return canBeHit = (strumTime - Conductor.songPosition <= (45 * Conductor.timeScale) && strumTime - Conductor.songPosition >= (-45 * Conductor.timeScale));
-		}
 		return canBeHit = ((isSustainNote && (strumTime > Conductor.songPosition - Conductor.safeZoneOffset && strumTime < Conductor.songPosition + ((Conductor.safeZoneOffset * 0.5) * Conductor.timeScale)) ) ||
 				strumTime > Conductor.songPosition - (Conductor.safeZoneOffset * Conductor.timeScale) && strumTime < Conductor.songPosition + Conductor.safeZoneOffset  );
 	}

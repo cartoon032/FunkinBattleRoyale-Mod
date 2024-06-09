@@ -2809,6 +2809,9 @@ public function pause(){
 	// Custom input handling
 
 	function setInputHandlers(){
+		while(FalseBoolArray.length < keyAmmo[mania]){
+			FalseBoolArray.push(false);
+		}
 		if(botPlay){
 			inputMode = 0;
 			noteShit = SENoteShit;
@@ -2843,7 +2846,6 @@ public function pause(){
 			#end
 			default:
 				MainMenuState.handleError('${inputMode} is not a valid input! Please change your input mode!');
-
 		}
 		inputEngineName = if(inputEngines[inputMode] != null) inputEngines[inputMode] else "Unspecified";
 	}
@@ -3092,9 +3094,6 @@ public function pause(){
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, SEIKeyRelease);
 			return;
 		}
-		while(FalseBoolArray.length < keyAmmo[playermania]){
-			FalseBoolArray.push(false);
-		}
 		pressArray = releaseArray = FalseBoolArray.copy();
 		// var keyCode:FlxKey = event.keyCode;
 		// var data:Null<Int> = SEIKeyMap[keyCode];
@@ -3218,9 +3217,6 @@ public function pause(){
 
 	function BotplayKeyShit(){
 		if(!botPlay)return kadeBRKeyShit();
-		while(FalseBoolArray.length < keyAmmo[mania]){
-			FalseBoolArray.push(false);
-		}
 		holdArray = pressArray = releaseArray = FalseBoolArray.copy();
 		var i = 0;
 		var daNote:Note = null;
@@ -3242,17 +3238,7 @@ public function pause(){
 		}
 
 		boyfriend.isPressingNote = holdArray.contains(true);
-		if (boyfriend.currentAnimationPriority == 10 && (boyfriend.holdTimer > Conductor.stepCrochet * boyfriend.dadVar * 0.001 || boyfriend.isDonePlayingAnim()) && !boyfriend.isPressingNote) {
-			for(char in boyfriendArray){char.dance(curBeat % 2 == 0);}
-		}
-		var i = playerStrums.members.length - 1;
-		var spr:StrumArrow;
-		while (i >= 0){
-			spr = playerStrums.members[i];
-			i--;
-			if(spr == null) continue;
-			if(!holdArray[spr.ID] && spr.animation.finished) spr.playStatic();
-		}
+		playerStrums.forEach(function(spr:StrumArrow){if (spr.animation.finished)spr.playStatic();});
 	}
 
  	private function kadeBRKeyShit():Void // I've invested in emma stocks
@@ -3498,7 +3484,7 @@ public function pause(){
 			var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition);
 			note.rating = Ratings.CalculateRating(noteDiff);
 		}else
-			note.rating = Ratings.CalculateRating(0);
+			note.rating = "marvelous";
 
 		if(note.shouldntBeHit){noteMiss(note.noteData,note,true);return;}
 		callInterp("beforeNoteHit",[boyfriendArray[onlinecharacterID],note]);
@@ -3513,16 +3499,13 @@ public function pause(){
 			isSustain:note.isSustainNote,
 			time:Conductor.songPosition
 		});
-		// if (!note.wasGoodHit)
-		// {
+		if (!note.wasGoodHit)
+		{
 			if (!note.isSustainNote|| FlxG.save.data.scoresystem == 7)
 			{
 				combo++;
 				popUpScore(note);
 			}
-			// else
-			// 	totalNotesHit += 1;
-			
 
 			if(hitSound){
 				if(note.isSustainNoteStart) FlxG.sound.play(holdSoundEff,FlxG.save.data.hitVol).x = (FlxG.camera.x) + (FlxG.width * ((note.noteData + 1) / keyAmmo[mania]));
@@ -3547,7 +3530,7 @@ public function pause(){
 			notes.remove(note, true);
 			updateAccuracy(note.isSustainNote);
 			note.destroy();
-		// }
+		}
 	}
 		
 	inline function onlineNoteHit(noteID:Int = -1,miss:Int = 0){
