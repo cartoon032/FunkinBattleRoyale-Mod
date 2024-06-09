@@ -1685,7 +1685,6 @@ class PlayState extends ScriptMusicBeatState
 					SONG.needsVoices = false;
 					showTempmessage("Song needs voices but none found! Automatically disabled");
 					vocals = new FlxSound();
-
 				}
 			else{
 				SONG.needsVoices = false;
@@ -1702,6 +1701,7 @@ class PlayState extends ScriptMusicBeatState
 		CoolUtil.clearFlxGroup(eventNotes);
 		add(notes);
 		Note.lastNoteID = -1;
+		var opponentNotes = (onlinemod.OnlinePlayMenuState.socket != null || QuickOptionsSubState.getSetting("Opponent arrows") || ChartingState.charting);
 
 		var noteData:Array<SwagSection>;
 
@@ -1753,6 +1753,7 @@ class PlayState extends ScriptMusicBeatState
 				else if ((songNotes[1] >= mn && !ADOFAIMode) || (songNotes[1] >= keyAmmo[SongOGmania] && ADOFAIMode))
 					gottaHitNote = !section.mustHitSection;
 
+				if(!opponentNotes && !gottaHitNote) continue;
 				if(MirrorMode > 0){
 					var Mirror:Bool = (MirrorMode == 1);
 					if(gottaHitNote != Mirror)
