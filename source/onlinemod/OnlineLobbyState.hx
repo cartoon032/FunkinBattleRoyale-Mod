@@ -313,16 +313,14 @@ class OnlineLobbyState extends ScriptMusicBeatState
 		if(FileSystem.exists('assets/onlinedata/songs/${songFolder.toLowerCase()}/Inst.ogg')){
 			FlxG.sound.playMusic(Sound.fromFile('assets/onlinedata/songs/${songFolder.toLowerCase()}/Inst.ogg'),FlxG.save.data.instVol,true);
 			hasSong = true;
+		}else{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			FlxG.sound.music.volume = 0.1;
+			add(downloadButton);
+			setSelfStatus("No Song");
+			hasSong = false;
 		}
-		else
-			{
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				FlxG.sound.music.volume = 0.1;
-				add(downloadButton);
-				setSelfStatus("No Song");
-				hasSong = false;
-			}
-		}
+	}
 
 	clientsGroupLeaderboard = new FlxTypedGroup<FlxText>();
 	if(hasLeaderboard){
