@@ -35,7 +35,7 @@ class QuickOptionsSubState extends MusicBeatSubstate
 			"Song hscripts" => {type:0,value:true},
 			"Custom Arrows" => {type:0,value:true},
 			"BotPlay" => {type:0,value:false},
-			"Scroll speed" => {type:2,value:0,min:0,max:10},
+			"Scroll speed" => {type:2,value:0,min:0,max:10, land:[0 => "Default",1 => "Chart Default"]},
 			"Mirror Mode" => {type:2,value:0,min:0,max:2,lang:[0 => "OFF",1 => "Mirror Player",2 => "Mirror Opponent"]},
 			"Random Notes" => {type:2,value:0,min:0,max:3,lang:[0 => "OFF",1 => "Full Random",2 => "Full Random With Jack Prevent",3 => "Random note per section"]},
 			"Force Mania" => {type:2,value:-1,min:-1,max:18,lang:[-1 => "OFF",0 => "0 : 4K",1 => "1 : 6K",2 => "2 : 7K",3 => "3 : 9K",4 => "4 : 5K",5 => "5 : 8K",6 => "6 : 1K",7 => "7 : 2K",8 => "8 : 3K",9 => "9 : 10K",10 => "10 : 11K",11 => "11 : 12K",12 => "12 : 13K",13 => "13 : 14K",14 => "14 : 15K",15 => "15 : 16K",16 => "16 : 17K",17 => "17 : 18K",18 => "18 : 21K"]},
