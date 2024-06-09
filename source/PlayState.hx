@@ -3802,7 +3802,7 @@ public function pause(){
                 for (daNote in notes)
                     if (daNote.mustPress && !daNote.shouldntBeHit) //check notes for closest
                     {
-                        var timeDiff = daNote.strumTime-Conductor.rawPosition;
+                        var timeDiff = daNote.strumTime-Conductor.songPosition;
                         if (timeDiff < timeTillNextNote)
                             timeTillNextNote = timeDiff;
                     }
@@ -3812,7 +3812,7 @@ public function pause(){
                     for (daNote in unspawnNotes)
                         if (daNote.mustPress && !daNote.shouldntBeHit)
                         {
-                            var timeDiff = daNote.strumTime-Conductor.rawPosition;
+                            var timeDiff = daNote.strumTime-Conductor.songPosition;
                             if (timeDiff < timeTillNextNote)
                             {
                                 timeTillNextNote = timeDiff;
