@@ -357,6 +357,8 @@ class PlayState extends ScriptMusicBeatState
 		combo = 0;
 		maxCombo = 0;
 		accuracy = 0.00;
+		MA = 0;
+		SA = 0;
 		// noteCount = 0;
 
 		// repPresses = 0;
