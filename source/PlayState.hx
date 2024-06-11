@@ -3170,6 +3170,20 @@ public function pause(){
 			hitArray[daNote.noteData] = true;
 			goodNoteHit(daNote);
 		}
+		if(FlxG.save.data.JudgementCounter)
+			judgementCounter.text = 'Combo: ${combo}' + (combo < maxCombo ? ' (Max: ' + maxCombo + ')' : '')
+			+ '\nMarvelous: ${marvelous}'
+			+ '\nSicks: ${sicks}'
+			+ '\nGoods: ${goods}'
+			+ '\nBads: ${bads}'
+			+ '\nShits: ${shits}'
+			+ '\nMisses: ${misses}'
+			+ '\nGhost Taps: ${ghostTaps}'
+			+ (badNote > 0 ? '\nBad Note: ${badNote}' : '')
+			+ (MA > 0 ? '\nMA: ${MA}' : '')
+			+ (SA > 0 ? '\nSA: ${SA}' : '')
+			+ '\n'
+			;
 		callInterp('keyShitAfter',[pressArray,holdArray,hitArray]);
 		charCall("keyShitAfter",[pressArray,holdArray,hitArray]);
 		playerStrums.forEach(function(spr:FlxSprite)
@@ -3446,14 +3460,26 @@ public function pause(){
 						goodNoteHit(daNote);
 					}
 				}
-				 callInterp("keyShitAfter",[pressArray,holdArray,hitArray]);
-				 charCall("keyShitAfter",[pressArray,holdArray,hitArray]);
+				if(FlxG.save.data.JudgementCounter)
+					judgementCounter.text = 'Combo: ${combo}' + (combo < maxCombo ? ' (Max: ' + maxCombo + ')' : '')
+					+ '\nMarvelous: ${marvelous}'
+					+ '\nSicks: ${sicks}'
+					+ '\nGoods: ${goods}'
+					+ '\nBads: ${bads}'
+					+ '\nShits: ${shits}'
+					+ '\nMisses: ${misses}'
+					+ '\nGhost Taps: ${ghostTaps}'
+					+ (badNote > 0 ? '\nBad Note: ${badNote}' : '')
+					+ (MA > 0 ? '\nMA: ${MA}' : '')
+					+ (SA > 0 ? '\nSA: ${SA}' : '')
+					+ '\n'
+					;
+				callInterp("keyShitAfter",[pressArray,holdArray,hitArray]);
+				charCall("keyShitAfter",[pressArray,holdArray,hitArray]);
 				boyfriend.isPressingNote = holdArray.contains(true);
 				if (boyfriend.currentAnimationPriority == 10 && (boyfriend.holdTimer > Conductor.stepCrochet * boyfriend.dadVar * 0.001 || boyfriend.isDonePlayingAnim()) && !boyfriend.isPressingNote) {
 					for(char in boyfriendArray){if(!char.animation.curAnim.name.startsWith("dance") && !char.animation.curAnim.name.startsWith("idle")){char.dance(curBeat % 2 == 0);}}
 				}
-		
-		 
 				var i = playerStrums.members.length - 1;
 				var spr:StrumArrow;
 				while (i >= 0){
@@ -3620,8 +3646,8 @@ public function pause(){
 				+ '\nMisses: ${misses}'
 				+ '\nGhost Taps: ${ghostTaps}'
 				+ (badNote > 0 ? '\nBad Note: ${badNote}' : '')
-				+ '\nMA: ${MA}'
-				+ '\nSA: ${SA}'
+				+ (MA > 0 ? '\nMA: ${MA}' : '')
+				+ (SA > 0 ? '\nSA: ${SA}' : '')
 				+ '\n'
 				;
 		}
@@ -3685,20 +3711,6 @@ public function pause(){
 		if (FlxG.save.data.songInfo == 0 || FlxG.save.data.songInfo == 1 || FlxG.save.data.songInfo == 3) {
 			scoreTxt.screenCenter(X);
 		}
-		if(FlxG.save.data.JudgementCounter)
-			judgementCounter.text = 'Combo: ${combo}' + (combo < maxCombo ? ' (Max: ' + maxCombo + ')' : '')
-			+ '\nMarvelous: ${marvelous}'
-			+ '\nSicks: ${sicks}'
-			+ '\nGoods: ${goods}'
-			+ '\nBads: ${bads}'
-			+ '\nShits: ${shits}'
-			+ '\nMisses: ${misses}'
-			+ '\nGhost Taps: ${ghostTaps}'
-			+ (badNote > 0 ? '\nBad Note: ${badNote}' : '')
-			+ (totalNotesHit > 0 ? '\nMA: ${MA}' : '')
-			+ (totalNotesHit > 0 ? '\nSA: ${SA}' : '')
-			+ '\n'
-			;
 
 		if (generatedMusic && SONG.notes[Math.floor(curStep / 16)] != null)
 		{
