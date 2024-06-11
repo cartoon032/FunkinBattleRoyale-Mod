@@ -2810,9 +2810,6 @@ public function pause(){
 	// Custom input handling
 
 	function setInputHandlers(){
-		while(FalseBoolArray.length < keyAmmo[mania]){
-			FalseBoolArray.push(false);
-		}
 		if(botPlay){
 			inputMode = 0;
 			noteShit = SENoteShit;
@@ -2844,6 +2841,7 @@ public function pause(){
 				SEIUpdateKeys();
 				FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, SEIKeyPress);
 				FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, SEIKeyRelease);
+				while(FalseBoolArray.length < keyAmmo[playermania]){FalseBoolArray.push(false);}
 			#end
 			default:
 				MainMenuState.handleError('${inputMode} is not a valid input! Please change your input mode!');
@@ -2853,15 +2851,11 @@ public function pause(){
 	dynamic function noteShit(){MainMenuState.handleError("I can't handle input for some reason, Please report this!");}
 	public function DadStrumPlayAnim(id:Int) {
 		var spr:StrumArrow= (!BothSide ? cpuStrums.members[id] : playerStrums.members[id]);
-		if(spr != null) {
-					spr.confirm();
-		}
+		if(spr != null)spr.confirm();
 	}
 	public function BFStrumPlayAnim(id:Int) {
 		var spr:StrumArrow= playerStrums.members[id];
-		if(spr != null) {
-					spr.confirm();
-		}
+		if(spr != null)spr.confirm();
 	}
 
 	private function keyShit():Void
