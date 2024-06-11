@@ -93,7 +93,7 @@ class ArrowSelection extends SearchMenuState
 		updateInfoText('Hold Shift to set only for current mania, Hold Control to set for every mania, Enter for default/fallback,\nPress Tab to increase mania, Press Shift+Tab to decrease mania - current mania ${PlayState.mania} with ${PlayState.keyAmmo[PlayState.mania]} Keys');
 		add(playerStrums);
 
-		maniaSkin = new FlxText(920, 140, 320, "", 16);
+		maniaSkin = new FlxText(-20, 140, FlxG.width, "", 16);
 		maniaSkin.wordWrap = true;
 		maniaSkin.scrollFactor.set();
 		maniaSkin.setFormat(CoolUtil.font, 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);

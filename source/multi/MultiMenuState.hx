@@ -133,7 +133,7 @@ class MultiMenuState extends onlinemod.OfflineMenuState
 		scoreText.borderSize = 2;
 		add(scoreText);
 		SpeedText.y = 65;
-		chartinfotext = new FlxText(-19, 140, FlxG.width, "Press Q for chart info", 24);
+		chartinfotext = new FlxText(-20, 140, FlxG.width, "Press Q for chart info", 24);
 		chartinfotext.font = CoolUtil.font;
 		chartinfotext.alignment = RIGHT;
 		chartinfotext.borderSize = 2;
