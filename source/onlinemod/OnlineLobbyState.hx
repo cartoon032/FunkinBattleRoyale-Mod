@@ -515,11 +515,6 @@ class OnlineLobbyState extends ScriptMusicBeatState
 					var dataarr:Array<String> = data[1].split('/*/');
 					var array = clientsGroup[clientTexts[Std.parseInt(dataarr[0])]];
 					clientsStatus[Std.parseInt(dataarr[0])] = dataarr[1];
-					while(array.length > 2){
-							var thing = array.pop();
-							remove(thing);
-							thing.destroy();
-						}
 					addStatustext(array,clientTexts[Std.parseInt(dataarr[0])],dataarr[1]);
 				case "StopTimer":
 					initCountdown = false;
@@ -932,21 +927,22 @@ static function updatesetting(){
 function setSelfStatus(status:String) {
 	var array = clientsGroup[clientTexts[-1]];
 	clientsStatus[-1] = status;
-	while(array.length > 2){
-			var thing = array.pop();
-			remove(thing);
-			thing.destroy();
-		}
 	addStatustext(array,clientTexts[-1],status);
 	Sender.SendPacket(Packets.CUSTOMPACKETSTRING, ["Set_Status", status], OnlinePlayMenuState.socket);
 }
 
-function addStatustext(array:Array<Dynamic>,order:Int,status:String,?animation:Bool = false) { // as much as i hate it for god know what haxe doesn't want the function here to just edit the text.
-	var statusText:FlxText = new FlxText(animation ? -560 : 50, targetY + order * NAMES_VERTICAL_SPACING, 460, status);
-	statusText.setFormat(CoolUtil.font, NAMES_SIZE, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-	statusText.cameras = [camPlayerList];
-	array.push(statusText);
-	add(statusText);
+function addStatustext(array:Array<Dynamic>,order:Int,status:String,?animation:Bool = false) {
+	var statusText:FlxText;
+	if(array.length == 2){
+		statusText = new FlxText(animation ? -560 : 50, targetY + order * NAMES_VERTICAL_SPACING, 460, status);
+		statusText.setFormat(CoolUtil.font, NAMES_SIZE, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		statusText.cameras = [camPlayerList];
+		array.push(statusText);
+		add(statusText);
+	}else{
+		statusText = array[2];
+		statusText.text = status;
+	}
 	callInterp("addStatustext",[statusText,array]);
 }
 
