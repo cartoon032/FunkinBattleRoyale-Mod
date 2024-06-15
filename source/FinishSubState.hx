@@ -439,6 +439,7 @@ class FinishSubState extends MusicBeatSubstate
 			switch (PlayState.stateType)
 			{
 				case 2:FlxG.switchState(new onlinemod.OfflineMenuState());
+				case 3:FlxG.switchState(new onlinemod.OnlineLobbyState());
 				case 4:FlxG.switchState(new multi.MultiMenuState());
 				case 5:FlxG.switchState(new osu.OsuMenuState());
 				default:FlxG.switchState(new FreeplayState());
